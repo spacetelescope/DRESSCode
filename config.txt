@@ -1,0 +1,6 @@
+path = /data/SWIFT_data/
+galaxy = NGC0628
+years = 2007, 2008, 2013, 2015
+enlarge = no
+add_xpix = 200
+add_ypix = 100
