@@ -39,7 +39,9 @@ This project is Copyright (c) Marjorie Decleir and licensed under
 the terms of the BSD 3-Clause “New” or “Revised” License (see the `LICENSE.txt` file for more information).
 
 
-Publications
-------------
+Use cases and publications
+--------------------------
 
-A slightly older version of the pipeline (with only one phase) has been used and described in `Decleir et al. (2019) <https://ui.adsabs.harvard.edu/abs/2019MNRAS.486..743D/abstract>`_.
+- `Decleir et al. (2019) <https://ui.adsabs.harvard.edu/abs/2019MNRAS.486..743D/abstract>`_ used a slightly older version of the DRESSCode (with only one phase) to reduce the Swift UVOT images of NGC628. These images were used to measure dust attenuation curves on resolved scales in NGC628. The paper also describes the details of the older version of the pipeline.
+
+- The current version of the DRESSCode was used in the DustKING project, to reduce the Swift UVOT images of all KINGFISH galaxies. The goal of this project is to measure the global dust attenuation curves of all KINGFISH galaxies. This work will be published soon (Decleir et al., in prep.). The preliminary results of this work can be found in Chapter 4 of `Marjorie Decleir's PhD thesis <https://biblio.ugent.be/publication/8638711>`_.
