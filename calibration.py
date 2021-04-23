@@ -5,7 +5,6 @@
 #Import the necessary packages.
 from astropy.io import fits
 import os
-import numpy as np
 import configloader
 
 

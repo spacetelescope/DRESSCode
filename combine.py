@@ -9,7 +9,6 @@ import numpy as np
 from astropy.io import fits
 from astropy import wcs
 from ccdproc import wcs_project, CCDData
-import pdb
 import configloader
 
 

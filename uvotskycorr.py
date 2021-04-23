@@ -6,7 +6,6 @@
 
 #Import the necessary packages.
 import os
-import shutil
 import subprocess
 import configloader
 
@@ -38,11 +37,11 @@ for filename in sorted(os.listdir(path)):
     outfile = filename.replace("sk.img", "aspcorr.ALL")
     attfile = filename.split('_',1)[0] + "pat.fits"
     terminal_output_file = path + "output_uvotskycorrID_" + filename.replace('.img','.txt')
-    catfile = "/home/mdcleir/Documents/SWIFT_datareduction_pipeline/V2/usnob1.spec"
+    catfile = os.getcwd() + "/usnob1.spec"
 
     #Open the terminal output file and run uvotskycorr ID with the specified parameters:
     with open(terminal_output_file,"w") as terminal:
-        subprocess.call("uvotskycorr what=ID skyfile=" + skyfile + " corrfile=NONE attfile=" + attfile + " outfile=" + outfile + " starid='matchtol=20 cntcorr=3 n.reference=200 n.observation=40 max.rate=1000' catspec=" + catfile + " chatter=5", cwd=path, shell=True, stdout=terminal)
+        subprocess.call("uvotskycorr what=ID skyfile=" + skyfile + " corrfile=NONE attfile=" + attfile + " outfile=" + outfile + " starid='matchtol=20 cntcorr=3 n.reference=200 n.observation=40 max.rate=1000' catspec=" + catfile + " chatter=5 clobber=yes", cwd=path, shell=True, stdout=terminal)
 
     #Check if an aspect correction was found.
     file = open(terminal_output_file,"r")
