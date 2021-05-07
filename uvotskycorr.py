@@ -41,7 +41,7 @@ for filename in sorted(os.listdir(path)):
 
     #Open the terminal output file and run uvotskycorr ID with the specified parameters:
     with open(terminal_output_file,"w") as terminal:
-        subprocess.call("uvotskycorr what=ID skyfile=" + skyfile + " corrfile=NONE attfile=" + attfile + " outfile=" + outfile + " starid='matchtol=20 cntcorr=3 n.reference=200 n.observation=40 max.rate=1000' catspec=" + catfile + " chatter=5 clobber=yes", cwd=path, shell=True, stdout=terminal)
+        subprocess.call("uvotskycorr what=ID skyfile=" + skyfile + " corrfile=NONE attfile=" + attfile + " outfile=" + outfile + " starid='matchtol=20 cntcorr=3 n.reference=200 n.observation=40 max.rate=1000' catspec=" + catfile + " chatter=5", cwd=path, shell=True, stdout=terminal)
 
     #Check if an aspect correction was found.
     file = open(terminal_output_file,"r")

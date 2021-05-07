@@ -6,8 +6,9 @@
 #Import the necessary packages.
 import os
 import shutil
-import configloader
 
+import configloader
+from utils import listdir_nohidden
 
 #Load the configuration file.
 config = configloader.load_config()
@@ -30,11 +31,6 @@ l=0
 
 #Create the new directory.
 os.mkdir(topath)
-
-def listdir_nohidden(path):
-    for f in os.listdir(path):
-        if not f.startswith('.'):
-            yield f
 
 #For each subfolder in the Raw_data folder:
 for directory in listdir_nohidden(rawpath):
