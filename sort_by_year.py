@@ -1,6 +1,8 @@
-# header_info.py: Script to print relevant information about the image files.
-# Marjorie Decleir
-# Updated (to Python 3.6) on 24-10-2018
+"""Sorts the files in working_dir by year
+Reads header info from *rw.img files to identify the year
+Creates the year directory if it doesn't exist
+Then moves the rw.img file as well as any derivatives and moves them into the year folder
+"""
 
 import os
 from astropy.io import fits
@@ -48,13 +50,11 @@ for filename in sorted(os.listdir(path)):
     target_path = Path(f"{working_path}/{file_year}")
     target_path.mkdir(parents=True, exist_ok=True)
 
-    # copy files into year directory
+    # move files into year directory
     match_str = filename[:13]
     data_files = set(Path(working_path).glob(f"*{match_str}*"))
     for data_file in data_files:
         if len(argv) > 1 and "dryrun" in argv[1]:
             print("moving", data_file, "to", target_path / data_file.name)
         else:
-            # todo: change to:
             data_file.rename(target_path / data_file.name)
-            # shutil.copy(data_file, target_path / data_file.name)
