@@ -41,7 +41,7 @@ for original_filename in sorted(os.listdir(path)):
     outfile = original_filename.replace("sk.img", "aspcorr.ALL")
     attfile = original_filename.split('_',1)[0] + "uat.fits"
     terminal_output_file = path + "output_uvotskycorrID_" + original_filename.replace('.img','.txt')
-    catfile = "/home/mdcleir/Documents/SWIFT_datareduction_pipeline/V2/usnob1.spec"
+    catfile = os.getcwd() + "/usnob1.spec"
 
     #Open the terminal output file and run uvotskycorr ID with the specified parameters:
     with open(terminal_output_file,"w") as terminal:

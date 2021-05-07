@@ -5,7 +5,6 @@
 
 #Import the necessary packages.
 import os
-import shutil
 import subprocess
 from astropy.io import fits
 import configloader
