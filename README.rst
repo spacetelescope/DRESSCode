@@ -32,13 +32,13 @@ Build:
 
 .. code-block:: sh
 
-    docker build --tag dresscode -f Docker/dockerfile .
+    docker build --tag dresscodeswift/dresscode:latest -f Docker/dockerfile .
 
 Run:
 
 .. code-block:: sh
 
-    docker run --rm -it dresscode /bin/bash
+    docker run --rm -it dresscodeswift/dresscode /bin/bash
 
 
 Contributors
