@@ -25,6 +25,21 @@ The minimum requirements are thus:
 
 - HEASoft 6.25 or later, which can be downloaded from the `HEASARC website <https://heasarc.gsfc.nasa.gov/docs/software/heasoft/download.html>`_. The installation guide and user manual `DRESSCode_UserManual.pdf` explains the HEASoft installation step by step. Note that DRESSCode has been written and tested for HEASoft version 6.25. A later version should work as well, but possibly some minor changes are needed to the scripts.
 
+Docker
+------
+
+Build:
+
+.. code-block:: sh
+
+    docker build --tag dresscode -f Docker/dockerfile .
+
+Run:
+
+.. code-block:: sh
+
+    docker run --rm -it dresscode /bin/bash
+
 
 Contributors
 ------------

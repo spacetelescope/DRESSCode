@@ -1,0 +1,15 @@
+#Ignoring git and cache folders
+.git
+.cache
+
+# Ignore personal folders
+.private
+.vscode
+
+# Ignore python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# project specific
+config.txt
