@@ -1,4 +1,4 @@
-FROM dresscodeswift/heasoft:v6.28.swift
+FROM dresscodeswift/heasoft-caldb-wcstools:latest
 
 USER root
 
@@ -6,20 +6,11 @@ RUN \
     apt-get update \
     && apt-get -y upgrade \
     && apt-get -y install \
-        pip \
+        python3-pip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 USER heasoft
-
-RUN \
-    # get wcstools
-    wget tdc-www.harvard.edu/software/wcstools/wcstools-3.9.6.tar.gz \
-    && tar -xf wcstools-3.9.6.tar.gz -C /opt/heasoft \
-    && rm wcstools-3.9.6.tar.gz \
-    && cd /opt/heasoft/wcstools-3.9.6 \
-    && make all
-ENV PATH=/opt/heasoft/wcstools-3.9.6/bin:$PATH
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
