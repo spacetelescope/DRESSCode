@@ -9,7 +9,7 @@ For the original version of this software, see [mdecleir/DRESSCode](https://gith
 - Please refer to [DRESSCode_UserManual.pdf](DRESSCode_UserManual.pdf) for detailed installation instructions and a user manual.
 - The details of the different steps in the pipeline are explained in Chapter 2 of [Marjorie Decleir's PhD thesis](https://biblio.ugent.be/publication/8638711).
 
-In order to execute the full pipeline exactly as described in the manual, it is recommended to keep the same directory structure as explained in the manual. The user then only needs to change the galaxy name and the path of the main directory in the configuration file `config.txt` before running the scripts.
+In order to execute the full pipeline exactly as described in the manual, it is recommended to keep the same directory structure as explained in the manual. The user then only needs to change the galaxy name and the path of the main directory in the configuration file `config.txt` before running the scripts (see [config.txt.example](config.txt.example)).
 
 ## Requirements
 
@@ -18,7 +18,41 @@ DRESSCode has been written and tested on Linux and Mac, and relies on several ta
 The minimum requirements are thus:
 
 - Python 3.6 or later
-- HEASoft 6.25 or later, which can be downloaded from the [HEASARC website](https://heasarc.gsfc.nasa.gov/docs/software/heasoft/download.html). The installation guide and user manual explain the HEASoft installation step by step. Note that DRESSCode has been written and tested for HEASoft version 6.25. A later version should work as well, but possibly some minor changes are needed to the scripts.
+- HEASoft 6.25 or later, which can be downloaded from the [HEASARC website](https://heasarc.gsfc.nasa.gov/docs/software/heasoft/download.html).
+- [caldb](https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/install.html): calibration tree
+- [wcstools](http://tdc-www.harvard.edu/wcstools/): World Coordinate System utilities
+
+*Note:* the [user manual](DRESSCode_UserManual.pdf) explains the HEASoft installation step by step. Note that DRESSCode has been written and tested for HEASoft version 6.25. A later version should work as well, but possibly some minor changes are needed to the scripts.
+
+### Docker
+
+Docker can be used to run the software without having to complete the heasoft/caldb/wcstools installation procedure yourself or to run on windows. The image can be found on [docker hub](https://hub.docker.com/repository/docker/dresscodeswift/dresscode).
+
+To download and open an interactive shell:
+
+```sh
+docker run --rm -it dresscodeswift/dresscode /bin/bash
+```
+
+From there run the pipeline, which is located in `/opt/dresscode`
+
+You will probably want to download the data onto a persistent volume. For this, see [docker documentation](https://docs.docker.com/storage/volumes/).
+
+#### Docker Development
+
+To build the image locally:
+
+```sh
+docker build --tag dresscodeswift/dresscode:latest -f Docker/dockerfile .
+```
+
+To build the base image that includes caldb SWIFT/UVOTA and wcstools:
+
+```sh
+docker build --tag dresscodeswift/heasoft-caldb-wcstools -f Docker/heasoft-caldb-wcstools.dockerfile .
+```
+
+To build the base heasoft image, follow the Heasoft Docker [instructions](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/docker.html).
 
 ## License
 

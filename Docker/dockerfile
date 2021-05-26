@@ -1,0 +1,18 @@
+FROM dresscodeswift/heasoft-caldb-wcstools:latest
+
+USER root
+
+RUN \
+    apt-get update \
+    && apt-get -y upgrade \
+    && apt-get -y install \
+        python3-pip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+USER heasoft
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . /opt/dresscode
