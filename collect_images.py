@@ -6,8 +6,9 @@
 #Import the necessary packages.
 import os
 import shutil
-import configloader
 
+import configloader
+from utils import listdir_nohidden
 
 #Load the configuration file.
 config = configloader.load_config()
@@ -32,28 +33,28 @@ l=0
 os.mkdir(topath)
 
 #For each subfolder in the Raw_data folder:
-for directory in os.listdir(rawpath):
+for directory in listdir_nohidden(rawpath):
 	#Collect the raw UV images.
-    for file in os.listdir(rawpath+directory+"/uvot/image/"):
+    for file in listdir_nohidden(rawpath+directory+"/uvot/image/"):
         if file.endswith("m2_rw.img.gz") or file.endswith("w1_rw.img.gz") or file.endswith("w2_rw.img.gz"):
             shutil.copy(rawpath+directory+"/uvot/image/"+file,topath)
             i += 1
 	
 	#Collect the UV event files.
     if os.path.isdir(rawpath+directory+"/uvot/event/"):
-        for file in os.listdir(rawpath+directory+"/uvot/event/"):
+        for file in listdir_nohidden(rawpath+directory+"/uvot/event/"):
             if file.endswith("m2w1po_uf.evt.gz") or file.endswith("w1w1po_uf.evt.gz") or file.endswith("w2w1po_uf.evt.gz"):
                 shutil.copy(rawpath+directory+"/uvot/event/"+file,topath)
                 j += 1
 
 	#Collect the attitude files.
-    for file in os.listdir(rawpath+directory+"/auxil/"):
+    for file in listdir_nohidden(rawpath+directory+"/auxil/"):
         if file.endswith("pat.fits.gz"):
             shutil.copy(rawpath+directory+"/auxil/"+file,topath)
             k += 1
 
 	#Collect the aspect following files.
-    for file in os.listdir(rawpath+directory+"/uvot/hk/"):
+    for file in listdir_nohidden(rawpath+directory+"/uvot/hk/"):
         if file.endswith("uaf.hk.gz"):
             shutil.copy(rawpath+directory+"/uvot/hk/"+file,topath)
             l += 1

@@ -6,7 +6,6 @@
 
 #Import the necessary packages.
 import os
-import shutil
 import subprocess
 import configloader
 
@@ -38,7 +37,7 @@ for filename in sorted(os.listdir(path)):
     outfile = filename.replace("sk.img", "aspcorr.ALL")
     attfile = filename.split('_',1)[0] + "pat.fits"
     terminal_output_file = path + "output_uvotskycorrID_" + filename.replace('.img','.txt')
-    catfile = "/home/mdcleir/Documents/SWIFT_datareduction_pipeline/V2/usnob1.spec"
+    catfile = os.getcwd() + "/usnob1.spec"
 
     #Open the terminal output file and run uvotskycorr ID with the specified parameters:
     with open(terminal_output_file,"w") as terminal:
