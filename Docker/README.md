@@ -19,10 +19,10 @@ Todo
 
 ## Testing
 
-The following creates mounts a volume into the docker image and runs the `test_pipeline.bash` script
+The following mounts a local volume into the docker image and runs the `test_pipeline.bash` script
 
 ```sh
-docker run --rm -v ~/dresscode-data/:/data/dresscode-data \
+docker run --rm -it -v ~/dresscode-data/:/data/dresscode-data \
     dresscodeswift/dresscode \
     /bin/bash /opt/dresscode/tests/test_pipeline.bash /opt/dresscode /data/dresscode-data 
 ```
