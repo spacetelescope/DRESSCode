@@ -19,7 +19,6 @@ cd ~/dresscode-data
 DATA_DIR=$(pwd)
 GALAXY="NGC0628"
 mkdir -p $DATA_DIR/$GALAXY/Raw_data
-mkdir -p $DATA_DIR/$GALAXY/working_dir
 cd $DATA_DIR/$GALAXY/Raw_data
 
 # downloading test files
@@ -52,8 +51,24 @@ echo "add_ypix = 100" >> $file
 # change directory to dresscode install
 cd $DRESSCODE_INSTALL
 
-# rearranging files into Raw images
+# rearranging files into Raw_images directory
+if [ -d $DATA_DIR/$GALAXY/Raw_images/ ]
+then
+    rm -r $DATA_DIR/$GALAXY/Raw_images/*
+    rmdir $DATA_DIR/$GALAXY/Raw_images
+fi
 python collect_images.py
+
+# uncompress Raw_images
+gunzip $DATA_DIR/$GALAXY/Raw_images/*.gz
+
+# copy Raw_images to working_dir
+if [ -d $DATA_DIR/$GALAXY/working_dir/ ]
+then
+    rm -r $DATA_DIR/$GALAXY/working_dir/*
+    rmdir $DATA_DIR/$GALAXY/working_dir
+fi
+cp -r $DATA_DIR/$GALAXY/Raw_images $DATA_DIR/$GALAXY/working_dir
 
 # run the pipeline
 echo "Running the pipeline"
