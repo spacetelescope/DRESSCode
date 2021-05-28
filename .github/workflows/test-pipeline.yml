@@ -10,4 +10,4 @@ jobs:
       - name: Build the Docker image
         run: docker build --tag dresscodeswift/dresscode:latest -f Docker/dockerfile .
       - name: Run the pipeline
-        run: docker run --rm -it dresscodeswift/dresscode /bin/bash /opt/dresscode/tests/test_pipeline.bash /opt/dresscode
+        run: docker run --rm dresscodeswift/dresscode /bin/bash /opt/dresscode/tests/test_pipeline.bash /opt/dresscode
