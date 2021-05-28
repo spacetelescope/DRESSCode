@@ -1,3 +1,5 @@
+#!/bin/bash
+
 set -e
 
 echo "1/13 Sky images part 1 (uvotimage.py)"

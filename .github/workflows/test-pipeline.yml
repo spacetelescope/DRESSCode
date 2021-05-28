@@ -1,0 +1,13 @@
+on:
+  push:
+
+jobs:
+  build_and_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Build the Docker image
+        run: docker build --tag dresscodeswift/dresscode:latest -f Docker/dockerfile .
+      - name: Run the pipeline
+        run: docker run --rm -it dresscodeswift/dresscode /bin/bash /opt/dresscode/tests/test_pipeline.bash /opt/dresscode
