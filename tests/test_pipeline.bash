@@ -14,9 +14,18 @@ else
 fi
 
 # creating data directories
-mkdir -p ~/dresscode-data/
-cd ~/dresscode-data
-DATA_DIR=$(pwd)
+# if users specifies a data directory, we use that here, otherwise we use home directory
+if [ $# -eq 2 ]
+then
+    cd $2
+    DATA_DIR=$(pwd)
+    echo "Data volume location specified using: $DATA_DIR"
+else
+    mkdir -p ~/dresscode-data/
+    cd ~/dresscode-data
+    DATA_DIR=$(pwd)
+    echo "No data volume location specified, using: $DATA_DIR"
+fi
 GALAXY="NGC0628"
 mkdir -p $DATA_DIR/$GALAXY/Raw_data
 cd $DATA_DIR/$GALAXY/Raw_data
