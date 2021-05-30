@@ -31,6 +31,7 @@ Docker can be used to run the software without having to complete the heasoft/ca
 To download and open an interactive shell:
 
 ```sh
+docker pull dresscodeswift/dresscode:latest
 docker run --rm -it dresscodeswift/dresscode /bin/bash
 ```
 

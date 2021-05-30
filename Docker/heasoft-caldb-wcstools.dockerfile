@@ -1,5 +1,20 @@
 FROM dresscodeswift/heasoft:v6.28.swift
 
+USER root
+
+RUN \
+    apt-get update \
+    && apt-get -y upgrade \
+    && apt-get -y install \
+    python3-pip \
+    python3-venv \
+    python3-dev \
+    git \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+USER heasoft
+
 ENV CALDB=/opt/heasoft/caldb \
     PATH=/opt/heasoft/wcstools-3.9.6/bin:$PATH
 
