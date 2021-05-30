@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: dresscodeswift/heasoft-caldb-wcstools:latest
-      options: -v /__w/DRESSCode/DRESSCode:/__w/DRESSCode/DRESSCode:rw
+      options: --user root -v /__w/DRESSCode/DRESSCode:/__w/DRESSCode/DRESSCode:rw
 
     steps:
       - name: Check out the repo
