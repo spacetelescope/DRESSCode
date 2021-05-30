@@ -15,7 +15,7 @@ jobs:
       - name: Install and run pipeline
         run: |
           pip install -r requirements.txt
-          /bin/bash /opt/dresscode/tests/test_pipeline.bash
+          /bin/bash /opt/dresscode/tests/test_pipeline.bash /__w/DRESSCode/DRESSCode
 
       - name: Save pipeline output
         uses: actions/upload-artifact@v2
