@@ -11,11 +11,11 @@ jobs:
         run: docker build --tag dresscodeswift/dresscode:latest -f Docker/dockerfile .
       - name: Run the pipeline
         run: |
-          mkdir dresscode-data
-          docker run --rm -t -v dresscode-data:dresscode-data dresscodeswift/dresscode /bin/bash /opt/dresscode/tests/test_pipeline.bash /opt/dresscode dresscode-data
+          mkdir data
+          docker run --rm -t -v data:/opt/dresscode/data dresscodeswift/dresscode /bin/bash /opt/dresscode/tests/test_pipeline.bash /opt/dresscode /opt/dresscode/data
       - name: Save pipeline output
         uses: actions/upload-artifact@v2
         with:
           name: final-fits
           path: |
-            dresscode-data/NGC0628/working_dir/*final*.fits
+            data/NGC0628/working_dir/*final*.fits
