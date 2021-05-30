@@ -7,6 +7,7 @@ RUN \
     && apt-get -y upgrade \
     && apt-get -y install \
     python3-pip \
+    git \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
