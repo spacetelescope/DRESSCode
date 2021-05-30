@@ -13,7 +13,7 @@ jobs:
 
       - name: Run the pipeline
         run: |
-          mkdir -p ${{ github.workspace }}/data
+          mkdir -p ${{ github.workspace }}/data/NGC0628
           docker run --rm -t -v ${{ github.workspace }}/data:/home/heasoft/data dresscodeswift/dresscode /bin/bash /opt/dresscode/tests/test_pipeline.bash /opt/dresscode /home/heasoft/data
 
       - name: Save pipeline output
