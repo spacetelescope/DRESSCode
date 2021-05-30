@@ -13,6 +13,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install and run pipeline
+        shell: /bin/bash -e {0}
         run: |
           pip install -r requirements.txt
           /bin/bash tests/test_pipeline.bash
