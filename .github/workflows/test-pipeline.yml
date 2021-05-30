@@ -12,7 +12,7 @@ jobs:
       - name: Run the pipeline
         run: |
           mkdir dresscode-data
-          docker run --rm -t -v dresscode-data:/data/dresscode-data dresscodeswift/dresscode /bin/bash /opt/dresscode/tests/test_pipeline.bash /opt/dresscode /data/dresscode-data
+          docker run --rm -t -v dresscode-data:dresscode-data dresscodeswift/dresscode /bin/bash /opt/dresscode/tests/test_pipeline.bash /opt/dresscode dresscode-data
       - name: Save pipeline output
         uses: actions/upload-artifact@v2
         with:
