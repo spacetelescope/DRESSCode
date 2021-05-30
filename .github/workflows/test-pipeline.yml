@@ -4,21 +4,22 @@ on:
 jobs:
   build_and_tests:
     runs-on: ubuntu-latest
+    container:
+      image: dresscodeswift/heasoft-caldb-wcstools:latest
+
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
 
-      - name: Build the Docker image
-        run: docker build --tag dresscodeswift/dresscode:latest -f Docker/dockerfile .
-
-      - name: Run the pipeline
+      - name: Install and run pipeline
         run: |
-          mkdir -p ${{ github.workspace }}/data/NGC0628
-          docker run --rm -t -v ${{ github.workspace }}/data:/home/heasoft/data dresscodeswift/dresscode /bin/bash /opt/dresscode/tests/test_pipeline.bash /opt/dresscode /home/heasoft/data
+          cd DRESSCode
+          pip install -r requirements.txt
+          /bin/bash /opt/dresscode/tests/test_pipeline.bash
 
       - name: Save pipeline output
         uses: actions/upload-artifact@v2
         with:
           name: final-fits
           path: |
-            data/NGC0628/working_dir/*final*.fits
+            dresscode-data/NGC0628/working_dir/*final*.fits

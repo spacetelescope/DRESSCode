@@ -1,6 +1,6 @@
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build_and_push:
@@ -8,12 +8,16 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
-      - name: Build the Docker image
-        run: docker build --tag dresscodeswift/dresscode:latest -f Docker/dockerfile .
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build the dependency Docker image
+        run: docker build --tag dresscodeswift/heasoft-caldb-wcstools:latest -f Docker/heasoft-caldb-wcstools.dockerfile .
+      - name: Push the dependency Docker image
+        run: docker push dresscodeswift/heasoft-caldb-wcstools:latest
+      - name: Build the Docker image
+        run: docker build --tag dresscodeswift/dresscode:latest -f Docker/dockerfile .
       - name: Push the Docker image
         run: docker push dresscodeswift/dresscode:latest

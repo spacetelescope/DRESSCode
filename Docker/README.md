@@ -24,5 +24,12 @@ The following mounts a local volume into the docker image and runs the `test_pip
 ```sh
 docker run --rm -it -v ~/dresscode-data/:/data/dresscode-data \
     dresscodeswift/dresscode \
-    /bin/bash /opt/dresscode/tests/test_pipeline.bash /opt/dresscode /data/dresscode-data 
+    /bin/bash /opt/dresscode/tests/test_pipeline.bash /opt/dresscode /data/dresscode-data
+```
+
+## Build and push dependency docker image
+
+```sh
+docker build --tag dresscodeswift/heasoft-caldb-wcstools:latest -f Docker/heasoft-caldb-wcstools.dockerfile .
+docker push dresscodeswift/heasoft-caldb-wcstools:latest
 ```
