@@ -1,7 +1,6 @@
 on:
   push:
-    # todo: change to below when ready:
-    # branches: [ main ]
+    branches: [ main ]
 
 jobs:
   deploy_docs:

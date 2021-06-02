@@ -6,7 +6,7 @@ For the original version of this software, see [mdecleir/DRESSCode](https://gith
 
 ## Documentation
 
-- Please refer to [DRESSCode_UserManual.pdf](DRESSCode_UserManual.pdf) for detailed installation instructions and a user manual.
+- Please refer to [user manual](https://spacetelescope.github.io/DRESSCode/user_manual/install/) for detailed installation instructions and a user manual.
 - The details of the different steps in the pipeline are explained in Chapter 2 of [Marjorie Decleir's PhD thesis](https://biblio.ugent.be/publication/8638711).
 
 In order to execute the full pipeline exactly as described in the manual, it is recommended to keep the same directory structure as explained in the manual. The user then only needs to change the galaxy name and the path of the main directory in the configuration file `config.txt` before running the scripts (see [config.txt.example](config.txt.example)).
@@ -22,7 +22,7 @@ The minimum requirements are thus:
 - [caldb](https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/install.html): calibration tree
 - [wcstools](http://tdc-www.harvard.edu/wcstools/): World Coordinate System utilities
 
-*Note:* the [user manual](DRESSCode_UserManual.pdf) explains the HEASoft installation step by step. Note that DRESSCode has been written and tested for HEASoft version 6.25. A later version should work as well, but possibly some minor changes are needed to the scripts.
+*Note:* the [user manual](https://spacetelescope.github.io/DRESSCode/user_manual/install/) explains the HEASoft installation step by step. Note that DRESSCode has been written and tested for HEASoft version 6.25. A later version should work as well, but possibly some minor changes are needed to the scripts.
 
 ### Docker
 
