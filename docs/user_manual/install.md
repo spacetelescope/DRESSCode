@@ -11,7 +11,7 @@ docker pull dresscodeswift/dresscode
 docker run --rm -it dresscodeswift/dresscode /bin/bash
 ```
 
-## Manual Installation
+## Local Installation
 
 The following steps will install Heasoft, caldb, and wcstools on your machine
 
