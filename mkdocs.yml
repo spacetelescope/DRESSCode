@@ -5,22 +5,26 @@ theme:
   icon:
     repo: fontawesome/brands/github-alt
   palette:
-  - scheme: default
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
+    primary: blue
+    accent: blue
     toggle:
       icon: material/lightbulb-outline
       name: Switch to dark mode
-  - scheme: slate
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
     toggle:
       icon: material/lightbulb
       name: Switch to light mode
 
 nav:
-  - DRESSCode: 'index.md'
+  - Home: 'index.md'
   - User Manual: 
-    - 'user_manual/install.md'
-    - 'user_manual/download_data.md'
-    - 'user_manual/data_reduction_with_dresscode.md'
-  - notes.md
+    - user_manual/install.md
+    - user_manual/download_data.md
+    - user_manual/data_reduction_with_dresscode.md
+    - user_manual/notes.md
 
 repo_name: spacetelescope/DRESSCode
 repo_url: https://github.com/spacetelescope/DRESSCode

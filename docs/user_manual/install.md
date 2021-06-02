@@ -1,6 +1,21 @@
 # Installation Instructions
 
-## Download the software
+## Docker Installation
+
+Docker can be used to run the software without having to complete the heasoft/caldb/wcstools installation procedure yourself (or to run on windows). The image can be found on [docker hub](https://hub.docker.com/repository/docker/dresscodeswift/dresscode). It also includes the latest version of the DRESSCode pipeline, along with any other python dependencies.
+
+To download and open an interactive shell with the prerequisits already installed:
+
+```sh
+docker pull dresscodeswift/dresscode
+docker run --rm -it dresscodeswift/dresscode /bin/bash
+```
+
+## Manual Installation
+
+The following steps will install Heasoft, caldb, and wcstools on your machine
+
+### Download the software
 
 - Go to <https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/download.html>
 - STEP 1
@@ -11,7 +26,7 @@
 - Submit and wait
 - Untar the file
 
-## Install/Build the software
+### Install/Build the software
 
 - STEP 3 - Install the software: Follow the installation guide for your platform, e.g. "PC Linux - Ubuntu (or other Debian-based Linux)".
 
@@ -26,12 +41,12 @@ All subsequent steps are for Ubuntu platforms:
     . $HEADAS/headas-init.sh
     ```
 
-## Install the calibration tree
+### Install the calibration tree
 
 1. Create a new folder “caldb” in the heasoft-6.25 folder
 2. Follow the instructions on: <https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/install.html> (Sections 2 and 3)
 
-## Install wcstools
+### Install wcstools
 
 1. Go to: <http://tdc-www.harvard.edu/wcstools/>
 2. Choose the full package via HTTP from <http://tdc-www.harvard.edu/software/wcstools/wcstools-3.9.6.tar.gz>
@@ -49,6 +64,8 @@ All subsequent steps are for Ubuntu platforms:
     export PATH=~/wcstools-3.9.5/bin:$PATH
     ```
 
-## Download the DRESSCode from GitHub
+### Download DRESSCode from GitHub
 
-- Python is needed to run the scripts. The DRESSCode was written and tested in python 3.6.8. Make sure you have a working python environment, preferably using Anaconda (or Astroconda).
+1. Python is needed to run the scripts. DRESSCode was written and tested in python 3.6 and up. Make sure you have a working python environment.
+2. Download the code from github: `git clone git@github.com:spacetelescope/DRESSCode.git`
+3. `cd` into the DRESSCode directory and install the dependencies into your Python environment: `pip install -r requirements.txt`
