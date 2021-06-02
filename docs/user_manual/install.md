@@ -11,6 +11,10 @@ docker pull dresscodeswift/dresscode
 docker run --rm -it dresscodeswift/dresscode /bin/bash
 ```
 
+From there run the pipeline, which is located in `/opt/dresscode`
+
+You will probably want to download the data onto a persistent volume. For this, see [docker documentation](https://docs.docker.com/storage/volumes/).
+
 ## Local Installation
 
 The following steps will install Heasoft, caldb, and wcstools on your machine

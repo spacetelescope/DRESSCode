@@ -30,6 +30,8 @@ Downloading the data can take a while!
 
 ## Sort and select the required data
 
+In order to execute the full pipeline, it is recommended to keep the same directory structure as explained here and in [data download](download_data.md). The user then only needs to change the galaxy name and the path of the main directory in the configuration file `config.txt` before running the scripts (see [config.txt.example](https://github.com/spacetelescope/DRESSCode/blob/main/config.txt.example)).
+
 - The download script will automatically sort the data into different directories according to the observing ID of the exposure. The directory structure is somewhat complex, but you should not worry about that. If you used the same directory structure as described above, the only thing you need to do to make all scripts work, is to change the name of the galaxy and the path of the main directory (in which the different galaxy directories are located) in the `config.txt` file.
 - Run the script collect_images.py to collect all the UV raw image (`*_rw.img.gz`) files from the uvot/image/ folders, the UV event files (`*w1po_uf.evt.gz`) from the uvot/event/ folders, the attitude (`*pat.fits.gz`) files from the auxil/ folders and the aspect following (`*uaf.hk.gz`) files from the uvot/hk/ folders. This will create the directory “Raw_images” in the current directory (e.g. “NGC0628”).
 - To save space on your computer, you can now delete the “Raw_data” directory, if you want.

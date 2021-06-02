@@ -1,10 +1,12 @@
 # Data reduction with DRESSCode
 
+*Note*: The details of the different steps in the pipeline are explained in Chapter 2 of [Marjorie Decleir's PhD thesis](https://biblio.ugent.be/publication/8638711).
+
 ## Sky images part 1
 
 Run the script `uvotimage.py` to create sky images from the raw images and event files. When your data contains event files, you will get the following warning:
 
-``` 
+```
 uvotimage: skipping event based image HDU w1386106344E in file sw00032766001uw1_rw.img
 ```
 
