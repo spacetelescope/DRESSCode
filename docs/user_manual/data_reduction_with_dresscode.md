@@ -1,6 +1,6 @@
 # Data reduction with DRESSCode
 
-*Note*: The details of the different steps in the pipeline are explained in Chapter 2 of [Marjorie Decleir's PhD thesis](https://biblio.ugent.be/publication/8638711).
+*Note*: The details of the different steps in the pipeline are explained in Chapter 2 of <a href="https://biblio.ugent.be/publication/8638711" target="_blank">Marjorie Decleir's PhD thesis</a>.
 
 ## Sky images part 1
 

@@ -13,7 +13,7 @@ docker run --rm -it dresscodeswift/dresscode /bin/bash
 
 From there run the pipeline, which is located in `/opt/dresscode`
 
-You will probably want to download the data onto a persistent volume. For this, see [docker documentation](https://docs.docker.com/storage/volumes/).
+You will probably want to download the data onto a persistent volume. For this, see <a href="https://docs.docker.com/storage/volumes/" target="_blank">docker documentation</a>.
 
 ## Local Installation
 
