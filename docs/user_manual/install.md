@@ -65,7 +65,7 @@ All subsequent steps are for Ubuntu platforms:
 5. Add the following line to your `.bashrc` (or equivalent):
 
     ```sh
-    export PATH=~/wcstools-3.9.5/bin:$PATH
+    export PATH=~/wcstools-3.9.6/bin:$PATH
     ```
 
 ### Download DRESSCode from GitHub
