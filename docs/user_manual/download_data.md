@@ -26,8 +26,6 @@
 
 Downloading the data can take a while!
 
-- Delete the download script when it has finished running.
-
 ## Sort and select the required data
 
 In order to execute the full pipeline, it is recommended to keep the same directory structure as explained here and in [data download](download_data.md). The user then only needs to change the galaxy name and the path of the main directory in the configuration file `config.txt` before running the scripts (see <a href="https://github.com/spacetelescope/DRESSCode/blob/main/config.txt.example" target="_blank">config.txt.example</a>).
