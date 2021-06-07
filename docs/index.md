@@ -27,7 +27,7 @@ See the [documentation](user_manual/install.md) for specific installation instru
 The minimum requirements are:
 
 - Python 3.6 or later
-- HEASoft 6.25 or later
+- Current version of HEASoft (tested with 6.28)
 - <a href="https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/install.html" target="_blank">caldb</a>: calibration tree
 - <a href="http://tdc-www.harvard.edu/wcstools/" target="_blank">wcstools</a>: World Coordinate System utilities
 

@@ -41,13 +41,13 @@ All subsequent steps are for Ubuntu platforms:
 - Add the following lines to your `.bashrc` (or equivalent):
 
     ```sh
-    export HEADAS=~/heasoft-6.25/x86_64-pc-linux-gnu-libc2.23
+    export HEADAS=~/heasoft-6.28/x86_64-pc-linux-gnu-libc2.23
     . $HEADAS/headas-init.sh
     ```
 
 ### Install the calibration tree
 
-1. Create a new folder “caldb” in the heasoft-6.25 folder
+1. Create a new folder “caldb” in the heasoft-6.28 folder
 2. Follow the instructions on: <https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/install.html> (Sections 2 and 3)
 
 ### Install wcstools
