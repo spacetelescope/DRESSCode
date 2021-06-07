@@ -12,13 +12,6 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v2
 
-      - name: Cache Test Images
-        id: cache-test-images
-        uses: actions/cache@v2
-        with:
-          path: ~/dresscode-data/NGC0628/Raw_data/
-          key: NGC0628-test-raw-data-${{ hashFiles('./tests/download_test_data.bash') }}
-
       - name: Download Data
         if: steps.cache-test-images.outputs.cache-hit != 'true'
         run: |
