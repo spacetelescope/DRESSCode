@@ -46,6 +46,10 @@ From there run the pipeline, which is located in `/opt/dresscode`
 
 For more, see our [docker instructions](user_manual/install.md).
 
+## Help
+
+Please see the [documentation](index.md). If you encounter a bug or have questions, please report through GitHub <a href="https://github.com/spacetelescope/DRESSCode/issues" target="_blank">issues</a>.
+
 ## License
 
 This project is Copyright Association of Universities for Research in Astronomy and licensed under the terms of the BSD 3-Clause “New” or “Revised” License (see the [LICENSE](LICENSE.md) file for more information).

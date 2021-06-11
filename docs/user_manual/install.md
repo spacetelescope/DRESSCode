@@ -19,7 +19,7 @@ You will probably want to download the data onto a persistent volume. For this, 
 
 The following steps will install Heasoft, caldb, and wcstools on your machine
 
-### Download the software
+### Download Heasoft software
 
 - Go to <https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/download.html>
 - STEP 1
@@ -30,7 +30,7 @@ The following steps will install Heasoft, caldb, and wcstools on your machine
 - Submit and wait
 - Untar the file
 
-### Install/Build the software
+### Install/Build Heasoft software
 
 - STEP 3 - Install the software: Follow the installation guide for your platform, e.g. "PC Linux - Ubuntu (or other Debian-based Linux)".
 
@@ -52,21 +52,22 @@ All subsequent steps are for Ubuntu platforms:
 
 ### Install wcstools
 
-1. Go to: <http://tdc-www.harvard.edu/wcstools/>
-2. Choose the full package via HTTP from <http://tdc-www.harvard.edu/software/wcstools/wcstools-3.9.6.tar.gz>
-3. Put the tarfile in your home folder and untar
-4. Install the tools:
+1. Download the current version (3.9.6) from <http://tdc-www.harvard.edu/software/wcstools/wcstools-3.9.6.tar.gz>
+2. Put the tarfile in your home folder and untar
+3. Install the tools:
 
     ```sh
     cd wcstools-3.9.6
     make all
     ```
 
-5. Add the following line to your `.bashrc` (or equivalent):
+4. Add the following line to your `.bashrc` (or equivalent):
 
     ```sh
     export PATH=~/wcstools-3.9.6/bin:$PATH
     ```
+
+More info can be found on the wcstools <a href="http://tdc-www.harvard.edu/wcstools/" target="_blank">website</a>.
 
 ### Download DRESSCode from GitHub
 
