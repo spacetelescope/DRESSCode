@@ -12,10 +12,18 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v2
 
+      - name: Cache Raw_data
+        id: cache-test-images
+        uses: actions/cache@v2
+        with:
+          path: ~/Raw_data
+          key: NGC0628-test-raw-data-${{ hashFiles('tests/download_test_data.bash') }}
+
       - name: Download Data
+        if: steps.cache-test-images.outputs.cache-hit != 'true'
         run: |
-          mkdir -p ~/dresscode-data/NGC0628/Raw_data/
-          bash tests/download_test_data.bash ~/dresscode-data/NGC0628/Raw_data
+          mkdir ~/Raw_data
+          bash tests/download_test_data.bash ~/Raw_data
 
       - name: Build the Docker image
         run: docker build --tag dresscodeswift/dresscode:latest -f Docker/dockerfile .
@@ -23,6 +31,7 @@ jobs:
       - name: Run the pipeline
         run: |
           mkdir -p ~/dresscode-data/NGC0628
+          cp -r ~/Raw_data ~/dresscode-data/NGC0628/Raw_data
           chmod -R a=rwx ~/dresscode-data
           docker run --user root --rm -t -v ~/dresscode-data:/data dresscodeswift/dresscode /bin/bash /opt/dresscode/tests/test_pipeline.bash /opt/dresscode /data
 
