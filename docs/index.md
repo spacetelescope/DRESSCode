@@ -1,9 +1,9 @@
-# DRESSCode
+# DRESSCode: Swift data reduction
 
-![DRESSCode](/docs/img/logo.svg)
+![DRESSCode](img/logo.svg){ loading=lazy }
 
 <p align="right" style="font-size: .7rem">
-    <em>DRESSCode logo designed by J. De Wree</em>
+    <em>DRESSCode logo designed by <a href="https://github.com/JDWree" target="_blank">J. De Wree</a></em>
 </p>
 
 DRESSCode, short for Data Reduction of Extended Swift Sources Code, is a fully automated pipeline to reduce Swift UVOT images of extended sources. It consists of a series of python scripts that perform the different steps of the data reduction pipeline to all images. The different steps include preparation, creation of sky images, aspect correction, creation of auxiliary maps, combination of separate frames, several corrections to the flux, combination of different observing periods, calibration, and aperture correction. DRESSCode is a two-phase pipeline, which means that some steps are repeated a second time, in order to improve the accuracy of the astrometry of the images.
@@ -12,7 +12,7 @@ For the original version of this software, see <a href="https://github.com/mdecl
 
 ---
 
-**Documentation**: <a href="https://spacetelescope.github.io/DRESSCode/" target="_blank">https://spacetelescope.github.io/DRESSCode/</a>
+**Documentation**: [https://spacetelescope.github.io/DRESSCode/](index.md)
 
 **Source Code**: <a href="https://github.com/spacetelescope/DRESSCode/">https://github.com/spacetelescope/DRESSCode/</a>
 
@@ -22,13 +22,13 @@ For the original version of this software, see <a href="https://github.com/mdecl
 
 DRESSCode has been written and tested on Linux and Mac, and relies on several tasks from the specialized <a href="https://heasarc.gsfc.nasa.gov/docs/software/heasoft/" target="_blank">HEASoft</a> software, provided by NASA.
 
-See the <a href="https://spacetelescope.github.io/DRESSCode/user_manual/install/" target="_blank">documentation</a> for specific installation instructions.
+See the [documentation](user_manual/install.md) for specific installation instructions.
 
 The minimum requirements are:
 
 - Python 3.6 or later
 - Current version of HEASoft (tested with 6.28)
-- <a href="https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/install.html" target="_blank">caldb: calibration tree</a>
+- <a href="https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/install.html" target="_blank">caldb</a>: calibration tree
 - <a href="http://tdc-www.harvard.edu/wcstools/" target="_blank">wcstools</a>: World Coordinate System utilities
 
 ### Docker
@@ -44,15 +44,15 @@ docker run --rm -it dresscodeswift/dresscode /bin/bash
 
 From there run the pipeline, which is located in `/opt/dresscode`
 
-For more, see our <a href="https://spacetelescope.github.io/DRESSCode/user_manual/install/#docker-installation" target="_blank">docker instructions</a>.
+For more, see our [docker instructions](user_manual/install.md).
 
 ## Help
 
-Please see the <a href="https://spacetelescope.github.io/DRESSCode/" target="_blank">documentation</a>. If you encounter a bug or have questions, please report through GitHub <a href="https://github.com/spacetelescope/DRESSCode/issues">issues</a>.
+Please see the [documentation](index.md). If you encounter a bug or have questions, please report through GitHub <a href="https://github.com/spacetelescope/DRESSCode/issues" target="_blank">issues</a>.
 
 ## License
 
-This project is Copyright Association of Universities for Research in Astronomy and licensed under the terms of the BSD 3-Clause “New” or “Revised” License (see the [LICENSE](LICENSE) file for more information).
+This project is Copyright Association of Universities for Research in Astronomy and licensed under the terms of the BSD 3-Clause “New” or “Revised” License (see the [LICENSE](LICENSE.md) file for more information).
 
 ## Use cases and publications
 
