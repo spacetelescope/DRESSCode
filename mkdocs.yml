@@ -2,6 +2,8 @@ site_name: DRESSCode
 site_description: Data Reduction of Extended SWIFT Sources Code
 theme:
   name: material
+  favicon: img/favicon.png
+  logo: img/icon.svg
   icon:
     repo: fontawesome/brands/github-alt
   palette:

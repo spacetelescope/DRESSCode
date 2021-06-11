@@ -1,9 +1,9 @@
 # DRESSCode: Swift data reduction
 
-![DRESSCode](img/logo.jpg){ loading=lazy }
+![DRESSCode](img/logo.svg){ loading=lazy }
 
 <p align="right" style="font-size: .7rem">
-    <em>The DRESSCode logo (designed by J. De Wree), and the Swift space telescope, in front of the Hubble Ultra Deep Field.<br>©NASA/Swift. NASA, ESA and the Hubble Heritage Team (STScI/AURA).</em>
+    <em>DRESSCode logo designed by <a href="https://github.com/JDWree" target="_blank">J. De Wree</a></em>
 </p>
 
 DRESSCode, short for Data Reduction of Extended Swift Sources Code, is a fully automated pipeline to reduce Swift UVOT images of extended sources. It consists of a series of python scripts that perform the different steps of the data reduction pipeline to all images. The different steps include preparation, creation of sky images, aspect correction, creation of auxiliary maps, combination of separate frames, several corrections to the flux, combination of different observing periods, calibration, and aperture correction. DRESSCode is a two-phase pipeline, which means that some steps are repeated a second time, in order to improve the accuracy of the astrometry of the images.
