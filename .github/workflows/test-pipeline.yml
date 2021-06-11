@@ -25,7 +25,11 @@ jobs:
           mkdir ~/Raw_data
           bash tests/download_test_data.bash ~/Raw_data
 
-      - name: Build the Docker image
+      - name: Build the dependency Docker image
+        if: github.ref == 'refs/heads/main'
+        run: docker build --tag dresscodeswift/heasoft-caldb-wcstools:latest -f Docker/heasoft-caldb-wcstools.dockerfile .
+
+      - name: Build the DRESSCode Docker image
         run: docker build --tag dresscodeswift/dresscode:latest -f Docker/dockerfile .
 
       - name: Run the pipeline
@@ -41,3 +45,18 @@ jobs:
           name: final-fits
           path: |
             ~/dresscode-data/NGC0628/working_dir/*final*.fits
+
+      - name: Login to DockerHub
+        if: github.ref == 'refs/heads/main'
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push the dependency Docker image
+        if: github.ref == 'refs/heads/main'
+        run: docker push dresscodeswift/heasoft-caldb-wcstools:latest
+
+      - name: Push the DRESSCode Docker image
+        if: github.ref == 'refs/heads/main'
+        run: docker push dresscodeswift/dresscode:latest
