@@ -1,2 +1,6 @@
 astropy
 ccdproc
+
+# for docs
+mkdocs
+mkdocs-material
