@@ -13,7 +13,6 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Download Data
-        if: steps.cache-test-images.outputs.cache-hit != 'true'
         run: |
           mkdir -p ~/dresscode-data/NGC0628/Raw_data/
           bash tests/download_test_data.bash ~/dresscode-data/NGC0628/Raw_data
