@@ -17,7 +17,7 @@ else
 fi
 
 # creating data directories
-# if users specifies a data directory, we use that here, otherwise we use home directory
+# if user specifies a data directory, we use that here, otherwise we use home directory
 if [ $# -eq 2 ]
 then
     cd $2
