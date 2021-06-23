@@ -37,9 +37,9 @@ file="$DRESSCODE_INSTALL/config.txt"
 echo "path = $DATA_DIR/" > $file
 echo "galaxy = $GALAXY" >> $file
 echo "years = 2008, 2013" >> $file
-echo "enlarge = no" >> $file
-echo "add_xpix = 200" >> $file
-echo "add_ypix = 100" >> $file
+echo "enlarge = yes" >> $file
+echo "add_xpix = 250" >> $file
+echo "add_ypix = 200" >> $file
 
 # change directory to dresscode install
 cd $DRESSCODE_INSTALL
