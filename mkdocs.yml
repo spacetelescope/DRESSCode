@@ -1,0 +1,50 @@
+site_name: DRESSCode
+site_description: Data Reduction of Extended SWIFT Sources Code
+theme:
+  name: material
+  favicon: img/favicon.png
+  logo: img/icon.svg
+  icon:
+    repo: fontawesome/brands/github-alt
+  palette:
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
+    primary: blue
+    accent: indigo
+    toggle:
+      icon: material/lightbulb-outline
+      name: Switch to dark mode
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
+    primary: light blue
+    accent: yellow
+    toggle:
+      icon: material/lightbulb
+      name: Switch to light mode
+
+nav:
+  - Home: 'index.md'
+  - User Manual: 
+    - user_manual/install.md
+    - user_manual/download_data.md
+    - user_manual/data_reduction_with_dresscode.md
+    - user_manual/notes.md
+
+repo_name: spacetelescope/DRESSCode
+repo_url: https://github.com/spacetelescope/DRESSCode
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
+  - attr_list
+  - extra
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed
+
+extra:
+  social:
+    - icon: fontawesome/brands/github-alt
+      link: 'https://github.com/spacetelescope/DRESSCode'

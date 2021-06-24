@@ -70,7 +70,6 @@ for filename in sorted(os.listdir(path)):
  
     #Specify the input attitude file, the correction file, the output attitude file and the terminal output file.
     attfile = filename
-    corrfile = corrfile
     outfile = filename.replace("pat", "uat")
     terminal_output_file = path + "output_uvotattcorr_" + filename.split('.',1)[0] + ".txt"
 

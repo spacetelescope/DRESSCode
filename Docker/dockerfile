@@ -1,0 +1,18 @@
+FROM dresscodeswift/heasoft-caldb-wcstools:latest
+
+COPY requirements.txt .
+
+SHELL ["/bin/bash", "-c"]
+
+RUN \
+    python3 -m venv venv \
+    && source venv/bin/activate \
+    && /bin/echo 'source /home/heasoft/venv/bin/activate' >> /home/heasoft/.profile \
+    && /bin/echo 'source /home/heasoft/venv/bin/activate' >> /home/heasoft/.bashrc \
+    && /bin/echo 'source /home/heasoft/venv/bin/activate' >> /home/heasoft/.cshrc \
+    && pip install --no-cache-dir wheel numpy \
+    && pip install --no-cache-dir -r requirements.txt
+
+COPY --chown=heasoft . /opt/dresscode
+
+# add /opt/dresscode to PATH ?
