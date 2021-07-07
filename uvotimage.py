@@ -1,8 +1,6 @@
-# uvotimage.py: Script to create sky images from raw images and event files.
-# Created on 14-12-2017, updated (to Python 3.6) on 24-10-2018.
-# Updated on 10-01-2019 (based on feedback Bob).
-# Updated on 12-04-2019 (to include event files).
-# Marjorie Decleir
+"""
+uvotimage.py: Script to create sky images from raw images and event files.
+"""
 
 # Import the necessary packages.
 import os
@@ -23,7 +21,8 @@ path = config["path"] + galaxy + "/working_dir/"
 # Print user information.
 print("Creating sky images...")
 
-# Initialize the counter and count the total number of raw images. Initialize the error flag.
+# Initialize the counter and count the total number of raw images. Initialize the error
+# flag.
 i = 0
 num = sum(
     1
@@ -35,11 +34,13 @@ error = False
 # For all files in the working directory:
 for filename in sorted(os.listdir(path)):
 
-    # If the file is not a raw image or an event file, skip this file and continue with the next file.
+    # If the file is not a raw image or an event file, skip this file and continue with
+    # the next file.
     if not filename.endswith("rw.img") and not filename.endswith(".evt"):
         continue
 
-    # Specify the input file, the prefix for the output file, the attitude file and the terminal output file.
+    # Specify the input file, the prefix for the output file, the attitude file and the
+    # terminal output file.
     infile = filename
     prefix = filename.split("u")[0] + "_" + filename.split(".")[1] + "_"
     attfile = filename.split("u", 1)[0] + "pat.fits"
@@ -52,7 +53,8 @@ for filename in sorted(os.listdir(path)):
     PA = header["PA_PNT"]
 
     # Open the terminal output file and run uvotimage with the specified parameters.
-    # uvotimage help page: https://heasarc.gsfc.nasa.gov/lheasoft/ftools/headas/uvotimage.html
+    # uvotimage help page:
+    # https://heasarc.gsfc.nasa.gov/lheasoft/ftools/headas/uvotimage.html
     with open(terminal_output_file, "w") as terminal:
         subprocess.call(
             "uvotimage infile="
@@ -78,7 +80,7 @@ for filename in sorted(os.listdir(path)):
     for line in file:
         # If the word "error" is encountered, print an error message.
         if "error" in line:
-            print("An error has occured for image " + filename)
+            print("An error has occurred for image " + filename)
             error = True
 
         # If uvotimage skipped an event based image HDU, let the user know.
@@ -98,5 +100,5 @@ for filename in sorted(os.listdir(path)):
     )
 
 # Print user information.
-if error == False:
+if error is False:
     print("Sky images were successfully created for all raw images and event files.")

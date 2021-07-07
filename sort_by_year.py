@@ -1,7 +1,8 @@
-"""Sorts the files in working_dir by year
+"""sort_by_year.py: Script to sorts the files in working_dir by year
 Reads header info from *rw.img files to identify the year
 Creates the year directory if it doesn't exist
-Then moves the rw.img file as well as any derivatives and moves them into the year folder
+Then moves the rw.img file as well as any derivatives and moves them into the year
+folder
 """
 
 import os
@@ -27,16 +28,17 @@ print(
 
 for filename in sorted(os.listdir(path)):
 
-    # If the file is not a raw image file, skip this file and continue with the next file.
+    # If the file is not a raw image file, skip this file and continue with the next.
     if not filename.endswith("rw.img"):
         continue
 
-    # Open the image, calculate the number of individual frames in the image. Print relevant header information.
+    # Open the image, calculate the number of individual frames in the image.
     hdulist = fits.open(path + filename)
     number_of_frames = len(hdulist) - 1
 
     file_year = hdulist[0].header["DATE-OBS"].split("T")[0][:4]
 
+    # Print relevant header information.
     print(
         filename
         + "\t"

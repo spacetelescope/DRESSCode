@@ -1,7 +1,6 @@
-# collect_images.py: Script to collect all raw files needed in the data reduction.
-# Marjorie Decleir
-# Created on 24-10-2018.
-# Updated on 10-01-2019 (to add the uaf.hk files).
+"""
+collect_images.py: Script to collect all raw files needed in the data reduction.
+"""
 
 # Import the necessary packages.
 import os
@@ -22,12 +21,15 @@ rawpath = path + "/Raw_data/"
 topath = path + "/Raw_images/"
 
 
-# Create a new directory with all the raw UV images (*_rw.img.gz) from the uvot/image/ folders, the UV event files (*w1po_uf.evt.gz) from the uvot/event/ folders, the attitude (*pat.fits.gz) files from the auxil/ folders and the aspect following (*uaf.hk.gz) files from the uvot/hk/ folders.
+# Create a new directory with all the raw UV images (*_rw.img.gz) from the uvot/image/
+# folders, the UV event files (*w1po_uf.evt.gz) from the uvot/event/ folders, the
+# attitude (*pat.fits.gz) files from the auxil/ folders and the aspect following
+# (*uaf.hk.gz) files from the uvot/hk/ folders.
 # Initialize the counters.
-i = 0
-j = 0
-k = 0
-l = 0
+raw_image_file_count = 0
+event_file_count = 0
+attitude_file_count = 0
+aspect_file_count = 0
 
 # Create the new directory.
 os.mkdir(topath)
@@ -42,7 +44,7 @@ for directory in listdir_nohidden(rawpath):
             or file.endswith("w2_rw.img.gz")
         ):
             shutil.copy(rawpath + directory + "/uvot/image/" + file, topath)
-            i += 1
+            raw_image_file_count += 1
 
     # Collect the UV event files.
     if os.path.isdir(rawpath + directory + "/uvot/event/"):
@@ -53,29 +55,29 @@ for directory in listdir_nohidden(rawpath):
                 or file.endswith("w2w1po_uf.evt.gz")
             ):
                 shutil.copy(rawpath + directory + "/uvot/event/" + file, topath)
-                j += 1
+                event_file_count += 1
 
     # Collect the attitude files.
     for file in listdir_nohidden(rawpath + directory + "/auxil/"):
         if file.endswith("pat.fits.gz"):
             shutil.copy(rawpath + directory + "/auxil/" + file, topath)
-            k += 1
+            attitude_file_count += 1
 
     # Collect the aspect following files.
     for file in listdir_nohidden(rawpath + directory + "/uvot/hk/"):
         if file.endswith("uaf.hk.gz"):
             shutil.copy(rawpath + directory + "/uvot/hk/" + file, topath)
-            l += 1
+            aspect_file_count += 1
 
 # Print user information.
 print(
-    str(i)
+    str(raw_image_file_count)
     + " raw image files, "
-    + str(j)
+    + str(event_file_count)
     + " event files, "
-    + str(k)
+    + str(attitude_file_count)
     + " attitude files and "
-    + str(l)
+    + str(aspect_file_count)
     + " aspect following files have been copied to "
     + topath
 )

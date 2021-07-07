@@ -1,7 +1,7 @@
-# uvotimage2.py: Script to create sky images from raw images and event files, using the updated attitude file.
-# Created on 16-01-2019.
-# Updated on 15-04-2019 (to include event files).
-# Marjorie Decleir
+"""
+uvotimage2.py: Script to create sky images from raw images and event files, using
+the updated attitude file.
+"""
 
 # Import the necessary packages.
 import os
@@ -22,29 +22,32 @@ path = config["path"] + galaxy + "/working_dir/"
 # Print user information.
 print("Creating sky images...")
 
-# Initialize the counter and count the total number of raw images. Initialize the error flag.
+# Initialize the counter and count the total number of raw images.
 i = 0
 num = sum(
     1
     for filename in sorted(os.listdir(path))
     if filename.endswith("rw.img")
-    and not "_img_" in filename
-    and not "_evt_" in filename
+    and "_img_" not in filename
+    and "_evt_" not in filename
     or filename.endswith(".evt")
 )
+# Initialize the error flag.
 error = False
 
 # For all files in the working directory:
 for filename in sorted(os.listdir(path)):
 
-    # If the file is not an original raw image or an event file, skip this file and continue with the next file.
+    # If the file is not an original raw image or an event file, skip this file and
+    # continue with the next file.
     if not filename.endswith("rw.img") and not filename.endswith(".evt"):
         continue
     # Skip previously (in uvotimage.py) created raw files.
     if "_img_" in filename or "_evt_" in filename:
         continue
 
-    # Specify the input file, the prefix for the output file, the attitude file and the terminal output file.
+    # Specify the input file, the prefix for the output file, the attitude file and the
+    # terminal output file.
     infile = filename
     prefix = filename.split("u")[0] + "_uat_" + filename.split(".")[1] + "_"
     attfile = filename.split("u", 1)[0] + "uat.fits"
@@ -85,7 +88,7 @@ for filename in sorted(os.listdir(path)):
         # If the word "error" is encountered, print an error message.
         if "error" in line:
             print(
-                "An error has occured for image " + filename.rsplit("_", 1)[0] + ".img"
+                "An error has occurred for image " + filename.rsplit("_", 1)[0] + ".img"
             )
             error = True
 
@@ -106,5 +109,5 @@ for filename in sorted(os.listdir(path)):
     )
 
 # Print user information.
-if error == False:
+if error is False:
     print("Sky images were successfully created for all raw images and event files.")

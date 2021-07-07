@@ -1,7 +1,11 @@
-# uvotskycorr2.py: Script to calculate and apply the aspect correction, using the updated attitude file.
-# Created on 16-01-2019.
-# Marjorie Decleir
-# Note: This script requires the WCSTools. Make sure this is properly installed. Most of the time, errors occuring while running this script can be attributed to a problem with the WCSTools.
+"""
+uvotskycorr2.py: Script to calculate and apply the aspect correction, using the
+updated attitude file.
+
+Note: This script requires the WCSTools. Make sure this is properly installed. Most of
+the time, errors occuring while running this script can be attributed to a problem with
+the WCSTools.
+"""
 
 # Import the necessary packages.
 import os
@@ -21,7 +25,8 @@ path = config["path"] + galaxy + "/working_dir/"
 # Print user information.
 print("Calculating and applying aspect corrections...")
 
-# Initialize the counter and count the total number of sky images. Initialize the error flag.
+# Initialize the counter and count the total number of sky images. Initialize the error
+# flag.
 i = 0
 num = sum(
     1
@@ -33,15 +38,18 @@ error = False
 # For all files in the working directory:
 for original_filename in sorted(os.listdir(path)):
 
-    # If the file is not a sky image (created with the uat attitude file), skip this file and continue with the next file.
-    if not original_filename.endswith("sk.img") or not "uat" in original_filename:
+    # If the file is not a sky image (created with the uat attitude file), skip this
+    # file and continue with the next file.
+    if not original_filename.endswith("sk.img") or "uat" not in original_filename:
         continue
 
-    # Copy the original file and give the copy another name. This copy will be the file to work with.
+    # Copy the original file and give the copy another name. This copy will be the file
+    # to work with.
     filename = original_filename.replace("sk", "sk_corr")
     shutil.copyfile(path + original_filename, path + filename)
 
-    # Specify the input skyfile, the output file, the attitude file, the terminal output file and the path to the catalog file.
+    # Specify the input skyfile, the output file, the attitude file, the terminal output
+    # file and the path to the catalog file.
     skyfile = filename
     outfile = original_filename.replace("sk.img", "aspcorr.ALL")
     attfile = original_filename.split("_", 1)[0] + "uat.fits"
@@ -50,7 +58,7 @@ for original_filename in sorted(os.listdir(path)):
     )
     catfile = os.getcwd() + "/usnob1.spec"
 
-    # Open the terminal output file and run uvotskycorr ID with the specified parameters:
+    # Open the terminal output file and run uvotskycorr ID with the specified parameters
     with open(terminal_output_file, "w") as terminal:
         subprocess.call(
             "uvotskycorr what=ID skyfile="
@@ -59,7 +67,7 @@ for original_filename in sorted(os.listdir(path)):
             + attfile
             + " outfile="
             + outfile
-            + " starid='matchtol=20 cntcorr=3 n.reference=200 n.observation=40 max.rate=1000' catspec="
+            + " starid='matchtol=20 cntcorr=3 n.reference=200 n.observation=40 max.rate=1000' catspec="  # NoQA
             + catfile
             + " chatter=5",
             cwd=path,
@@ -98,7 +106,7 @@ for original_filename in sorted(os.listdir(path)):
         path + "output_uvotskycorrSKY_" + original_filename.replace(".img", ".txt")
     )
 
-    # Open the terminal output file and run uvotskycorr SKY with the specified parameters:
+    # Open terminal output file and run uvotskycorr SKY with the specified parameters
     with open(terminal_output_file, "w") as terminal:
         subprocess.call(
             "uvotskycorr what=SKY skyfile="
@@ -121,8 +129,8 @@ for original_filename in sorted(os.listdir(path)):
     # If the word "error" is encountered, print an error message.
     if "error" in text:
         print(
-            "An error has occured during the application of the aspect correction to image "
-            + original_filename
+            "An error has occurred during the application of the aspect correction to "
+            "image " + original_filename
         )
         error = True
 
@@ -167,8 +175,8 @@ for original_filename in sorted(os.listdir(path)):
     # If the word "error" is encountered, print an error message.
     if "error" in text:
         print(
-            "An error has occured during the application of the aspect correction to exposure map "
-            + or_expname
+            "An error has occurred during the application of the aspect correction to "
+            "exposure map " + or_expname
         )
         error = True
 
@@ -213,8 +221,8 @@ for original_filename in sorted(os.listdir(path)):
     # If the word "error" is encountered, print an error message.
     if "error" in text:
         print(
-            "An error has occured during the application of the aspect correction to maskf file "
-            + or_maskname
+            "An error has occurred during the application of the aspect correction to "
+            "mask file " + or_maskname
         )
         error = True
 
@@ -231,7 +239,8 @@ for original_filename in sorted(os.listdir(path)):
 
 
 # Print user information.
-if error == False:
+if error is False:
     print(
-        "Aspect corrections were successfully calculated and applied to all frames in all sky images, exposure maps and mask files."
+        "Aspect corrections were successfully calculated and applied to all frames in "
+        "all sky images, exposure maps and mask files."
     )

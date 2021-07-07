@@ -1,6 +1,7 @@
-# uvotskylss.py: Script to create large scale sensitivity maps, using the updated attitude file and after the aspect correction.
-# Created on 14-12-2015, updated (to Python 3.6) on 26-10-2018.
-# Marjorie Decleir
+"""
+uvotskylss.py: Script to create large scale sensitivity maps, using the updated
+attitude file and after the aspect correction.
+"""
 
 # Import the necessary packages.
 import os
@@ -19,7 +20,8 @@ path = config["path"] + galaxy + "/working_dir/"
 # Print user information.
 print("Creating large scale sensitivity maps...")
 
-# Initialize the counter and count the total number of corrected sky images. Initialize the error flag.
+# Initialize the counter and count the total number of corrected sky images. Initialize
+# the error flag.
 i = 0
 num = sum(
     1 for filename in sorted(os.listdir(path)) if filename.endswith("sk_corr.img")
@@ -29,11 +31,13 @@ error = False
 # For all files in the working directory:
 for filename in sorted(os.listdir(path)):
 
-    # If the file is not an aspect corrected sky image (created with the uat attitude file), skip this file and continue with the next file.
+    # If the file is not an aspect corrected sky image (created with the uat attitude
+    # file), skip this file and continue with the next file.
     if not filename.endswith("sk_corr.img"):
         continue
 
-    # Specify the input file, the output file, the attitude file and the terminal output file.
+    # Specify the input file, the output file, the attitude file and the terminal output
+    # file.
     infile = filename
     outfile = filename.replace("sk", "lss")
     attfile = filename.split("_", 1)[0] + "uat.fits"
@@ -61,7 +65,7 @@ for filename in sorted(os.listdir(path)):
 
     # If the word "error" is encountered, print an error message.
     if "error" in text:
-        print("An error has occured for image " + filename)
+        print("An error has occurred for image " + filename)
         error = True
 
     # Print user information.
@@ -77,5 +81,5 @@ for filename in sorted(os.listdir(path)):
     )
 
 # Print user information.
-if error == False:
+if error is False:
     print("Large scale sensitivity maps were successfully created for all sky images.")

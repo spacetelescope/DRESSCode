@@ -1,8 +1,11 @@
-# uvotimsum.py: Script to co-add frames per type, per filter and per year and to normalize the summed sky images.
-# Created on 18-12-2015, updated (to Python 3.6) on 29-10-2018.
-# Marjorie Decleir
-# Note: This script assumes that all frames have been aspect corrected, and that the files have been separated into different directories based on their observation period (e.g. per year).
-# Updated on 05-02-2019 (based on feedback Bob).
+"""
+uvotimsum.py: Script to co-add frames per type, per filter and per year and to normalize
+the summed sky images.
+
+Note: This script assumes that all frames have been aspect corrected, and that the files
+have been separated into different directories based on their observation period (e.g.
+per year).
+"""
 
 # Import the necessary packages.
 import os
@@ -45,10 +48,12 @@ def main():
             # Check the type of the image and give the image a type label.
             typelabel = check_type(filename)
 
-            if typelabel == None:
+            if typelabel is None:
                 continue
 
-            # For the mask files: make sure that also the NaN pixels in the exposure maps are included in the mask as well as pixels with a very low exposure time.
+            # For the mask files: make sure that also the NaN pixels in the exposure
+            # maps are included in the mask as well as pixels with a very low exposure
+            # time.
             if typelabel == "mk":
                 update_mask(yearpath + filename)
                 filename = filename.replace(".img", "_new.img")
@@ -99,11 +104,11 @@ def main():
                 # If the word "error" is encountered, print an error message.
                 if (
                     "error" in text
-                    or not "created output image" in text
-                    or not "all checksums are valid" in text
+                    or "created output image" not in text
+                    or "all checksums are valid" not in text
                 ):
                     print(
-                        "An error has occured for image all_"
+                        "An error has occurred for image all_"
                         + filename.split("_")[2]
                         + "_"
                         + filename.split("_")[3].split(".")[0]
@@ -122,9 +127,10 @@ def main():
         if os.path.isfile(yearpath + "sum_uw1_sk.img"):
             norm(yearpath + "sum_uw1_sk.img")
 
-        if error == False:
+        if error is False:
             print(
-                "All frames were successfully co-added and the summed sky images were normalized."
+                "All frames were successfully co-added and the summed sky images were "
+                "normalized."
             )
 
 
@@ -151,9 +157,11 @@ def check_filter(filename):
         return "uw1"
 
 
-# Function to update the mask with pixels that are NaN in the exposure map and pixels that have very low exposure times.
+# Function to update the mask with pixels that are NaN in the exposure map and pixels
+# that have very low exposure times.
 def update_mask(filename):
-    # Open the mask file and the exposure map and copy the primary header (extension 0 of hdulist) to a new hdulist.
+    # Open the mask file and the exposure map and copy the primary header (extension 0
+    # of hdulist) to a new hdulist.
     hdulist_mk = fits.open(filename)
     hdulist_ex = fits.open(filename.replace("mk", "ex"))
     new_hdu_header = fits.PrimaryHDU(header=hdulist_mk[0].header)
@@ -171,7 +179,8 @@ def update_mask(filename):
     new_hdulist.writeto(filename.replace(".img", "_new.img"))
 
 
-# Function to copy the first image of a certain filter and a certain type or to append frames, depending on whether it is the first image or not.
+# Function to copy the first image of a certain filter and a certain type or to append
+# frames, depending on whether it is the first image or not.
 def append(filename, typelabel, filterlabel, i):
     allfile = (
         os.path.dirname(filename) + "/all_" + filterlabel + "_" + typelabel + ".img"

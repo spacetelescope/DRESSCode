@@ -1,7 +1,6 @@
-# uvotbadpix.py: Script to create quality maps.
-# Created on 09-12-2015, updated (to Python 3.6) on 26-10-2018.
-# Updated on 10-01-2019 (based on feedback Bob).
-# Marjorie Decleir
+"""
+uvotbadpix.py: Script to create quality maps.
+"""
 
 # Import the necessary packages.
 import os
@@ -20,20 +19,22 @@ path = config["path"] + galaxy + "/working_dir/"
 # Print user information.
 print("Creating quality maps...")
 
-# Initialize the counter and count the total number of sky images. Initialize the error flag.
+# Initialize the counter and count the total number of sky images.
 i = 0
 num = sum(
     1
     for filename in sorted(os.listdir(path))
     if filename.endswith("sk.img") and "uat" in filename
 )
+# Initialize the error flag.
 error = False
 
 # For all files in the working directory:
 for filename in sorted(os.listdir(path)):
 
-    # If the file is not a sky image (created with the uat attitude file), skip this file and continue with the next file.
-    if not filename.endswith("sk.img") or not "uat" in filename:
+    # If the file is not a sky image (created with the uat attitude file), skip this
+    # file & continue with the next file.
+    if not filename.endswith("sk.img") or "uat" not in filename:
         continue
 
     # Specify the input file, the output file and the terminal output file.
@@ -56,9 +57,10 @@ for filename in sorted(os.listdir(path)):
     file = open(terminal_output_file, "r")
     text = file.read()
 
-    # If the word "error" is encountered or if the words "created output image" are not encountered, print an error message.
-    if "error" in text or not "created output image" in text:
-        print("An error has occured for image " + filename)
+    # If the word "error" is encountered or if the words "created output image" are not
+    # encountered, print an error message.
+    if "error" in text or "created output image" not in text:
+        print("An error has occurred for image " + filename)
         error = True
 
     # Print user information.
@@ -74,5 +76,5 @@ for filename in sorted(os.listdir(path)):
     )
 
 # Print user information.
-if error == False:
+if error is False:
     print("Quality maps were successfully created for all sky images.")

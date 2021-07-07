@@ -1,6 +1,7 @@
-# uvotattcorr.py: Script to adjust the attitude file with information from the aspect corrections.
-# Created on 16-01-2019.
-# Marjorie Decleir
+"""
+uvotattcorr.py: Script to adjust the attitude file with information from the aspect
+corrections.
+"""
 
 # Import the necessary packages.
 import os
@@ -19,15 +20,16 @@ path = config["path"] + galaxy + "/working_dir/"
 # Print user information.
 print("Adjusting the attitude files...")
 
-# Initialize the counter and count the total number of attitude files. Initialize the error flag.
+# Initialize the counter and count the total number of attitude files.
 i = 0
 num = sum(1 for filename in sorted(os.listdir(path)) if filename.endswith("pat.fits"))
+# Initialize the error flag.
 error = False
 
 # For all files in the working directory:
 for filename in sorted(os.listdir(path)):
 
-    # If the file is not an attitude file, skip this file and continue with the next file.
+    # If the file is not an attitude file, skip this file & continue with the next file.
     if not filename.endswith("pat.fits"):
         continue
 
@@ -46,7 +48,9 @@ for filename in sorted(os.listdir(path)):
     ) or os.path.isfile(path + filename.replace("pat.fits", "_evt_uw1_aspcorr.ALL")):
         filters.append("uw1")
 
-    # Combine the correction files of the different filters into a single file. Take the IMAGE based correction file if it exists, otherwise take the EVENT based correction file. (In case both exist, the IMAGE based one is used, just for simplicity).
+    # Combine the correction files of the different filters into a single file.
+    # Take the IMAGE based correction file if it exists, otherwise take the EVENT based
+    # correction file. In case both exist, the IMAGE based one is used, for simplicity.
     if len(filters) == 1:
         if os.path.isfile(
             path + filename.replace("pat.fits", "_img_" + filters[0] + "_aspcorr.ALL")
@@ -119,10 +123,12 @@ for filename in sorted(os.listdir(path)):
         corrfile = outfile
     else:
         print(
-            "Something went wrong. There must be at least one and no more than three filters."
+            "Something went wrong. "
+            "There must be at least one and no more than three filters."
         )
 
-    # Specify the input attitude file, the correction file, the output attitude file and the terminal output file.
+    # Specify the input attitude file, the correction file, the output attitude file and
+    # the terminal output file.
     attfile = filename
     outfile = filename.replace("pat", "uat")
     terminal_output_file = (
@@ -149,7 +155,7 @@ for filename in sorted(os.listdir(path)):
     for line in file:
         # If the word "error" is encountered, print an error message.
         if "error" in line:
-            print("An error has occured for attitude file " + filename)
+            print("An error has occurred for attitude file " + filename)
             error = True
 
     # Print user information.
@@ -165,5 +171,5 @@ for filename in sorted(os.listdir(path)):
     )
 
 # Print user information.
-if error == False:
+if error is False:
     print("All attitude files have been adjusted.")

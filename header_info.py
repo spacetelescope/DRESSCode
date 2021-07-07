@@ -1,6 +1,7 @@
-# header_info.py: Script to print relevant information about the image files.
-# Marjorie Decleir
-# Updated (to Python 3.6) on 24-10-2018
+"""
+header_info.py: Script to print relevant information about the image files.
+"""
+
 
 # Import the necessary packages.
 import os
@@ -24,11 +25,13 @@ print(
 # For all files in the path directory:
 for filename in sorted(os.listdir(path)):
 
-    # If the file is not a raw image file, skip this file and continue with the next file.
+    # If the file is not a raw image file, skip this file and continue with the next
+    # file.
     if not filename.endswith("rw.img"):
         continue
 
-    # Open the image, calculate the number of individual frames in the image. Print relevant header information.
+    # Open the image, calculate the number of individual frames in the image. Print
+    # relevant header information.
     hdulist = fits.open(path + filename)
     number_of_frames = len(hdulist) - 1
     print(
@@ -42,7 +45,8 @@ for filename in sorted(os.listdir(path)):
         + hdulist[0].header["DATE-OBS"].split("T")[0]
     )
 
-    # For all frames in the image: print the datamode and calculate the total exposure time.
+    # For all frames in the image: print the datamode and calculate the total exposure
+    # time.
     print("\t" + "frame" + "\t" + "datamode")
     exptime = 0.0
     for i in range(1, len(hdulist)):

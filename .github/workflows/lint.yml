@@ -15,5 +15,5 @@ jobs:
         run: pip install flake8 isort
       - name: Check isort
         run: isort . --check --diff
-      # - name: Run flake8
-      #   run: flake8
+      - name: Run flake8
+        run: flake8

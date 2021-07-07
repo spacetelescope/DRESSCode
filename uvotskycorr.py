@@ -1,8 +1,10 @@
-# uvotskycorr.py: Script to calculate the aspect correction.
-# Created on 08-12-2015, updated (to Python 3.6) on 25-10-2018.
-# Marjorie Decleir
-# Note: This script requires the WCSTools. Make sure this is properly installed. Most of the time, errors occuring while running this script can be attributed to a problem with the WCSTools.
-# Updated on 11-01-2019 (based on feedback Bob).
+"""
+uvotskycorr.py: Script to calculate the aspect correction.
+
+Note: This script requires the WCSTools. Make sure this is properly installed. Most of
+the time, errors occuring while running this script can be attributed to a problem with
+the WCSTools.
+"""
 
 # Import the necessary packages.
 import os
@@ -21,7 +23,8 @@ path = config["path"] + galaxy + "/working_dir/"
 # Print user information.
 print("Calculating aspect corrections...")
 
-# Initialize the counter and count the total number of sky images. Initialize the error flag.
+# Initialize the counter and count the total number of sky images. Initialize the error
+# flag.
 i = 0
 num = sum(1 for filename in sorted(os.listdir(path)) if filename.endswith("sk.img"))
 error = False
@@ -33,7 +36,8 @@ for filename in sorted(os.listdir(path)):
     if not filename.endswith("sk.img"):
         continue
 
-    # Specify the input skyfile, the output file, the attitude file, the terminal output file and the path to the catalog file.
+    # Specify the input skyfile, the output file, the attitude file, the terminal output
+    # file and the path to the catalog file.
     skyfile = filename
     outfile = filename.replace("sk.img", "aspcorr.ALL")
     attfile = filename.split("_", 1)[0] + "pat.fits"
@@ -42,7 +46,7 @@ for filename in sorted(os.listdir(path)):
     )
     catfile = os.getcwd() + "/usnob1.spec"
 
-    # Open the terminal output file and run uvotskycorr ID with the specified parameters:
+    # Open the terminal output file and run uvotskycorr ID with the specified parameters
     with open(terminal_output_file, "w") as terminal:
         subprocess.call(
             "uvotskycorr what=ID skyfile="
@@ -51,7 +55,7 @@ for filename in sorted(os.listdir(path)):
             + attfile
             + " outfile="
             + outfile
-            + " starid='matchtol=20 cntcorr=3 n.reference=200 n.observation=40 max.rate=1000' catspec="
+            + " starid='matchtol=20 cntcorr=3 n.reference=200 n.observation=40 max.rate=1000' catspec="  # NoQA
             + catfile
             + " chatter=5",
             cwd=path,
@@ -86,7 +90,8 @@ for filename in sorted(os.listdir(path)):
 
 
 # Print user information.
-if error == False:
+if error is False:
     print(
-        "Aspect corrections were successfully calculated for all frames in all sky images."
+        "Aspect corrections were successfully calculated for all frames in all sky "
+        "images."
     )

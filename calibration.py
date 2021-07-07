@@ -1,6 +1,7 @@
-# calibration.py: Script to convert the units of the images from counts/s to Jy and to correct for the aperture calibration.
-# Created on 20-12-2015, updated (to Python 3.6) on 09-11-2018.
-# Marjorie Decleir
+"""
+calibration.py: Script to convert the units of the images from counts/s to Jy and to
+correct for the aperture calibration.
+"""
 
 import os
 
@@ -22,7 +23,8 @@ def main():
 
     # Print user information.
     print(
-        "Converting the units of the final image from counts/s to Jy and correcting for the aperture calibration..."
+        "Converting the units of the final image from counts/s to Jy and correcting "
+        "for the aperture calibration..."
     )
 
     # Specify the conversion factors.
@@ -30,7 +32,8 @@ def main():
     factor_UVM2 = 1.396e-27 * 1.0e23
     factor_UVW1 = 9.524e-28 * 1.0e23
 
-    # Correct for the fact that the conversion factors were determined using 5" radius apertures.
+    # Correct for the fact that the conversion factors were determined using 5" radius
+    # apertures.
     factor_UVW2 = factor_UVW2 / 1.1279
     factor_UVM2 = factor_UVM2 / 1.1777
     factor_UVW1 = factor_UVW1 / 1.1567

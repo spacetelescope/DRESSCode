@@ -1,7 +1,8 @@
-# combine.py: Script to combine the images from different observing periods.
-# Created on 08-02-2016, updated (to Python 3.6) on 30-10-2018.
-# Marjorie Decleir
-# Note: This script assumes that the largest image covers all other images!
+"""
+combine.py: Script to combine the images from different observing periods.
+
+Note: This script assumes that the largest image covers all other images!
+"""
 
 # Import the necessary packages.
 import os
@@ -31,7 +32,8 @@ filters = ["uw2", "um2", "uw1"]
 # This is the main function.
 def main():
 
-    # PART 1: Convert the units of the corrected images (and their uncertainties) from counts/s to counts.
+    # PART 1: Convert the units of the corrected images (and their uncertainties) from
+    # counts/s to counts.
     # Print user information.
     print("Converting units from counts/s to counts...")
 
@@ -45,14 +47,16 @@ def main():
             if os.path.isfile(yearpath + "sum_" + filter + "_nm_coilsszp.img"):
                 convert(yearpath + "sum_" + filter + "_nm_coilsszp.img")
 
-    # PART 2: Reproject the images to one reference image so that they all have the same size.
+    # PART 2: Reproject the images to one reference image so that they all have the same
+    # size.
     # Print user information.
     print("Reprojecting images...")
 
     # Loop over the filters.
     for filter in filters:
 
-        # Find out what image is the largest (based on 1 axis only) and take that image as the reference image.
+        # Find out what image is the largest (based on 1 axis only) and take that image
+        # as the reference image.
         size = 0
         ref_path = None
         for year in years:
@@ -64,7 +68,7 @@ def main():
                     ref_path = yearpath
 
         # Print user information.
-        if ref_path == None:
+        if ref_path is None:
             print(
                 "No images were found for filter "
                 + filter
@@ -77,19 +81,22 @@ def main():
                 + filter
                 + "_nm_coilsszp_c.img of year "
                 + ref_path.split("/")[-2]
-                + " will be used as reference image. Please verify whether this image is large enough to cover all other images."
+                + " will be used as reference image. "
+                "Please verify whether this image is large enough to cover all other "
+                "images."
             )
 
         # Open the reference image.
         ref_image = fits.open(ref_path + "sum_" + filter + "_nm_coilsszp_c.img")
         ref_header = ref_image[0].header
 
-        # -------------------------------------------------------------------------------------------------------------------------------
-        # In the case that the reference image is not large enough to cover all other images:
-        # Embed the reference image into a larger image by adding NaN values around the image.
+        # ------------------------------------------------------------------------------
+        # In the case that the reference image is not large enough to cover all other
+        # images, embed the reference image into a larger image by adding NaN values
+        # around the image.
         if enlarge == "yes":
             ref_header = embed(ref_header, add_x, add_y)
-        # -------------------------------------------------------------------------------------------------------------------------------
+        # ------------------------------------------------------------------------------
 
         # Create empty lists for the reprojected images.
         repro_skylist = []
@@ -108,7 +115,8 @@ def main():
                     repro_explist,
                 )
 
-        # PART 3: Replace all NaNs in the sky images (and uncertainties), and the corresponding pixels in the exposure maps by 0s.
+        # PART 3: Replace all NaNs in the sky images (and uncertainties), and the
+        # corresponding pixels in the exposure maps by 0s.
         # Create lists with zeros for the images without NaNs.
         new_skylist = np.zeros_like(repro_skylist)
         new_explist = np.zeros_like(repro_explist)
@@ -236,7 +244,8 @@ def reproject(filename, ref_header, skylist, explist):
 
 
 # Function for PART 3: Replacing NaNs by 0s.
-# Function to replace the NaNs in the sky image (and uncertainties), and the corresponding pixels in the exposure map by 0s.
+# Function to replace the NaNs in the sky image (and uncertainties), and the
+# corresponding pixels in the exposure map by 0s.
 def replaceNaN(datacube, expdata):
     # Create a mask for the NaNs in the primary frame of the datacube.
     mask = np.isnan(datacube[0])
@@ -249,7 +258,8 @@ def replaceNaN(datacube, expdata):
 
 
 # Function for PART 4: Sum the years and calculate the Poisson noise.
-# Function to sum the images (and uncertainties) and exposure maps and to calculate the Poisson noise.
+# Function to sum the images (and uncertainties) and exposure maps and to calculate the
+# Poisson noise.
 def sum_years(skylist, explist, filter, ref_path):
     # Sum the sky frames.
     sum_datacube = np.zeros_like(skylist[0])

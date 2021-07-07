@@ -58,3 +58,29 @@ This project is Copyright Association of Universities for Research in Astronomy 
 
 - <a href="https://ui.adsabs.harvard.edu/abs/2019MNRAS.486..743D/abstract" target="_blank">Decleir et al. (2019)</a> used a slightly older version of the DRESSCode (with only one phase) to reduce the Swift UVOT images of NGC628. These images were used to measure dust attenuation curves on resolved scales in NGC628. The paper also describes the details of the older version of the pipeline.
 - The current version of the DRESSCode was used in the DustKING project, to reduce the Swift UVOT images of all KINGFISH galaxies. The goal of this project is to measure the global dust attenuation curves of all KINGFISH galaxies. This work will be published soon (Decleir et al., in prep.). The preliminary results of this work can be found in Chapter 4 of <a href="https://biblio.ugent.be/publication/8638711" target="_blank">Marjorie Decleir's PhD thesis</a>.
+
+## Contributing
+
+We use [`black`](https://github.com/psf/black) and [`isort`](https://github.com/pycqa/isort) for autoformatting and [`flake8`](https://github.com/PyCQA/flake8) for linting.
+
+You are encouraged to add editor support (enable autoformat on save w/ black) and show linting errors with flake8. See the documentation for your editor to set up.
+
+To manually run each of the tools:
+
+black:
+
+```sh
+black . --check --diff
+```
+
+isort:
+
+```sh
+isort . --check --diff
+```
+
+flake8:
+
+```sh
+flake8 .
+```
