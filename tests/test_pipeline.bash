@@ -34,12 +34,14 @@ GALAXY="NGC0628"
 # creating config.txt
 
 file="$DRESSCODE_INSTALL/config.txt"
-echo "path = $DATA_DIR/" > $file
-echo "galaxy = $GALAXY" >> $file
-echo "years = 2008, 2013" >> $file
-echo "enlarge = yes" >> $file
-echo "add_xpix = 250" >> $file
-echo "add_ypix = 200" >> $file
+{
+    echo "path = $DATA_DIR/"
+    echo "galaxy = $GALAXY"
+    echo "years = 2008, 2013"
+    echo "enlarge = yes"
+    echo "add_xpix = 250"
+    echo "add_ypix = 200"
+} > "$file"
 
 # change directory to dresscode install
 cd $DRESSCODE_INSTALL
