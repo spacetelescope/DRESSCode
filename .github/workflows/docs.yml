@@ -1,14 +1,24 @@
 on:
-  push:
-    branches: [ main, develop ]
+    push:
+        branches:
+            - main
+    pull_request:
 
 jobs:
-  deploy_docs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-      - run: pip install mkdocs-material
-      - run: mkdocs gh-deploy --force
+    docs:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actions/setup-python@v2
+              with:
+                  python-version: 3.8
+
+            - name: install mkdocs-material
+              run: pip install mkdocs-material
+
+            - name: build docs
+              run: mkdocs build --strict
+
+            - name: deploy docs
+              if: github.ref == 'refs/heads/main'
+              run: mkdocs gh-deploy --force
