@@ -84,3 +84,5 @@ flake8:
 ```sh
 flake8 .
 ```
+
+We also have pre-commit hooks. You can install them with `pre-commit install`
