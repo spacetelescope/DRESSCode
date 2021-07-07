@@ -5,10 +5,12 @@ Then moves the rw.img file as well as any derivatives and moves them into the ye
 """
 
 import os
-from astropy.io import fits
-import configloader
-from sys import argv
 from pathlib import Path
+from sys import argv
+
+from astropy.io import fits
+
+import configloader
 
 # Load the configuration file.
 config = configloader.load_config()

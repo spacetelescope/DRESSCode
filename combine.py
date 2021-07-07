@@ -5,12 +5,13 @@
 
 # Import the necessary packages.
 import os
-import numpy as np
-from astropy.io import fits
-from astropy import wcs
-from ccdproc import wcs_project, CCDData
-import configloader
 
+import numpy as np
+from astropy import wcs
+from astropy.io import fits
+from ccdproc import CCDData, wcs_project
+
+import configloader
 
 # Load the configuration file.
 config = configloader.load_config()

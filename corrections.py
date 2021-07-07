@@ -5,11 +5,12 @@
 
 # Import the necessary packages.
 import os
-from astropy.io import fits
-import numpy as np
-from datetime import datetime, date
-import configloader
+from datetime import date, datetime
 
+import numpy as np
+from astropy.io import fits
+
+import configloader
 
 # Load the configuration file.
 config = configloader.load_config()

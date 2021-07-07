@@ -6,7 +6,9 @@
 # Import the necessary packages.
 import os
 import subprocess
+
 from astropy.io import fits
+
 import configloader
 
 # Load the configuration file.

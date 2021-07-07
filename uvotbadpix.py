@@ -6,8 +6,8 @@
 # Import the necessary packages.
 import os
 import subprocess
-import configloader
 
+import configloader
 
 # Load the configuration file.
 config = configloader.load_config()

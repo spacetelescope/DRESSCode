@@ -2,11 +2,12 @@
 # Created on 20-12-2015, updated (to Python 3.6) on 09-11-2018.
 # Marjorie Decleir
 
+import os
+
 # Import the necessary packages.
 from astropy.io import fits
-import os
-import configloader
 
+import configloader
 
 # Load the configuration file.
 config = configloader.load_config()

@@ -4,9 +4,10 @@
 
 # Import the necessary packages.
 import os
-from astropy.io import fits
-import configloader
 
+from astropy.io import fits
+
+import configloader
 
 # Load the configuration file.
 config = configloader.load_config()

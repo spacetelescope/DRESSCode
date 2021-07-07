@@ -7,8 +7,8 @@
 import os
 import shutil
 import subprocess
-import configloader
 
+import configloader
 
 # Load the configuration file.
 config = configloader.load_config()
