@@ -15,5 +15,5 @@ To run the single image pipeline in parallel across multiple images, you can use
 ```bash
 export DRESSCODE_INSTALL="/Users/bfalk/repos/DRESSCode"
 export DATA_DIR="/Users/bfalk/Documents/SWIFT_data"
-cat background_images/lea_background_obsids.txt | parallel bash background_images/single_image_pipeline.bash $DRESSCODE_INSTALL $DATA_DIR
+cat background_images/lea_background_obsids.txt | parallel -j 1 bash background_images/single_image_pipeline.bash $DRESSCODE_INSTALL $DATA_DIR
 ```
