@@ -2,11 +2,15 @@
 
 set -e
 
-DRESSCODE_INSTALL="/Users/bfalk/repos/DRESSCode"
-DATA_DIR="/Users/bfalk/Documents/SWIFT_data"
-OBS=${1:-"2009_03/00030810060"}
+DRESSCODE_INSTALL=$1
+DATA_DIR=$2
+OBS=${3:-"2009_03/00030810060"}
 GALAXY=${OBS////_}  # replace slashes with underscores
 OUTPUT_DIR="$DATA_DIR/$GALAXY/Raw_data"
+
+echo "DRESSCODE_INSTALL: $DRESSCODE_INSTALL"
+echo "DATA_DIR: $DATA_DIR"
+echo "OUTPUT_DIR: $OUTPUT_DIR"
 
 # either pass in an observation or it uses a default: 2009_03/00030810060
 
