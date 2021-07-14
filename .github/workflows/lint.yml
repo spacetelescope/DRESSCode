@@ -1,0 +1,19 @@
+name: Lint
+
+on: [push]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: psf/black@stable
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install lint dependencies
+        run: pip install flake8 isort
+      - name: Check isort
+        run: isort . --check --diff
+      - name: Run flake8
+        run: flake8
