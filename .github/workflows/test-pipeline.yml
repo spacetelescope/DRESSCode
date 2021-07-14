@@ -1,3 +1,5 @@
+name: "Main: Docker images & run pipeline"
+
 on:
   push:
     branches:
@@ -5,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  build_and_tests:
+  build_and_test:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
