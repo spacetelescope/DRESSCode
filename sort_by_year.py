@@ -1,7 +1,7 @@
-"""sort_by_year.py: Script to sorts the files in working_dir by year
+"""sort_by_year.py: Script to sort the files in working_dir by year
 Reads header info from *rw.img files to identify the year
 Creates the year directory if it doesn't exist
-Then moves the rw.img file as well as any derivatives and moves them into the year
+Then moves the rw.img file as well as any derivatives into the year
 folder
 """
 
