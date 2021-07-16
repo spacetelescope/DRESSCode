@@ -4,6 +4,7 @@ import csv
 from pathlib import Path
 
 from astropy.io import fits
+from tqdm import tqdm
 
 background_image_dir = Path("/astro/dust_kg3/bfalk/background_test_aspect_corr/")
 count_files = 0
@@ -17,7 +18,7 @@ with open(
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
 
-    for obsid_dir in sorted(background_image_dir.iterdir()):
+    for obsid_dir in tqdm(sorted(background_image_dir.iterdir())):
 
         skycorr_logs = sorted(
             Path(obsid_dir / "working_dir").glob("output_uvotskycorrID_*.txt")

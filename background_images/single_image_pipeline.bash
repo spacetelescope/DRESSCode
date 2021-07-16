@@ -57,3 +57,15 @@ python uvotskycorr.py
 
 echo "3/13 Aspect correction part 1, adjust attitude files w/ calc. aspect corrections (uvotattcorr.py)"
 python uvotattcorr.py
+
+echo "4/13 Sky images part 2 (uvotimage2.py)"
+python uvotimage2.py
+
+echo "5/13 Auxiliary files part 1, quality maps (uvotbadpix.py)"
+python uvotbadpix.py
+
+echo "6/13 Auxiliary files part 1, exposure maps (uvotexpmap.py)"
+python uvotexpmap.py
+
+echo "7/13 Aspect correction part 2 (uvotskycorr2.py)"
+python uvotskycorr2.py
