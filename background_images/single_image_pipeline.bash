@@ -15,7 +15,8 @@ echo "OUTPUT_DIR: $OUTPUT_DIR"
 # either pass in an observation or it uses a default: 2009_03/00030810060
 
 mkdir -p "$OUTPUT_DIR"
-wget -P "$OUTPUT_DIR" -q -nH --no-check-certificate --cut-dirs=5 -r -l0 -c -N -np -R 'index*' -erobots=off --retr-symlinks http://heasarc.gsfc.nasa.gov/FTP/swift/data/obs/"$OBS"/
+wget -P "$OUTPUT_DIR" -q -nH --no-check-certificate --cut-dirs=5 -r -l0 -c -N -np -R 'index*' -erobots=off --retr-symlinks http://heasarc.gsfc.nasa.gov/FTP/swift/data/obs/"$OBS"/auxil/
+wget -P "$OUTPUT_DIR" -q -nH --no-check-certificate --cut-dirs=5 -r -l0 -c -N -np -R 'index*' -erobots=off --retr-symlinks http://heasarc.gsfc.nasa.gov/FTP/swift/data/obs/"$OBS"/uvot/
 
 file="$DRESSCODE_INSTALL/config.txt"
 {
