@@ -16,7 +16,8 @@ echo "Downloading raw data to $OUTPUT_DIR"
 for obs in "2008_02/00035868001/" "2013_08/00032891004/" "2013_08/00032891012/"
 do
   echo "Downloading obs: $obs"
-  wget -P "$OUTPUT_DIR" -q -nH --no-check-certificate --cut-dirs=5 -r -l0 -c -N -np -R "index*" -erobots=off --retr-symlinks "https://heasarc.gsfc.nasa.gov/FTP/swift/data/obs/$obs"
+  wget -P "$OUTPUT_DIR" -q -nH --no-check-certificate --cut-dirs=5 -r -l0 -c -N -np -R "index*" -erobots=off --retr-symlinks "https://heasarc.gsfc.nasa.gov/FTP/swift/data/obs/$obs/uvot/"
+  wget -P "$OUTPUT_DIR" -q -nH --no-check-certificate --cut-dirs=5 -r -l0 -c -N -np -R "index*" -erobots=off --retr-symlinks "https://heasarc.gsfc.nasa.gov/FTP/swift/data/obs/$obs/auxil/"
   echo "Downloaded obs: $obs"
 done
 
