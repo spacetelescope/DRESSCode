@@ -1,6 +1,7 @@
 """scan background image processing logs for aspect correction errors"""
 
 import csv
+from datetime import datetime
 from pathlib import Path
 
 from astropy.io import fits
@@ -11,33 +12,76 @@ count_files = 0
 count_frames = 0
 count_errors = 0
 
+timestamp = datetime.now().isoformat()
+
+
+def check_errors_in_log(skycorr_log, update_global_counts=True):
+    """check/count errors in the skycorr log"""
+    global count_files
+    global count_errors
+
+    with open(skycorr_log) as skycorr_log_fh:
+        if update_global_counts:
+            count_files += 1
+        frame_errors = 0
+        for line_no, line in enumerate(skycorr_log_fh):
+            if "no correction" in line:
+                # print(f'File "{skycorr_log}", line {line_no+1}\n  {line}')
+                if update_global_counts:
+                    count_errors += 1
+                frame_errors += 1
+
+    return frame_errors
+
+
 with open(
-    "background_images/aspect_correction_results.csv", "w", newline=""
+    f"background_images/aspect_correction_results{timestamp}.csv", "w", newline=""
 ) as csvfile:
-    fieldnames = ["obs", "filter", "frames", "errors"]
+    fieldnames = [
+        "obs",
+        "filter",
+        "frames_first_pass",
+        "errors_first_pass",
+        "second_pass",
+        "second_pass_errors",
+    ]
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
 
     for obsid_dir in tqdm(sorted(background_image_dir.iterdir())):
 
-        skycorr_logs = sorted(
-            Path(obsid_dir / "working_dir").glob("output_uvotskycorrID_*.txt")
+        skycorr_logs = Path(obsid_dir / "working_dir").glob(
+            "output_uvotskycorrID_*.txt"
+        )
+        skycorr_logs_second_pass = sorted(
+            Path(obsid_dir / "working_dir").glob("output_uvotskycorrID_*_uat_*.txt")
+        )
+        skycorr_logs_first_pass = sorted(
+            list(set(skycorr_logs) - set(skycorr_logs_second_pass))
         )
 
-        if len(skycorr_logs) == 0:
+        if len(skycorr_logs_first_pass) == 0:
             writer.writerow({"obs": obsid_dir.name, "frames": 0})
+            continue
 
-        # for each filter...
-        for skycorr_log in skycorr_logs:
-            with open(skycorr_log) as skycorr_log_fh:
-                count_files += 1
-                frame_errors = 0
-                for line_no, line in enumerate(skycorr_log_fh):
-                    if "no correction" in line:
-                        # print(f'File "{skycorr_log}", line {line_no+1}\n  {line}')
-                        count_errors += 1
-                        frame_errors += 1
+        # for each filter in the first pass...
+        for skycorr_log in skycorr_logs_first_pass:
+            frame_errors = check_errors_in_log(skycorr_log)
 
+            # check errors in the second pass log
+            # get second pass log from first pass log name
+            second_pass_log = second_pass_log = Path(
+                skycorr_log.parent,
+                "".join([skycorr_log.name[:-15], "_uat", skycorr_log.name[-15:]]),
+            )
+            if second_pass_log.exists():
+                second_pass_frame_errors = check_errors_in_log(
+                    second_pass_log, update_global_counts=False
+                )
+            else:
+                second_pass_frame_errors = None
+
+            # count the frames in the img file
             raw_image_file = skycorr_log.name.replace(
                 "output_uvotskycorrID_", ""
             ).replace("sk.txt", "rw.img")
@@ -55,6 +99,8 @@ with open(
                     "filter": skycorr_log.name[-10:-7],
                     "frames": frames,
                     "errors": frame_errors,
+                    "second_pass": second_pass_log.exists(),
+                    "second_pass_errors": second_pass_frame_errors,
                 }
             )
 
