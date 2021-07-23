@@ -2,11 +2,10 @@
 
 import csv
 from datetime import datetime
-from math import sqrt
 from pathlib import Path
 
-import numpy as np
 from astropy.io import fits
+from pyquaternion import Quaternion
 from tqdm import tqdm
 
 background_image_dir = Path("/astro/dust_kg3/bfalk/background_test_aspect_corr/")
@@ -39,7 +38,7 @@ def check_log(skycorr_log, update_global_counts=True):
                 # parse the string to float
                 quaternion_str = line.split("aspcorr: solution: quaternion ")[1].strip()
 
-                quaternion = np.array(
+                quaternion = Quaternion(
                     list(
                         map(
                             float,
@@ -47,8 +46,7 @@ def check_log(skycorr_log, update_global_counts=True):
                         )
                     )
                 )
-                quaternion_magnitude = sqrt(np.dot(quaternion, quaternion))
-                corrections.append(quaternion_magnitude)
+                corrections.append(quaternion.degrees)
 
     return frame_errors, corrections
 

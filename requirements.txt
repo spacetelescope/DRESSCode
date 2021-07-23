@@ -1,5 +1,6 @@
 astropy
 ccdproc
+pyquaternion
 
 # for docs
 mkdocs
