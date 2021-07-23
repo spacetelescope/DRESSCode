@@ -46,7 +46,7 @@ def check_log(skycorr_log, update_global_counts=True):
                         )
                     )
                 )
-                corrections.append(quaternion.degrees)
+                corrections.append(180 - abs(quaternion.degrees))
 
     return frame_errors, corrections
 
