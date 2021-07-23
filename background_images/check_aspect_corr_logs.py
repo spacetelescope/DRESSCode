@@ -2,8 +2,10 @@
 
 import csv
 from datetime import datetime
+from math import sqrt
 from pathlib import Path
 
+import numpy as np
 from astropy.io import fits
 from tqdm import tqdm
 
@@ -15,7 +17,7 @@ count_errors = 0
 timestamp = datetime.now().isoformat()
 
 
-def check_errors_in_log(skycorr_log, update_global_counts=True):
+def check_log(skycorr_log, update_global_counts=True):
     """check/count errors in the skycorr log"""
     global count_files
     global count_errors
@@ -24,14 +26,31 @@ def check_errors_in_log(skycorr_log, update_global_counts=True):
         if update_global_counts:
             count_files += 1
         frame_errors = 0
+        corrections = []
         for line_no, line in enumerate(skycorr_log_fh):
             if "no correction" in line:
                 # print(f'File "{skycorr_log}", line {line_no+1}\n  {line}')
                 if update_global_counts:
                     count_errors += 1
                 frame_errors += 1
+                continue
 
-    return frame_errors
+            if "aspcorr: solution: quaternion" in line:
+                # parse the string to float
+                quaternion_str = line.split("aspcorr: solution: quaternion ")[1].strip()
+
+                quaternion = np.array(
+                    list(
+                        map(
+                            float,
+                            quaternion_str.split(" "),
+                        )
+                    )
+                )
+                quaternion_magnitude = sqrt(np.dot(quaternion, quaternion))
+                corrections.append(quaternion_magnitude)
+
+    return frame_errors, corrections
 
 
 with open(
@@ -42,8 +61,10 @@ with open(
         "filter",
         "frames_first_pass",
         "errors_first_pass",
+        "first_pass_corr",
         "second_pass",
         "second_pass_errors",
+        "second_pass_corr",
     ]
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
@@ -66,7 +87,7 @@ with open(
 
         # for each filter in the first pass...
         for skycorr_log in skycorr_logs_first_pass:
-            frame_errors = check_errors_in_log(skycorr_log)
+            frame_errors, first_pass_corr = check_log(skycorr_log)
 
             # check errors in the second pass log
             # get second pass log from first pass log name
@@ -74,12 +95,13 @@ with open(
                 skycorr_log.parent,
                 "".join([skycorr_log.name[:-15], "_uat", skycorr_log.name[-15:]]),
             )
+
+            second_pass_frame_errors = None
+            second_pass_corr = None
             if second_pass_log.exists():
-                second_pass_frame_errors = check_errors_in_log(
+                second_pass_frame_errors, second_pass_corr = check_log(
                     second_pass_log, update_global_counts=False
                 )
-            else:
-                second_pass_frame_errors = None
 
             # count the frames in the img file
             raw_image_file = skycorr_log.name.replace(
@@ -99,8 +121,10 @@ with open(
                     "filter": skycorr_log.name[-10:-7],
                     "frames_first_pass": frames,
                     "errors_first_pass": frame_errors,
+                    "first_pass_corr": first_pass_corr,
                     "second_pass": second_pass_log.exists(),
                     "second_pass_errors": second_pass_frame_errors,
+                    "second_pass_corr": second_pass_corr,
                 }
             )
 
