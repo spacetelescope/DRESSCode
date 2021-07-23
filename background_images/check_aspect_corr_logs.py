@@ -35,7 +35,7 @@ def check_errors_in_log(skycorr_log, update_global_counts=True):
 
 
 with open(
-    f"background_images/aspect_correction_results{timestamp}.csv", "w", newline=""
+    f"background_images/aspect_correction_results_{timestamp}.csv", "w", newline=""
 ) as csvfile:
     fieldnames = [
         "obs",
@@ -97,8 +97,8 @@ with open(
                 {
                     "obs": obsid_dir.name,
                     "filter": skycorr_log.name[-10:-7],
-                    "frames": frames,
-                    "errors": frame_errors,
+                    "frames_first_pass": frames,
+                    "errors_first_pass": frame_errors,
                     "second_pass": second_pass_log.exists(),
                     "second_pass_errors": second_pass_frame_errors,
                 }

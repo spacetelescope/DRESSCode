@@ -5,6 +5,9 @@ ccdproc
 mkdocs
 mkdocs-material
 
+# for scripts
+tqdm
+
 # for dev
 black
 flake8
