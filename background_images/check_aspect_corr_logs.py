@@ -61,7 +61,7 @@ with open(
         )
 
         if len(skycorr_logs_first_pass) == 0:
-            writer.writerow({"obs": obsid_dir.name, "frames": 0})
+            writer.writerow({"obs": obsid_dir.name, "frames_first_pass": 0})
             continue
 
         # for each filter in the first pass...
