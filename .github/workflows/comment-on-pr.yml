@@ -18,7 +18,7 @@ jobs:
       - name: Create thumbnail of pipeline output
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          pip install astropy
+          pip install astropy matplotlib
           python3 tests/fits2img.py ~/dresscode-data/NGC0628/working_dir/
 
       - name: publish thumbnail to imgur
