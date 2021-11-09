@@ -8,6 +8,11 @@ from astropy.io import fits
 from astropy.visualization import simple_norm
 from matplotlib import pyplot as plt
 
+try:
+    from rich import print
+except ImportError:
+    pass
+
 FILE_PATTERN = "*_final*.fits"
 
 
@@ -42,6 +47,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         # primary is the first image
         primary_image = image_data[0, :, :]
 
+        out_fn = f"{output_path}/{p.stem}.{args.fmt}"
+
         plt.figure()
         plt.axis("off")
         plt.imshow(
@@ -53,12 +60,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         )
         plt.colorbar()
         plt.savefig(
-            f"{output_path}/{p.stem}.{args.fmt}",
-            bbox_inches="tight",
-            transparent=False,
-            pad_inches=0,
-            dpi=150,
+            out_fn, bbox_inches="tight", transparent=False, pad_inches=0, dpi=150
         )
+        print(f"Input: {p} -> Output: {out_fn}")
     return 0
 
 
