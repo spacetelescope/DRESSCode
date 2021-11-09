@@ -59,6 +59,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             origin="lower",
         )
         plt.colorbar()
+        plt.title(p.stem)
         plt.savefig(
             out_fn, bbox_inches="tight", transparent=False, pad_inches=0, dpi=150
         )

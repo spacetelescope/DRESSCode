@@ -22,6 +22,8 @@ jobs:
           pip install astropy matplotlib rich
           python3 tests/fits2img.py ~/dresscode-data/NGC0628/working_dir/
 
+        # todo: replace with our own requests.post script in order to have more control over matching imgur links / filename
+
       - name: publish thumbnail to imgur
         if: ${{ github.event_name == 'pull_request' }}
         uses: devicons/public-upload-to-imgur@v2.2.1
@@ -30,13 +32,6 @@ jobs:
           path: "*.png"
           client_id: ${{secrets.IMGUR_CLIENT_ID}}
 
-      # - name: Comment Pull Request
-      #   if: ${{ github.event_name == 'pull_request' }}
-      #   uses: thollander/actions-comment-pull-request@v1
-      #   with:
-      #     message: ${{ steps.publish-to-imgur.outputs.markdown_urls }}
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Comment PR
         if: ${{ github.event_name == 'pull_request' }}
         uses: unsplash/comment-on-pr@v1.3.0
@@ -44,6 +39,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           msg: "Final thumbnail images from pipeline:
-            ${{ matrix.fromJSON(steps.publish-to-imgur.outputs.markdown_urls) }}"
+            ${{ join(fromJSON(steps.publish-to-imgur.outputs.markdown_urls)) }}"
           check_for_duplicate_msg: false
           delete_prev_regex_msg: "^Final thumbnail images from pipeline: "
