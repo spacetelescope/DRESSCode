@@ -7,15 +7,19 @@ jobs:
   build_and_test:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
       - name: Get a fits file
         run: |
           mkdir -p ~/dresscode-data/NGC0628/working_dir/
-          wget 'https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:HST/product/w0cx0201t_c0f.fits' -O ~/dresscode-data/NGC0628/working_dir/w0cx0201t_c0f_final_test.fits
+          wget -q 'https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:HST/product/w0cx0201t_c0f.fits' -O ~/dresscode-data/NGC0628/working_dir/w0cx0201t_c0f_final_test.fits
 
       - name: Create thumbnail of pipeline output
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          python tests/fits2img.py ~/dresscode-data/NGC0628/working_dir/
+          pip install astropy
+          python3 tests/fits2img.py ~/dresscode-data/NGC0628/working_dir/
 
       - name: publish thumbnail to imgur
         if: ${{ github.event_name == 'pull_request' }}
