@@ -14,6 +14,7 @@ jobs:
         run: |
           mkdir -p ~/dresscode-data/NGC0628/working_dir/
           wget -q 'https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:HST/product/w0cx0201t_c0f.fits' -O ~/dresscode-data/NGC0628/working_dir/w0cx0201t_c0f_final_test.fits
+          cp ~/dresscode-data/NGC0628/working_dir/w0cx0201t_c0f_final_test.fits ~/dresscode-data/NGC0628/working_dir/w0cx0201t_number2_c0f_final_test.fits
 
       - name: Create thumbnail of pipeline output
         if: ${{ github.event_name == 'pull_request' }}
@@ -42,6 +43,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          msg: "Final thumbnail images from pipeline: ${{ steps.publish-to-imgur.outputs.markdown_urls.arr }}"
+          msg: "Final thumbnail images from pipeline: ${{ steps.publish-to-imgur.outputs.markdown_urls }}"
           check_for_duplicate_msg: false
           delete_prev_regex_msg: "^Final thumbnail images from pipeline: "
