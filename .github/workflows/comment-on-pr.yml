@@ -43,6 +43,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          msg: "Final thumbnail images from pipeline: ${{ steps.publish-to-imgur.outputs.markdown_urls }}"
+          msg: "Final thumbnail images from pipeline: ${{ steps.publish-to-imgur.outputs.imgur_urls }}"
           check_for_duplicate_msg: false
           delete_prev_regex_msg: "^Final thumbnail images from pipeline: "
