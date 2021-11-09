@@ -39,10 +39,10 @@ jobs:
 
       - name: Comment PR
         if: ${{ github.event_name == 'pull_request' }}
-        uses: unsplash/comment-on-pr@v1.3.0
+        uses: unsplash/comment-on-pr@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          msg: "Final thumbnail images from pipeline: ${{ steps.publish-to-imgur.outputs.imgur_urls }}"
+          msg: "Final thumbnail images from pipeline: ${{ fromJSON(steps.publish-to-imgur.outputs.markdown_urls) }}"
           check_for_duplicate_msg: false
           delete_prev_regex_msg: "^Final thumbnail images from pipeline: "
