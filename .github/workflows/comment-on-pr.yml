@@ -4,7 +4,7 @@ on:
   pull_request:
 
 jobs:
-  build_and_test:
+  comment-on-pr:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -18,7 +18,7 @@ jobs:
       - name: Create thumbnail of pipeline output
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          pip install astropy matplotlib
+          pip install astropy matplotlib rich
           python3 tests/fits2img.py ~/dresscode-data/NGC0628/working_dir/
 
       - name: publish thumbnail to imgur
@@ -26,7 +26,7 @@ jobs:
         uses: devicons/public-upload-to-imgur@v2.2.1
         id: publish-to-imgur
         with:
-          path: ~/dresscode-data/NGC0628/working_dir/*.png
+          path: "*.png"
           client_id: ${{secrets.IMGUR_CLIENT_ID}} # required
 
       - name: Comment Pull Request
