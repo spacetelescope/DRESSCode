@@ -1,0 +1,34 @@
+name: "comment-on-pr"
+
+on:
+  pull_request:
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get a fits file
+        run: |
+          mkdir -p ~/dresscode-data/NGC0628/working_dir/
+          wget 'https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:HST/product/w0cx0201t_c0f.fits' -O ~/dresscode-data/NGC0628/working_dir/w0cx0201t_c0f_final_test.fits
+
+      - name: Create thumbnail of pipeline output
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          python tests/fits2img.py ~/dresscode-data/NGC0628/working_dir/
+
+      - name: publish thumbnail to imgur
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: devicons/public-upload-to-imgur@v2.2.1
+        id: publish_to_imgur
+        with:
+          path: ~/dresscode-data/NGC0628/working_dir/*.png
+          client_id: ${{secrets.IMGUR_CLIENT_ID}} # required
+
+      - name: Comment Pull Request
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: thollander/actions-comment-pull-request@v1
+
+        with:
+          message: "${{ steps.publish_to_imgur.outputs.markdown_urls }}"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
