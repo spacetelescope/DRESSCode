@@ -31,10 +31,10 @@ jobs:
           path: path/to/artifact/world.txt
 
       - name: Comment PR
-        # if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'pull_request' }}
         uses: unsplash/comment-on-pr@v1.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          msg: "Download artifacts (fits files) from the [actions page]($GITHUB_URL/$GITHUB_REPO/actions/runs/$GITHUB_RUN_ID)"
+          msg: "Download artifacts (fits files) from the run's [actions page](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           check_for_duplicate_msg: false
