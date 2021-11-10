@@ -35,7 +35,7 @@ jobs:
         run: |
           ARTIFACT_URL=$(curl -s -H 'Accept: application/vnd.github.v3+json' \
             '$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts' \
-            | python3 -c "import sys, json; print(json.load(sys.stdin)['artifacts'][0]['archive_download_url'])
+            | python3 -c "import sys, json; print(json.load(sys.stdin)['artifacts'][0]['archive_download_url'])")
           echo "::set-output name=artifact_url::$ARTIFACT_URL"
 
       - name: Comment PR
