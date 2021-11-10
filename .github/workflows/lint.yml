@@ -37,3 +37,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           msg: "Download artifacts from this run from the [actions page]($GITHUB_URL/$GITHUB_REPO/actions/runs/$GITHUB_RUN_ID)"
+          check_for_duplicate_msg: false
