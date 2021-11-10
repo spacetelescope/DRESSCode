@@ -36,4 +36,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          msg: "Download artifacts from this run from the [actions page](https://github.com/spacetelescope/DRESSCode/actions/runs/1442566310)"
+          msg: "Download artifacts from this run from the [actions page]($GITHUB_URL/$GITHUB_REPO/actions/runs/$GITHUB_RUN_ID)"
