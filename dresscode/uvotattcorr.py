@@ -1,114 +1,104 @@
+#!/usr/bin/env python3
+
 """
 uvotattcorr.py: Script to adjust the attitude file with information from the aspect
 corrections.
 """
 
-# Import the necessary packages.
+
 import os
 import subprocess
+from typing import Optional, Sequence
 
 import configloader
 
-# Load the configuration file.
-config = configloader.load_config()
+CONFIG = configloader.load_config()
 
 # Specify the galaxy and the path to the working directory.
-galaxy = config["galaxy"]
-path = config["path"] + galaxy + "/working_dir/"
+GALAXY = CONFIG["galaxy"]
+PATH = CONFIG["path"] + GALAXY + "/working_dir/"
 
 
-# Print user information.
-print("Adjusting the attitude files...")
+def main(argv: Optional[Sequence[str]] = None) -> int:
 
-# Initialize the counter and count the total number of attitude files.
-i = 0
-num = sum(1 for filename in sorted(os.listdir(path)) if filename.endswith("pat.fits"))
-# Initialize the error flag.
-error = False
+    print("Adjusting the attitude files...")
 
-# For all files in the working directory:
-for filename in sorted(os.listdir(path)):
+    # Count the total number of attitude files.
+    num = sum(
+        1 for filename in sorted(os.listdir(PATH)) if filename.endswith("pat.fits")
+    )
+    # Initialize the error flag.
+    error = False
 
-    # If the file is not an attitude file, skip this file & continue with the next file.
-    if not filename.endswith("pat.fits"):
-        continue
+    # For all files in the working directory:
+    for i, filename in enumerate(sorted(os.listdir(PATH))):
 
-    # Check for which filters there is an aspect correction file.
-    filters = []
-    if os.path.isfile(
-        path + filename.replace("pat.fits", "_img_um2_aspcorr.ALL")
-    ) or os.path.isfile(path + filename.replace("pat.fits", "_evt_um2_aspcorr.ALL")):
-        filters.append("um2")
-    if os.path.isfile(
-        path + filename.replace("pat.fits", "_img_uw2_aspcorr.ALL")
-    ) or os.path.isfile(path + filename.replace("pat.fits", "_evt_uw2_aspcorr.ALL")):
-        filters.append("uw2")
-    if os.path.isfile(
-        path + filename.replace("pat.fits", "_img_uw1_aspcorr.ALL")
-    ) or os.path.isfile(path + filename.replace("pat.fits", "_evt_uw1_aspcorr.ALL")):
-        filters.append("uw1")
+        # If the file is not an attitude file, skip this file & continue with the next
+        # file
+        if not filename.endswith("pat.fits"):
+            continue
 
-    # Combine the correction files of the different filters into a single file.
-    # Take the IMAGE based correction file if it exists, otherwise take the EVENT based
-    # correction file. In case both exist, the IMAGE based one is used, for simplicity.
-    if len(filters) == 1:
+        # Check for which filters there is an aspect correction file.
+        filters = []
         if os.path.isfile(
-            path + filename.replace("pat.fits", "_img_" + filters[0] + "_aspcorr.ALL")
+            PATH + filename.replace("pat.fits", "_img_um2_aspcorr.ALL")
+        ) or os.path.isfile(
+            PATH + filename.replace("pat.fits", "_evt_um2_aspcorr.ALL")
         ):
-            corrfile = path + filename.replace(
-                "pat.fits", "_img_" + filters[0] + "_aspcorr.ALL"
-            )
-        else:
-            corrfile = path + filename.replace(
-                "pat.fits", "_evt_" + filters[0] + "_aspcorr.ALL"
-            )
-    elif len(filters) == 2 or len(filters) == 3:
+            filters.append("um2")
         if os.path.isfile(
-            path + filename.replace("pat.fits", "_img_" + filters[0] + "_aspcorr.ALL")
+            PATH + filename.replace("pat.fits", "_img_uw2_aspcorr.ALL")
+        ) or os.path.isfile(
+            PATH + filename.replace("pat.fits", "_evt_uw2_aspcorr.ALL")
         ):
-            infile = path + filename.replace(
-                "pat.fits", "_img_" + filters[0] + "_aspcorr.ALL"
-            )
-        else:
-            infile = path + filename.replace(
-                "pat.fits", "_evt_" + filters[0] + "_aspcorr.ALL"
-            )
+            filters.append("uw2")
         if os.path.isfile(
-            path + filename.replace("pat.fits", "_img_" + filters[1] + "_aspcorr.ALL")
+            PATH + filename.replace("pat.fits", "_img_uw1_aspcorr.ALL")
+        ) or os.path.isfile(
+            PATH + filename.replace("pat.fits", "_evt_uw1_aspcorr.ALL")
         ):
-            pastefile = path + filename.replace(
-                "pat.fits", "_img_" + filters[1] + "_aspcorr.ALL"
-            )
-        else:
-            pastefile = path + filename.replace(
-                "pat.fits", "_evt_" + filters[1] + "_aspcorr.ALL"
-            )
-        outfile = path + filename.replace("pat.fits", "_aspcorr_2filters.ALL")
-        subprocess.call(
-            "ftpaste infile="
-            + infile
-            + " pastefile="
-            + pastefile
-            + " outfile="
-            + outfile
-            + " history=yes",
-            cwd=path,
-            shell=True,
-        )
-        if len(filters) == 3:
-            infile = outfile
+            filters.append("uw1")
+
+        # Combine the correction files of the different filters into a single file.
+        # Take the IMAGE based correction file if it exists, otherwise take the EVENT
+        # based correction file. In case both exist, the IMAGE based one is used, for
+        # simplicity.
+        if len(filters) == 1:
             if os.path.isfile(
-                path
-                + filename.replace("pat.fits", "_img_" + filters[2] + "_aspcorr.ALL")
+                PATH
+                + filename.replace("pat.fits", "_img_" + filters[0] + "_aspcorr.ALL")
             ):
-                pastefile = path + filename.replace(
-                    "pat.fits", "_img_" + filters[2] + "_aspcorr.ALL"
+                corrfile = PATH + filename.replace(
+                    "pat.fits", "_img_" + filters[0] + "_aspcorr.ALL"
                 )
             else:
-                pastefile = path + filename.replace(
-                    "pat.fits", "_evt_" + filters[2] + "_aspcorr.ALL"
+                corrfile = PATH + filename.replace(
+                    "pat.fits", "_evt_" + filters[0] + "_aspcorr.ALL"
                 )
-            outfile = path + filename.replace("pat.fits", "_aspcorr_3filters.ALL")
+        elif len(filters) == 2 or len(filters) == 3:
+            if os.path.isfile(
+                PATH
+                + filename.replace("pat.fits", "_img_" + filters[0] + "_aspcorr.ALL")
+            ):
+                infile = PATH + filename.replace(
+                    "pat.fits", "_img_" + filters[0] + "_aspcorr.ALL"
+                )
+            else:
+                infile = PATH + filename.replace(
+                    "pat.fits", "_evt_" + filters[0] + "_aspcorr.ALL"
+                )
+            if os.path.isfile(
+                PATH
+                + filename.replace("pat.fits", "_img_" + filters[1] + "_aspcorr.ALL")
+            ):
+                pastefile = PATH + filename.replace(
+                    "pat.fits", "_img_" + filters[1] + "_aspcorr.ALL"
+                )
+            else:
+                pastefile = PATH + filename.replace(
+                    "pat.fits", "_evt_" + filters[1] + "_aspcorr.ALL"
+                )
+            outfile = PATH + filename.replace("pat.fits", "_aspcorr_2filters.ALL")
             subprocess.call(
                 "ftpaste infile="
                 + infile
@@ -117,59 +107,81 @@ for filename in sorted(os.listdir(path)):
                 + " outfile="
                 + outfile
                 + " history=yes",
-                cwd=path,
+                cwd=PATH,
                 shell=True,
             )
-        corrfile = outfile
-    else:
-        print(
-            "Something went wrong. "
-            "There must be at least one and no more than three filters."
+            if len(filters) == 3:
+                infile = outfile
+                if os.path.isfile(
+                    PATH
+                    + filename.replace(
+                        "pat.fits", "_img_" + filters[2] + "_aspcorr.ALL"
+                    )
+                ):
+                    pastefile = PATH + filename.replace(
+                        "pat.fits", "_img_" + filters[2] + "_aspcorr.ALL"
+                    )
+                else:
+                    pastefile = PATH + filename.replace(
+                        "pat.fits", "_evt_" + filters[2] + "_aspcorr.ALL"
+                    )
+                outfile = PATH + filename.replace("pat.fits", "_aspcorr_3filters.ALL")
+                subprocess.call(
+                    "ftpaste infile="
+                    + infile
+                    + " pastefile="
+                    + pastefile
+                    + " outfile="
+                    + outfile
+                    + " history=yes",
+                    cwd=PATH,
+                    shell=True,
+                )
+            corrfile = outfile
+        else:
+            print(
+                "Something went wrong. "
+                "There must be at least one and no more than three filters."
+            )
+
+        # Specify the input attitude file, the correction file, the output attitude file
+        # and the terminal output file.
+        attfile = filename
+        outfile = filename.replace("pat", "uat")
+        terminal_output_file = (
+            PATH + "output_uvotattcorr_" + filename.split(".", 1)[0] + ".txt"
         )
 
-    # Specify the input attitude file, the correction file, the output attitude file and
-    # the terminal output file.
-    attfile = filename
-    outfile = filename.replace("pat", "uat")
-    terminal_output_file = (
-        path + "output_uvotattcorr_" + filename.split(".", 1)[0] + ".txt"
-    )
+        # Open the terminal output file and run uvotattcorr with the specified parameters:
+        with open(terminal_output_file, "w") as terminal:
+            subprocess.call(
+                "uvotattcorr attfile="
+                + attfile
+                + " corrfile="
+                + corrfile
+                + " outfile="
+                + outfile,
+                cwd=PATH,
+                shell=True,
+                stdout=terminal,
+            )
 
-    # Open the terminal output file and run uvotattcorr with the specified parameters:
-    with open(terminal_output_file, "w") as terminal:
-        subprocess.call(
-            "uvotattcorr attfile="
-            + attfile
-            + " corrfile="
-            + corrfile
-            + " outfile="
-            + outfile,
-            cwd=path,
-            shell=True,
-            stdout=terminal,
-        )
+        # Check if the attitude file was adjusted.
+        file = open(terminal_output_file, "r")
 
-    # Check if the attitude file was adjusted.
-    file = open(terminal_output_file, "r")
+        for line in file:
+            # If the word "error" is encountered, print an error message.
+            if "error" in line:
+                print("An error has occurred for attitude file " + filename)
+                error = True
 
-    for line in file:
-        # If the word "error" is encountered, print an error message.
-        if "error" in line:
-            print("An error has occurred for attitude file " + filename)
-            error = True
+        print(f"Attitude file {filename} has been adjusted ({i}/{num})")
 
-    # Print user information.
-    i += 1
-    print(
-        "Attitude file "
-        + filename
-        + " has been adjusted ("
-        + str(i)
-        + "/"
-        + str(num)
-        + ")"
-    )
+    if error is False:
+        print("All attitude files have been adjusted.")
 
-# Print user information.
-if error is False:
-    print("All attitude files have been adjusted.")
+    return 0
+
+
+if __name__ == "__main__":
+    exit(main())

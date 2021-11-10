@@ -2,7 +2,6 @@
 configloader.py: Script to load the configuration file (config.txt).
 """
 
-# Import the necessary package.
 import os
 
 # Define the path to the configuration file.

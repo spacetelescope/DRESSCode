@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 uvotimsum.py: Script to co-add frames per type, per filter and per year and to normalize
 the summed sky images.
@@ -7,43 +9,37 @@ have been separated into different directories based on their observation period
 per year).
 """
 
-# Import the necessary packages.
 import os
 import shutil
 import subprocess
+from typing import Optional, Sequence
 
+import configloader
 import numpy as np
 from astropy.io import fits
 
-import configloader
-
-# Load the configuration file.
-config = configloader.load_config()
+CONFIG = configloader.load_config()
 
 # Specify the galaxy, the path to the working directory and the different years.
-galaxy = config["galaxy"]
-path = config["path"] + galaxy + "/working_dir/"
-years = config["years"]
+GALAXY = CONFIG["galaxy"]
+PATH = CONFIG["path"] + GALAXY + "/working_dir/"
+YEARS = CONFIG["years"]
 
 
-# This is the main function.
-def main():
+def main(argv: Optional[Sequence[str]] = None) -> int:
 
     # Loop over the different years.
-    for year in years:
-        # Print user information.
+    for year in YEARS:
+
         print("Year: " + year)
-        yearpath = path + year + "/"
+        yearpath = PATH + year + "/"
 
         # PART 1: Append all frames per filter and per type.
-        # Initialize the counter.
-        i = 0
 
-        # Print user information.
         print("Appending all frames...")
 
         # For all files in the working directory:
-        for filename in sorted(os.listdir(yearpath)):
+        for i, filename in enumerate(sorted(os.listdir(yearpath))):
 
             # Check the type of the image and give the image a type label.
             typelabel = check_type(filename)
@@ -62,11 +58,10 @@ def main():
             filterlabel = check_filter(filename)
 
             # Append all frames to one "total" image.
-            i += 1
             append(yearpath + filename, typelabel, filterlabel, i)
 
         # PART 2: Co-add the frames in each "total" image.
-        # Print user information.
+
         print("Co-adding all frames...")
 
         if os.path.isfile(yearpath + "all_um2_sk.img"):
@@ -117,7 +112,7 @@ def main():
                     error = True
 
         # PART 3: Normalize the summed sky images.
-        # Print user information.
+
         print("Normalizing the summed sky images...")
 
         if os.path.isfile(yearpath + "sum_um2_sk.img"):
@@ -132,6 +127,8 @@ def main():
                 "All frames were successfully co-added and the summed sky images were "
                 "normalized."
             )
+
+    return 0
 
 
 # Functions for PART 1: Appending frames.
@@ -189,7 +186,7 @@ def append(filename, typelabel, filterlabel, i):
     # If the "total" image of this type and this filter does not yet exist, create it.
     if not os.path.isfile(allfile):
         shutil.copyfile(filename, allfile)
-        # Print user information.
+
         print("File " + os.path.basename(allfile) + " has been created.")
     # Else: append the frames.
     else:
@@ -210,7 +207,7 @@ def appendframes(filename, allfile, i):
         infile = filename + "+" + str(j)
         totfile = allfile
         subprocess.call("ftappend " + infile + " " + totfile, cwd=path, shell=True)
-        # Print user information.
+
         print(
             "Frame "
             + os.path.basename(infile)
@@ -287,9 +284,8 @@ def norm(filename):
         shell=True,
     )
 
-    # Print user information.
     print(os.path.basename(filename) + " has been normalized.")
 
 
 if __name__ == "__main__":
-    main()
+    exit(main())

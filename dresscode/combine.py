@@ -1,73 +1,70 @@
+#!/usr/bin/env python3
+
 """
 combine.py: Script to combine the images from different observing periods.
 
 Note: This script assumes that the largest image covers all other images!
 """
 
-# Import the necessary packages.
 import os
+from typing import Optional, Sequence
 
+import configloader
 import numpy as np
 from astropy import wcs
 from astropy.io import fits
 from ccdproc import CCDData, wcs_project
 
-import configloader
-
-# Load the configuration file.
-config = configloader.load_config()
+CONFIG = configloader.load_config()
 
 # Specify the galaxy, the path to the working directory and the different years.
-galaxy = config["galaxy"]
-path = config["path"] + galaxy + "/working_dir/"
-years = config["years"]
-enlarge = config["enlarge"]
-add_x = int(config["add_xpix"])
-add_y = int(config["add_ypix"])
+GALAXY = CONFIG["galaxy"]
+PATH = CONFIG["path"] + GALAXY + "/working_dir/"
+YEARS = CONFIG["years"]
+ENLARGE = CONFIG["enlarge"]
+ADD_X = int(CONFIG["add_xpix"])
+ADD_Y = int(CONFIG["add_ypix"])
 
-# Specify the different filters.
-filters = ["uw2", "um2", "uw1"]
+FILTERS = ["uw2", "um2", "uw1"]
 
 
-# This is the main function.
-def main():
+def main(argv: Optional[Sequence[str]] = None) -> int:
 
     # PART 1: Convert the units of the corrected images (and their uncertainties) from
     # counts/s to counts.
-    # Print user information.
+
     print("Converting units from counts/s to counts...")
 
     # Loop over the different years.
-    for year in years:
-        yearpath = path + year + "/"
+    for year in YEARS:
+        yearpath = PATH + year + "/"
 
         # Loop over the filters.
-        for filter in filters:
+        for filter in FILTERS:
             # Convert the units of the corrected image.
             if os.path.isfile(yearpath + "sum_" + filter + "_nm_coilsszp.img"):
                 convert(yearpath + "sum_" + filter + "_nm_coilsszp.img")
 
     # PART 2: Reproject the images to one reference image so that they all have the same
     # size.
-    # Print user information.
+
     print("Reprojecting images...")
 
     # Loop over the filters.
-    for filter in filters:
+    for filter in FILTERS:
 
         # Find out what image is the largest (based on 1 axis only) and take that image
         # as the reference image.
         size = 0
         ref_path = None
-        for year in years:
-            yearpath = path + year + "/"
+        for year in YEARS:
+            yearpath = PATH + year + "/"
             if os.path.isfile(yearpath + "sum_" + filter + "_nm_coilsszp_c.img"):
                 hdulist = fits.open(yearpath + "sum_" + filter + "_nm_coilsszp_c.img")
                 if size < hdulist[0].header["NAXIS1"]:
                     size = hdulist[0].header["NAXIS1"]
                     ref_path = yearpath
 
-        # Print user information.
         if ref_path is None:
             print(
                 "No images were found for filter "
@@ -94,8 +91,8 @@ def main():
         # In the case that the reference image is not large enough to cover all other
         # images, embed the reference image into a larger image by adding NaN values
         # around the image.
-        if enlarge == "yes":
-            ref_header = embed(ref_header, add_x, add_y)
+        if ENLARGE == "yes":
+            ref_header = embed(ref_header, ADD_X, ADD_Y)
         # ------------------------------------------------------------------------------
 
         # Create empty lists for the reprojected images.
@@ -103,8 +100,8 @@ def main():
         repro_explist = []
 
         # Loop over the years.
-        for year in years:
-            yearpath = path + year + "/"
+        for year in YEARS:
+            yearpath = PATH + year + "/"
 
             # Reproject the image (if it is present) to the reference image.
             if os.path.isfile(yearpath + "sum_" + filter + "_nm_coilsszp_c.img"):
@@ -128,7 +125,7 @@ def main():
             )
 
         # PART 4: Sum the images of the different years and calculate the Poisson noise.
-        # Print user information.
+
         print("Summing the images of filter " + filter + "...")
 
         # Sum the sky images (and uncertainties) and the exposure maps.
@@ -137,10 +134,12 @@ def main():
         )
 
         # PART 5: Normalize the total sky image.
-        # Print user information.
+
         print("Normalizing the total sky image of filter " + filter + "...")
         # Normalize the total sky image.
         norm(sum_datacube, sum_exp_data, filter, header)
+
+    return 0
 
 
 # Function for PART 1: Unit conversion.
@@ -300,7 +299,7 @@ def sum_years(skylist, explist, filter, ref_path):
     # Write the new datacube to a new image.
     new_datacube = np.array([primary, f_coi, coicorr_rel, f_zp, poisson_rel])
     sum_hdu = fits.PrimaryHDU(new_datacube, header)
-    sum_hdu.writeto(path + "total_sum_" + filter + "_sk.fits", overwrite=True)
+    sum_hdu.writeto(PATH + "total_sum_" + filter + "_sk.fits", overwrite=True)
 
     # Sum the exposure maps.
     sum_exp_data = np.zeros_like(explist[0])
@@ -310,7 +309,7 @@ def sum_years(skylist, explist, filter, ref_path):
     # Write the summed exposure map to a new image.
     exp_header = fits.open(ref_path + "sum_" + filter + "_ex_r.img")[0].header
     sum_exp_hdu = fits.PrimaryHDU(sum_exp_data, exp_header)
-    sum_exp_hdu.writeto(path + "total_sum_" + filter + "_ex.fits", overwrite=True)
+    sum_exp_hdu.writeto(PATH + "total_sum_" + filter + "_ex.fits", overwrite=True)
     return new_datacube, sum_exp_data, header
 
 
@@ -325,8 +324,8 @@ def norm(datacube, exp_data, filter, header):
 
     # Save the normalized image.
     norm_hdu = fits.PrimaryHDU(datacube, header)
-    norm_hdu.writeto(path + "total_sum_" + filter + "_nm.fits", overwrite=True)
+    norm_hdu.writeto(PATH + "total_sum_" + filter + "_nm.fits", overwrite=True)
 
 
 if __name__ == "__main__":
-    main()
+    exit(main())

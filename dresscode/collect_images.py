@@ -2,14 +2,13 @@
 collect_images.py: Script to collect all raw files needed in the data reduction.
 """
 
-# Import the necessary packages.
+
 import os
 import shutil
 
 import configloader
 from utils import listdir_nohidden
 
-# Load the configuration file.
 config = configloader.load_config()
 
 # Specify the galaxy and the path to the working directory.
@@ -69,15 +68,10 @@ for directory in listdir_nohidden(rawpath):
             shutil.copy(rawpath + directory + "/uvot/hk/" + file, topath)
             aspect_file_count += 1
 
-# Print user information.
+
 print(
-    str(raw_image_file_count)
-    + " raw image files, "
-    + str(event_file_count)
-    + " event files, "
-    + str(attitude_file_count)
-    + " attitude files and "
-    + str(aspect_file_count)
-    + " aspect following files have been copied to "
-    + topath
+    f"{raw_image_file_count} raw image files, "
+    f"{event_file_count} event files, "
+    f"{attitude_file_count} attitude files and "
+    f"{aspect_file_count} aspect following files have been copied to {topath}"
 )
