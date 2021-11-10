@@ -1,2 +1,10 @@
 [tool.isort]
 profile = "black"
+
+[build-system]
+requires = [
+    "setuptools>=54",
+    "wheel",
+    "numpy"  # astroscrappy requires to build wheel
+]
+build-backend = "setuptools.build_meta"

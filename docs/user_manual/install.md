@@ -71,6 +71,6 @@ More info can be found on the wcstools <a href="http://tdc-www.harvard.edu/wcsto
 
 ### Download DRESSCode from GitHub
 
-1. Python is needed to run the scripts. DRESSCode was written and tested in python 3.6 and up. Make sure you have a working python environment.
+1. Python is needed to run the scripts. DRESSCode was written and tested in python 3.7 and up. Make sure you have a working python environment.
 2. Download the code from github: `git clone git@github.com:spacetelescope/DRESSCode.git`
 3. `cd` into the DRESSCode directory and install the dependencies into your Python environment: `pip install -r requirements.txt`

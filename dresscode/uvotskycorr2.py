@@ -62,149 +62,151 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             PATH + "output_uvotskycorrID_" + original_filename.replace(".img", ".txt")
         )
 
-        pkg_resources.resource_filename(__name__, "calfiles/usnob1.spec")
-        catfile = os.getcwd() + "/usnob1.spec"
+        with pkg_resources.path(__package__, "calfiles/usnob1.spec") as catfilepath:
+            catfile = str(catfilepath.absolute().resolve())
 
-        # Open the terminal output file and run uvotskycorr ID with the specified parameters
-        with open(terminal_output_file, "w") as terminal:
-            subprocess.call(
-                "uvotskycorr what=ID skyfile="
-                + skyfile
-                + " corrfile=NONE attfile="
-                + attfile
-                + " outfile="
-                + outfile
-                + " starid='matchtol=20 cntcorr=3 n.reference=200 n.observation=40 max.rate=1000' catspec="  # NoQA
-                + catfile
-                + " chatter=5",
-                cwd=PATH,
-                shell=True,
-                stdout=terminal,
+            # Open the terminal output file and run uvotskycorr ID with the specified parameters
+            with open(terminal_output_file, "w") as terminal:
+                subprocess.call(
+                    "uvotskycorr what=ID skyfile="
+                    + skyfile
+                    + " corrfile=NONE attfile="
+                    + attfile
+                    + " outfile="
+                    + outfile
+                    + " starid='matchtol=20 cntcorr=3 n.reference=200 n.observation=40 max.rate=1000' catspec="  # NoQA
+                    + catfile
+                    + " chatter=5",
+                    cwd=PATH,
+                    shell=True,
+                    stdout=terminal,
+                )
+
+            # Check if an aspect correction was found.
+            file = open(terminal_output_file, "r")
+
+            for line in file:
+                # If the words "no correction" are encountered, print an error message.
+                if "no correction" in line:
+                    print(
+                        "!! No aspect correction found for frame "
+                        + line.split()[4].replace("sk_corr", "sk")
+                        + "!!"
+                    )
+                    error = True
+
+            print(
+                "Aspect correction calculated for all (other) frames of "
+                + original_filename
+                + f" ({i}/{num})"
             )
 
-        # Check if an aspect correction was found.
-        file = open(terminal_output_file, "r")
+            # Specify the correction file and the terminal output file.
+            corrfile = original_filename.replace("sk.img", "aspcorr.ALL")
+            terminal_output_file = (
+                PATH
+                + "output_uvotskycorrSKY_"
+                + original_filename.replace(".img", ".txt")
+            )
 
-        for line in file:
-            # If the words "no correction" are encountered, print an error message.
-            if "no correction" in line:
+            # Open terminal output file and run uvotskycorr SKY with the specified parameters
+            with open(terminal_output_file, "w") as terminal:
+                subprocess.call(
+                    "uvotskycorr what=SKY skyfile="
+                    + skyfile
+                    + " corrfile="
+                    + corrfile
+                    + " attfile="
+                    + attfile
+                    + " outfile=NONE catspec="
+                    + catfile,
+                    cwd=PATH,
+                    shell=True,
+                    stdout=terminal,
+                )
+
+            # Check if the aspect correction was applied.
+            file = open(terminal_output_file, "r")
+            text = file.read()
+
+            # If the word "error" is encountered, print an error message.
+            if "error" in text:
                 print(
-                    "!! No aspect correction found for frame "
-                    + line.split()[4].replace("sk_corr", "sk")
-                    + "!!"
+                    "An error has occurred during the application of the aspect correction to "
+                    "image " + original_filename
                 )
                 error = True
 
-        print(
-            "Aspect correction calculated for all (other) frames of "
-            + original_filename
-            + f" ({i}/{num})"
-        )
-
-        # Specify the correction file and the terminal output file.
-        corrfile = original_filename.replace("sk.img", "aspcorr.ALL")
-        terminal_output_file = (
-            PATH + "output_uvotskycorrSKY_" + original_filename.replace(".img", ".txt")
-        )
-
-        # Open terminal output file and run uvotskycorr SKY with the specified parameters
-        with open(terminal_output_file, "w") as terminal:
-            subprocess.call(
-                "uvotskycorr what=SKY skyfile="
-                + skyfile
-                + " corrfile="
-                + corrfile
-                + " attfile="
-                + attfile
-                + " outfile=NONE catspec="
-                + catfile,
-                cwd=PATH,
-                shell=True,
-                stdout=terminal,
-            )
-
-        # Check if the aspect correction was applied.
-        file = open(terminal_output_file, "r")
-        text = file.read()
-
-        # If the word "error" is encountered, print an error message.
-        if "error" in text:
             print(
-                "An error has occurred during the application of the aspect correction to "
-                "image " + original_filename
-            )
-            error = True
-
-        print(
-            "Aspect correction applied to all (other) frames of "
-            + original_filename
-            + f" ({i}/{num})"
-        )
-
-        # Do the same for the corresponding exposure map.
-        or_expname = original_filename.replace("sk", "ex")
-        expname = or_expname.replace("ex", "ex_corr")
-        shutil.copyfile(PATH + or_expname, PATH + expname)
-        skyfile = expname
-        terminal_output_file = (
-            PATH + "output_uvotskycorrSKY_" + or_expname.replace(".img", ".txt")
-        )
-
-        with open(terminal_output_file, "w") as terminal:
-            subprocess.call(
-                "uvotskycorr what=SKY skyfile="
-                + skyfile
-                + " corrfile="
-                + corrfile
-                + " attfile="
-                + attfile
-                + " outfile=NONE catspec="
-                + catfile,
-                cwd=PATH,
-                shell=True,
-                stdout=terminal,
+                "Aspect correction applied to all (other) frames of "
+                + original_filename
+                + f" ({i}/{num})"
             )
 
-        file = open(terminal_output_file, "r")
-        text = file.read()
+            # Do the same for the corresponding exposure map.
+            or_expname = original_filename.replace("sk", "ex")
+            expname = or_expname.replace("ex", "ex_corr")
+            shutil.copyfile(PATH + or_expname, PATH + expname)
+            skyfile = expname
+            terminal_output_file = (
+                PATH + "output_uvotskycorrSKY_" + or_expname.replace(".img", ".txt")
+            )
 
-        # If the word "error" is encountered, print an error message.
-        if "error" in text:
+            with open(terminal_output_file, "w") as terminal:
+                subprocess.call(
+                    "uvotskycorr what=SKY skyfile="
+                    + skyfile
+                    + " corrfile="
+                    + corrfile
+                    + " attfile="
+                    + attfile
+                    + " outfile=NONE catspec="
+                    + catfile,
+                    cwd=PATH,
+                    shell=True,
+                    stdout=terminal,
+                )
+
+            file = open(terminal_output_file, "r")
+            text = file.read()
+
+            # If the word "error" is encountered, print an error message.
+            if "error" in text:
+                print(
+                    "An error has occurred during the application of the aspect correction to "
+                    "exposure map " + or_expname
+                )
+                error = True
+
             print(
-                "An error has occurred during the application of the aspect correction to "
-                "exposure map " + or_expname
+                "Aspect correction applied to all (other) frames of "
+                + or_expname
+                + f" ({i}/{num})"
             )
-            error = True
 
-        print(
-            "Aspect correction applied to all (other) frames of "
-            + or_expname
-            + f" ({i}/{num})"
-        )
-
-        # Do the same for the corresponding mask file.
-        or_maskname = original_filename.replace("sk", "mk")
-        maskname = or_maskname.replace("mk", "mk_corr")
-        shutil.copyfile(PATH + or_maskname, PATH + maskname)
-        skyfile = maskname
-        terminal_output_file = (
-            PATH + "output_uvotskycorrSKY_" + or_maskname.replace(".img", ".txt")
-        )
-
-        with open(terminal_output_file, "w") as terminal:
-            subprocess.call(
-                "uvotskycorr what=SKY skyfile="
-                + skyfile
-                + " corrfile="
-                + corrfile
-                + " attfile="
-                + attfile
-                + " outfile=NONE catspec="
-                + catfile,
-                cwd=PATH,
-                shell=True,
-                stdout=terminal,
+            # Do the same for the corresponding mask file.
+            or_maskname = original_filename.replace("sk", "mk")
+            maskname = or_maskname.replace("mk", "mk_corr")
+            shutil.copyfile(PATH + or_maskname, PATH + maskname)
+            skyfile = maskname
+            terminal_output_file = (
+                PATH + "output_uvotskycorrSKY_" + or_maskname.replace(".img", ".txt")
             )
+
+            with open(terminal_output_file, "w") as terminal:
+                subprocess.call(
+                    "uvotskycorr what=SKY skyfile="
+                    + skyfile
+                    + " corrfile="
+                    + corrfile
+                    + " attfile="
+                    + attfile
+                    + " outfile=NONE catspec="
+                    + catfile,
+                    cwd=PATH,
+                    shell=True,
+                    stdout=terminal,
+                )
 
         file = open(terminal_output_file, "r")
         text = file.read()

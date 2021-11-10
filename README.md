@@ -26,7 +26,7 @@ See the <a href="https://spacetelescope.github.io/DRESSCode/user_manual/install/
 
 The minimum requirements are:
 
-- Python 3.6 or later
+- Python 3.7 or later
 - Current version of HEASoft (tested with 6.28)
 - <a href="https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/install.html" target="_blank">caldb: calibration tree</a>
 - <a href="http://tdc-www.harvard.edu/wcstools/" target="_blank">wcstools</a>: World Coordinate System utilities
