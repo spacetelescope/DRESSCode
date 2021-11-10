@@ -46,6 +46,8 @@ file="$DRESSCODE_INSTALL/config.txt"
 # change directory to dresscode install
 cd $DRESSCODE_INSTALL
 
+pip install -e .
+
 # rearranging files into Raw_images directory
 if [ -d $DATA_DIR/$GALAXY/Raw_images/ ]
 then
@@ -53,7 +55,8 @@ then
     rmdir $DATA_DIR/$GALAXY/Raw_images
 fi
 
-python collect_images.py
+# todo: make this a script/entry point
+python dresscode/collect_images.py
 
 # uncompress Raw_images
 gunzip $DATA_DIR/$GALAXY/Raw_images/*.gz
