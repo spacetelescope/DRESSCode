@@ -61,3 +61,30 @@ jobs:
       - name: Push the DRESSCode Docker image
         if: github.ref == 'refs/heads/main'
         run: docker push dresscodeswift/dresscode:latest
+
+      - name: Create thumbnail of pipeline output
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          pip install astropy matplotlib
+          python3 tests/fits2img.py ~/dresscode-data/NGC0628/working_dir/
+
+      - name: Publish to imgur
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: devicons/public-upload-to-imgur@v2.2.1
+        id: publish-to-imgur
+        with:
+          path: "*.png"
+          client_id: ${{secrets.IMGUR_CLIENT_ID}}
+
+      - name: Comment PR
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: unsplash/comment-on-pr@v1.3.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          msg: "Pipeline output (`*_final*.fits`):
+            ${{ join(fromJSON(steps.publish-to-imgur.outputs.markdown_urls)) }}
+
+            Download artifacts (fits files) from the run's [actions page](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          check_for_duplicate_msg: false
+          delete_prev_regex_msg: '^Pipeline output \(`\*_final\*\.fits`\)'
