@@ -7,13 +7,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
       - uses: psf/black@stable
+
       - uses: actions/setup-python@v2
         with:
           python-version: 3.8
+
       - name: Install lint dependencies
         run: pip install flake8 isort
+
       - name: Check isort
         run: isort . --check --diff
+
       - name: Run flake8
         run: flake8
+
+      - run: mkdir -p path/to/artifact
+      - run: echo hello > path/to/artifact/world.txt
+      - uses: actions/upload-artifact@v2
+        with:
+          name: my-artifact
+          path: path/to/artifact/world.txt
+
+      - name: register url of artifact
+        id: get-run-artifacts
+        run: |
+          ARTIFACT_URL=$(curl -s -H 'Accept: application/vnd.github.v3+json' '$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts' | python3 -c "import sys, json; print(json.load(sys.stdin)[0]['archive_download_url'])")
+          echo "::set-output name=artifact_url::$ARTIFACT_URL"
+
+      - name: Comment PR
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: unsplash/comment-on-pr@v1.3.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          msg: ${{ steps.get-run-artifacts.get-run-artifacts.outputs.artifact_url }}
