@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  # pull_request:
+  pull_request:
 
 jobs:
   build_and_test:
@@ -68,8 +68,6 @@ jobs:
           pip install astropy matplotlib
           python3 tests/fits2img.py ~/dresscode-data/NGC0628/working_dir/
 
-        # todo: replace with our own requests.post script in order to have more control over matching imgur links / filename
-
       - name: Publish to imgur
         if: ${{ github.event_name == 'pull_request' }}
         uses: devicons/public-upload-to-imgur@v2.2.1
@@ -85,6 +83,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           msg: "Pipeline output (`*_final*.fits`):
-            ${{ join(fromJSON(steps.publish-to-imgur.outputs.markdown_urls)) }}"
+            ${{ join(fromJSON(steps.publish-to-imgur.outputs.markdown_urls)) }}
+
+            Download artifacts (fits files) from the run's [actions page](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           check_for_duplicate_msg: false
           delete_prev_regex_msg: "^Final thumbnail images from pipeline: "
