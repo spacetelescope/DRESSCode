@@ -33,6 +33,12 @@ jobs:
       - name: register url of artifact
         id: get-run-artifacts
         run: |
+          for i in {1..10}
+          do
+            echo "."
+            sleep 1
+          done
+
           echo "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts"
           ARTIFACT_URL=$(curl -s -H "Accept: application/vnd.github.v3+json" \
             "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" \
