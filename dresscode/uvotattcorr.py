@@ -8,30 +8,37 @@ corrections.
 
 import os
 import subprocess
+from argparse import ArgumentParser
 from typing import Optional, Sequence
 
-import configloader
-
-CONFIG = configloader.load_config()
-
-# Specify the galaxy and the path to the working directory.
-GALAXY = CONFIG["galaxy"]
-PATH = CONFIG["path"] + GALAXY + "/working_dir/"
+from utils import load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
+
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-c", "--config", help="path to config.txt", default="config.txt"
+    )
+    args = parser.parse_args(argv)
+
+    config = load_config(args.config)
+
+    # Specify the galaxy and the path to the working directory.
+    galaxy = config["galaxy"]
+    path = config["path"] + galaxy + "/working_dir/"
 
     print("Adjusting the attitude files...")
 
     # Count the total number of attitude files.
     num = sum(
-        1 for filename in sorted(os.listdir(PATH)) if filename.endswith("pat.fits")
+        1 for filename in sorted(os.listdir(path)) if filename.endswith("pat.fits")
     )
     # Initialize the error flag.
     error = False
 
     # For all files in the working directory:
-    for i, filename in enumerate(sorted(os.listdir(PATH))):
+    for i, filename in enumerate(sorted(os.listdir(path))):
 
         # If the file is not an attitude file, skip this file & continue with the next
         # file
@@ -41,21 +48,21 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         # Check for which filters there is an aspect correction file.
         filters = []
         if os.path.isfile(
-            PATH + filename.replace("pat.fits", "_img_um2_aspcorr.ALL")
+            path + filename.replace("pat.fits", "_img_um2_aspcorr.ALL")
         ) or os.path.isfile(
-            PATH + filename.replace("pat.fits", "_evt_um2_aspcorr.ALL")
+            path + filename.replace("pat.fits", "_evt_um2_aspcorr.ALL")
         ):
             filters.append("um2")
         if os.path.isfile(
-            PATH + filename.replace("pat.fits", "_img_uw2_aspcorr.ALL")
+            path + filename.replace("pat.fits", "_img_uw2_aspcorr.ALL")
         ) or os.path.isfile(
-            PATH + filename.replace("pat.fits", "_evt_uw2_aspcorr.ALL")
+            path + filename.replace("pat.fits", "_evt_uw2_aspcorr.ALL")
         ):
             filters.append("uw2")
         if os.path.isfile(
-            PATH + filename.replace("pat.fits", "_img_uw1_aspcorr.ALL")
+            path + filename.replace("pat.fits", "_img_uw1_aspcorr.ALL")
         ) or os.path.isfile(
-            PATH + filename.replace("pat.fits", "_evt_uw1_aspcorr.ALL")
+            path + filename.replace("pat.fits", "_evt_uw1_aspcorr.ALL")
         ):
             filters.append("uw1")
 
@@ -65,40 +72,40 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         # simplicity.
         if len(filters) == 1:
             if os.path.isfile(
-                PATH
+                path
                 + filename.replace("pat.fits", "_img_" + filters[0] + "_aspcorr.ALL")
             ):
-                corrfile = PATH + filename.replace(
+                corrfile = path + filename.replace(
                     "pat.fits", "_img_" + filters[0] + "_aspcorr.ALL"
                 )
             else:
-                corrfile = PATH + filename.replace(
+                corrfile = path + filename.replace(
                     "pat.fits", "_evt_" + filters[0] + "_aspcorr.ALL"
                 )
         elif len(filters) == 2 or len(filters) == 3:
             if os.path.isfile(
-                PATH
+                path
                 + filename.replace("pat.fits", "_img_" + filters[0] + "_aspcorr.ALL")
             ):
-                infile = PATH + filename.replace(
+                infile = path + filename.replace(
                     "pat.fits", "_img_" + filters[0] + "_aspcorr.ALL"
                 )
             else:
-                infile = PATH + filename.replace(
+                infile = path + filename.replace(
                     "pat.fits", "_evt_" + filters[0] + "_aspcorr.ALL"
                 )
             if os.path.isfile(
-                PATH
+                path
                 + filename.replace("pat.fits", "_img_" + filters[1] + "_aspcorr.ALL")
             ):
-                pastefile = PATH + filename.replace(
+                pastefile = path + filename.replace(
                     "pat.fits", "_img_" + filters[1] + "_aspcorr.ALL"
                 )
             else:
-                pastefile = PATH + filename.replace(
+                pastefile = path + filename.replace(
                     "pat.fits", "_evt_" + filters[1] + "_aspcorr.ALL"
                 )
-            outfile = PATH + filename.replace("pat.fits", "_aspcorr_2filters.ALL")
+            outfile = path + filename.replace("pat.fits", "_aspcorr_2filters.ALL")
             subprocess.call(
                 "ftpaste infile="
                 + infile
@@ -107,25 +114,25 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 + " outfile="
                 + outfile
                 + " history=yes",
-                cwd=PATH,
+                cwd=path,
                 shell=True,
             )
             if len(filters) == 3:
                 infile = outfile
                 if os.path.isfile(
-                    PATH
+                    path
                     + filename.replace(
                         "pat.fits", "_img_" + filters[2] + "_aspcorr.ALL"
                     )
                 ):
-                    pastefile = PATH + filename.replace(
+                    pastefile = path + filename.replace(
                         "pat.fits", "_img_" + filters[2] + "_aspcorr.ALL"
                     )
                 else:
-                    pastefile = PATH + filename.replace(
+                    pastefile = path + filename.replace(
                         "pat.fits", "_evt_" + filters[2] + "_aspcorr.ALL"
                     )
-                outfile = PATH + filename.replace("pat.fits", "_aspcorr_3filters.ALL")
+                outfile = path + filename.replace("pat.fits", "_aspcorr_3filters.ALL")
                 subprocess.call(
                     "ftpaste infile="
                     + infile
@@ -134,7 +141,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     + " outfile="
                     + outfile
                     + " history=yes",
-                    cwd=PATH,
+                    cwd=path,
                     shell=True,
                 )
             corrfile = outfile
@@ -149,7 +156,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         attfile = filename
         outfile = filename.replace("pat", "uat")
         terminal_output_file = (
-            PATH + "output_uvotattcorr_" + filename.split(".", 1)[0] + ".txt"
+            path + "output_uvotattcorr_" + filename.split(".", 1)[0] + ".txt"
         )
 
         # Open the terminal output file and run uvotattcorr with the specified parameters:
@@ -161,7 +168,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 + corrfile
                 + " outfile="
                 + outfile,
-                cwd=PATH,
+                cwd=path,
                 shell=True,
                 stdout=terminal,
             )

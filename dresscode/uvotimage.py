@@ -6,32 +6,38 @@ uvotimage.py: Script to create sky images from raw images and event files.
 
 import os
 import subprocess
+from argparse import ArgumentParser
 from typing import Optional, Sequence
 
-import configloader
 from astropy.io import fits
-
-config = configloader.load_config()
-
-# Specify the galaxy and the path to the working directory.
-GALAXY = config["galaxy"]
-PATH = config["path"] + GALAXY + "/working_dir/"
+from utils import load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
+
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-c", "--config", help="path to config.txt", default="config.txt"
+    )
+    args = parser.parse_args(argv)
+
+    config = load_config(args.config)
+    # Specify the galaxy and the path to the working directory.
+    galaxy = config["galaxy"]
+    path = config["path"] + galaxy + "/working_dir/"
 
     print("Creating sky images...")
 
     # Count the total number of raw images. Initialize the error flag.
     num = sum(
         1
-        for filename in sorted(os.listdir(PATH))
+        for filename in sorted(os.listdir(path))
         if filename.endswith("rw.img") or filename.endswith(".evt")
     )
     error = False
 
     # For all files in the working directory:
-    for i, filename in enumerate(sorted(os.listdir(PATH))):
+    for i, filename in enumerate(sorted(os.listdir(path))):
 
         # If the file is not a raw image or an event file, skip this file and continue
         # with the next file.
@@ -44,11 +50,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         prefix = filename.split("u")[0] + "_" + filename.split(".")[1] + "_"
         attfile = filename.split("u", 1)[0] + "pat.fits"
         terminal_output_file = (
-            PATH + "output_uvotimage_" + filename.split(".")[0] + ".txt"
+            path + "output_uvotimage_" + filename.split(".")[0] + ".txt"
         )
 
         # Open the file and take the RA, DEC and roll from the header.
-        header = fits.open(PATH + filename)[0].header
+        header = fits.open(path + filename)[0].header
         RA = header["RA_PNT"]
         DEC = header["DEC_PNT"]
         PA = header["PA_PNT"]
@@ -71,7 +77,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 + " roll="
                 + str(PA)
                 + " mod8corr=yes refattopt='ANGLE_d=5,OFFSET_s=1000'",
-                cwd=PATH,
+                cwd=path,
                 shell=True,
                 stdout=terminal,
             )

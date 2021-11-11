@@ -6,31 +6,38 @@ uvotbadpix.py: Script to create quality maps.
 
 import os
 import subprocess
+from argparse import ArgumentParser
 from typing import Optional, Sequence
 
-import configloader
-
-CONFIG = configloader.load_config()
-
-# Specify the galaxy and the path to the working directory.
-GALAXY = CONFIG["galaxy"]
-PATH = CONFIG["path"] + GALAXY + "/working_dir/"
+from utils import load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
+
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-c", "--config", help="path to config.txt", default="config.txt"
+    )
+    args = parser.parse_args(argv)
+
+    config = load_config(args.config)
+    # Specify the galaxy and the path to the working directory.
+    galaxy = config["galaxy"]
+    path = config["path"] + galaxy + "/working_dir/"
+
     print("Creating quality maps...")
 
     # Count the total number of sky images
     num = sum(
         1
-        for filename in sorted(os.listdir(PATH))
+        for filename in sorted(os.listdir(path))
         if filename.endswith("sk.img") and "uat" in filename
     )
     # Initialize the error flag
     error = False
 
     # For all files in the working directory:
-    for i, filename in enumerate(sorted(os.listdir(PATH))):
+    for i, filename in enumerate(sorted(os.listdir(path))):
 
         # If the file is not a sky image (created with the uat attitude file), skip this
         # file & continue with the next file.
@@ -41,14 +48,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         infile = filename
         outfile = "quality_" + filename.replace("sk", "badpix")
         terminal_output_file = (
-            PATH + "output_uvotbadpix_" + filename.replace(".img", ".txt")
+            path + "output_uvotbadpix_" + filename.replace(".img", ".txt")
         )
 
         # Open the terminal output file and run uvotbadpix with the specified parameters:
         with open(terminal_output_file, "w") as terminal:
             subprocess.call(
                 "uvotbadpix infile=" + infile + " badpixlist=CALDB outfile=" + outfile,
-                cwd=PATH,
+                cwd=path,
                 shell=True,
                 stdout=terminal,
             )

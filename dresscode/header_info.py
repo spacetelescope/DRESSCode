@@ -6,35 +6,32 @@ header_info.py: Script to print relevant information about the image files.
 
 
 import os
+from argparse import ArgumentParser
 from typing import Optional, Sequence
 
-import configloader
 from astropy.io import fits
-
-CONFIG = configloader.load_config()
-
-# Specify the galaxy and the path to the raw images.
-GALAXY = CONFIG["galaxy"]
-PATH = CONFIG["path"] + GALAXY + "/Raw_images/"
+from utils import load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-    # Print titles of columns.
-    print(
-        "filename"
-        + "\t"
-        + "\t"
-        + "\t"
-        + "#frames"
-        + "\t"
-        + "filter"
-        + "\t"
-        + "date"
-        + "\n"
+
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-c", "--config", help="path to config.txt", default="config.txt"
     )
+    args = parser.parse_args(argv)
+
+    config = load_config(args.config)
+
+    # Specify the galaxy and the path to the raw images.
+    galaxy = config["galaxy"]
+    path = config["path"] + galaxy + "/Raw_images/"
+
+    # Print titles of columns.
+    print("filename\t\t\t#frames\tfilter\tdate\n")
 
     # For all files in the path directory:
-    for filename in sorted(os.listdir(PATH)):
+    for filename in sorted(os.listdir(path)):
 
         # If the file is not a raw image file, skip this file and continue with the next
         # file.
@@ -43,7 +40,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
         # Open the image, calculate the number of individual frames in the image. Print
         # relevant header information.
-        hdulist = fits.open(PATH + filename)
+        hdulist = fits.open(path + filename)
         number_of_frames = len(hdulist) - 1
         print(
             filename

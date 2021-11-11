@@ -7,28 +7,35 @@ attitude file and after the aspect correction.
 
 import os
 import subprocess
+from argparse import ArgumentParser
 from typing import Optional, Sequence
 
-import configloader
-
-CONFIG = configloader.load_config()
-
-# Specify the galaxy and the path to the working directory.
-GALAXY = CONFIG["galaxy"]
-PATH = CONFIG["path"] + GALAXY + "/working_dir/"
+from utils import load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
+
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-c", "--config", help="path to config.txt", default="config.txt"
+    )
+    args = parser.parse_args(argv)
+
+    config = load_config(args.config)
+    # Specify the galaxy and the path to the working directory.
+    galaxy = config["galaxy"]
+    path = config["path"] + galaxy + "/working_dir/"
+
     print("Creating large scale sensitivity maps...")
 
     # Count the total number of corrected sky images. Initialize the error flag
     num = sum(
-        1 for filename in sorted(os.listdir(PATH)) if filename.endswith("sk_corr.img")
+        1 for filename in sorted(os.listdir(path)) if filename.endswith("sk_corr.img")
     )
     error = False
 
     # For all files in the working directory:
-    for i, filename in enumerate(sorted(os.listdir(PATH))):
+    for i, filename in enumerate(sorted(os.listdir(path))):
 
         # If the file is not an aspect corrected sky image (created with the uat attitude
         # file), skip this file and continue with the next file.
@@ -41,7 +48,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         outfile = filename.replace("sk", "lss")
         attfile = filename.split("_", 1)[0] + "uat.fits"
         terminal_output_file = (
-            PATH + "output_uvotskylss_" + filename.replace(".img", ".txt")
+            path + "output_uvotskylss_" + filename.replace(".img", ".txt")
         )
 
         # Open the terminal output file and run uvotskylss with the specified parameters:
@@ -53,7 +60,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 + outfile
                 + " attfile="
                 + attfile,
-                cwd=PATH,
+                cwd=path,
                 shell=True,
                 stdout=terminal,
             )

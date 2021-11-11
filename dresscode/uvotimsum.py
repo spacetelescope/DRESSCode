@@ -12,27 +12,33 @@ per year).
 import os
 import shutil
 import subprocess
+from argparse import ArgumentParser
 from typing import Optional, Sequence
 
-import configloader
 import numpy as np
 from astropy.io import fits
-
-CONFIG = configloader.load_config()
-
-# Specify the galaxy, the path to the working directory and the different years.
-GALAXY = CONFIG["galaxy"]
-PATH = CONFIG["path"] + GALAXY + "/working_dir/"
-YEARS = CONFIG["years"]
+from utils import load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
 
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-c", "--config", help="path to config.txt", default="config.txt"
+    )
+    args = parser.parse_args(argv)
+
+    config = load_config(args.config)
+    # Specify the galaxy and the path to the working directory.
+    galaxy = config["galaxy"]
+    path = config["path"] + galaxy + "/working_dir/"
+    years = config["years"]
+
     # Loop over the different years.
-    for year in YEARS:
+    for year in years:
 
         print("Year: " + year)
-        yearpath = PATH + year + "/"
+        yearpath = path + year + "/"
 
         # PART 1: Append all frames per filter and per type.
 

@@ -6,16 +6,11 @@ correct for the aperture calibration.
 """
 
 import os
+from argparse import ArgumentParser
 from typing import Optional, Sequence
 
-import configloader
 from astropy.io import fits
-
-CONFIG = configloader.load_config()
-
-# Specify the galaxy, the path to the working directory and the different years.
-GALAXY = CONFIG["galaxy"]
-PATH = CONFIG["path"] + GALAXY + "/working_dir/"
+from utils import load_config
 
 
 # Function to convert the units of an image.
@@ -44,6 +39,17 @@ def convert(filename, factor):
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
 
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-c", "--config", help="path to config.txt", default="config.txt"
+    )
+    args = parser.parse_args(argv)
+
+    config = load_config(args.config)
+
+    galaxy = config["galaxy"]
+    path = config["path"] + galaxy + "/working_dir/"
+
     print(
         "Converting the units of the final image from counts/s to Jy and correcting "
         "for the aperture calibration..."
@@ -61,12 +67,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     factor_UVW1 = factor_UVW1 / 1.1567
 
     # Convert the units of the images.
-    if os.path.isfile(PATH + "total_sum_uw2_nm.fits"):
-        convert(PATH + "total_sum_uw2_nm.fits", factor_UVW2)
-    if os.path.isfile(PATH + "total_sum_um2_nm.fits"):
-        convert(PATH + "total_sum_um2_nm.fits", factor_UVM2)
-    if os.path.isfile(PATH + "total_sum_uw1_nm.fits"):
-        convert(PATH + "total_sum_uw1_nm.fits", factor_UVW1)
+    if os.path.isfile(path + "total_sum_uw2_nm.fits"):
+        convert(path + "total_sum_uw2_nm.fits", factor_UVW2)
+    if os.path.isfile(path + "total_sum_um2_nm.fits"):
+        convert(path + "total_sum_um2_nm.fits", factor_UVM2)
+    if os.path.isfile(path + "total_sum_uw1_nm.fits"):
+        convert(path + "total_sum_uw1_nm.fits", factor_UVW1)
 
     return 0
 

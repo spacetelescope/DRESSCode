@@ -6,20 +6,27 @@ uvotexpmap2.py: Script to create exposure maps, using the updated attitude file.
 
 import os
 import subprocess
+from argparse import ArgumentParser
 from typing import Optional, Sequence
 
-import configloader
 import numpy as np
 from astropy.io import fits
-
-config = configloader.load_config()
-
-# Specify the galaxy and the path to the working directory.
-galaxy = config["galaxy"]
-path = config["path"] + galaxy + "/working_dir/"
+from utils import load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
+
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-c", "--config", help="path to config.txt", default="config.txt"
+    )
+    args = parser.parse_args(argv)
+
+    config = load_config(args.config)
+    # Specify the galaxy and the path to the working directory.
+    galaxy = config["galaxy"]
+    path = config["path"] + galaxy + "/working_dir/"
+
     print("Creating exposure maps...")
 
     # Count the total number of sky images. Initialize error flag

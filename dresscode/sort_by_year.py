@@ -9,25 +9,33 @@ folder
 
 import argparse
 import os
+from argparse import ArgumentParser
 from pathlib import Path
 from typing import Optional, Sequence
 
-import configloader
 from astropy.io import fits
-
-CONFIG = configloader.load_config()
-
-# Specify the galaxy and the path to the raw images.
-GALAXY = CONFIG["galaxy"]
-PATH = CONFIG["path"] + GALAXY + "/Raw_images/"
-WORKING_PATH = CONFIG["path"] + GALAXY + "/working_dir/"
+from utils import load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
+
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-c", "--config", help="path to config.txt", default="config.txt"
+    )
+    args = parser.parse_args(argv)
+
+    config = load_config(args.config)
+
+    # Specify the galaxy and the path to the raw images.
+    galaxy = config["galaxy"]
+    path = config["path"] + galaxy + "/Raw_images/"
+    working_path = config["path"] + galaxy + "/working_dir/"
+
     # Print titles of columns.
     print("filename\t\t\t#frames\tfilter\tdate\n")
 
-    for filename in sorted(os.listdir(PATH)):
+    for filename in sorted(os.listdir(path)):
         parser = argparse.ArgumentParser()
         parser.add_argument("--dryrun", action="store_true", help="dry run flag")
         args = parser.parse_args(argv)
@@ -37,7 +45,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             continue
 
         # Open the image, calculate the number of individual frames in the image.
-        hdulist = fits.open(PATH + filename)
+        hdulist = fits.open(path + filename)
         number_of_frames = len(hdulist) - 1
 
         file_year = hdulist[0].header["DATE-OBS"].split("T")[0][:4]
@@ -55,12 +63,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         )
 
         # get or create directory for year
-        target_path = Path(f"{WORKING_PATH}/{file_year}")
+        target_path = Path(f"{working_path}/{file_year}")
         target_path.mkdir(parents=True, exist_ok=True)
 
         # move files into year directory
         match_str = filename[:13]
-        data_files = set(Path(WORKING_PATH).glob(f"*{match_str}*"))
+        data_files = set(Path(working_path).glob(f"*{match_str}*"))
         for data_file in data_files:
             if args.dryrun:
                 print(f"moving {data_file} to {target_path / data_file.name}")
