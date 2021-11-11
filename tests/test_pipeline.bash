@@ -4,6 +4,9 @@ set -e
 
 # this bash script runs the pipeline, assumes test data already downloaded
 
+# if running as another user (e.g. root), need to source the venv
+source /home/heasoft/venv/bin/activate
+
 # set dresscode install location if specified as argument, otherwise use current directory
 if [ $# -eq 0 ]
 then
