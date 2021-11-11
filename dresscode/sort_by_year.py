@@ -7,7 +7,6 @@ Then moves the rw.img file as well as any derivatives into the year
 folder
 """
 
-import argparse
 import os
 from argparse import ArgumentParser
 from pathlib import Path
@@ -23,6 +22,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument(
         "-c", "--config", help="path to config.txt", default="config.txt"
     )
+    parser.add_argument("--dryrun", action="store_true", help="dry run flag")
     args = parser.parse_args(argv)
 
     config = load_config(args.config)
@@ -35,14 +35,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # Print titles of columns.
     print("filename\t\t\t#frames\tfilter\tdate\n")
 
-    for filename in sorted(os.listdir(path)):
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--dryrun", action="store_true", help="dry run flag")
-        args = parser.parse_args(argv)
+    raw_images = [
+        filename for filename in sorted(os.listdir(path)) if filename.endswith("rw.img")
+    ]
 
-        # If the file is not a raw image file, skip this file and continue with the next.
-        if not filename.endswith("rw.img"):
-            continue
+    for filename in raw_images:
 
         # Open the image, calculate the number of individual frames in the image.
         hdulist = fits.open(path + filename)

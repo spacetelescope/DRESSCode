@@ -30,24 +30,19 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print("Creating exposure maps...")
 
     # Count the total number of sky images. Initialize error flag
-    num = sum(
-        1
+    sky_images = [
+        filename
         for filename in sorted(os.listdir(path))
         if filename.endswith("sk.img") and "uat" in filename
-    )
+    ]
+    num = len(sky_images)
     error = False
 
     # Open the sss masks.
     sss_1x1 = np.ma.make_mask(fits.open("sss/sss_UV_1x1.fits")[0].data)
     sss_2x2 = np.ma.make_mask(fits.open("sss/sss_UV_2x2.fits")[0].data)
 
-    # For all files in the working directory:
-    for i, filename in enumerate(sorted(os.listdir(path))):
-
-        # If the file is not a sky image (created with the uat attitude file), skip this
-        # file and continue with the next file.
-        if not filename.endswith("sk.img") or "uat" not in filename:
-            continue
+    for i, filename in enumerate(sky_images):
 
         # Open the bad pixel file and copy its primary header (extension 0 of hdulist) to a
         # new hdulist.
@@ -125,7 +120,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             print("An error has occurred for image " + filename)
             error = True
 
-        print(f"Exposure map created for all (other) frames of {filename} ({i}/{num})")
+        print(
+            f"Exposure map created for all (other) frames of {filename} ({i+1}/{num})"
+        )
 
     if error is False:
         print("Exposure maps were successfully created for all sky images")

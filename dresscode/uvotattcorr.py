@@ -31,19 +31,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print("Adjusting the attitude files...")
 
     # Count the total number of attitude files.
-    num = sum(
-        1 for filename in sorted(os.listdir(path)) if filename.endswith("pat.fits")
-    )
+    att_files = [
+        filename
+        for filename in sorted(os.listdir(path))
+        if filename.endswith("pat.fits")
+    ]
+    num = len(att_files)
     # Initialize the error flag.
     error = False
 
-    # For all files in the working directory:
-    for i, filename in enumerate(sorted(os.listdir(path))):
-
-        # If the file is not an attitude file, skip this file & continue with the next
-        # file
-        if not filename.endswith("pat.fits"):
-            continue
+    for i, filename in enumerate(att_files):
 
         # Check for which filters there is an aspect correction file.
         filters = []
@@ -182,7 +179,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 print("An error has occurred for attitude file " + filename)
                 error = True
 
-        print(f"Attitude file {filename} has been adjusted ({i}/{num})")
+        print(f"Attitude file {filename} has been adjusted ({i+1}/{num})")
 
     if error is False:
         print("All attitude files have been adjusted.")

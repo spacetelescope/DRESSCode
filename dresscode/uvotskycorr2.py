@@ -42,19 +42,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print("Calculating and applying aspect corrections...")
 
     # Count the total number of sky images. Initialize the error flag.
-    num = sum(
-        1
+    sky_images = [
+        filename
         for filename in sorted(os.listdir(path))
         if filename.endswith("sk.img") and "uat" in filename
-    )
+    ]
+    num = len(sky_images)
     error = False
 
-    for i, original_filename in enumerate(sorted(os.listdir(path))):
-
-        # If the file is not a sky image (created with the uat attitude file), skip this
-        # file and continue with the next file.
-        if not original_filename.endswith("sk.img") or "uat" not in original_filename:
-            continue
+    for i, original_filename in enumerate(sky_images):
 
         # Copy the original file and give the copy another name. This copy will be the file
         # to work with.
@@ -106,7 +102,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             print(
                 "Aspect correction calculated for all (other) frames of "
                 + original_filename
-                + f" ({i}/{num})"
+                + f" ({i+1}/{num})"
             )
 
             # Specify the correction file and the terminal output file.
@@ -148,7 +144,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             print(
                 "Aspect correction applied to all (other) frames of "
                 + original_filename
-                + f" ({i}/{num})"
+                + f" ({i+1}/{num})"
             )
 
             # Do the same for the corresponding exposure map.
@@ -189,7 +185,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             print(
                 "Aspect correction applied to all (other) frames of "
                 + or_expname
-                + f" ({i}/{num})"
+                + f" ({i+1}/{num})"
             )
 
             # Do the same for the corresponding mask file.
@@ -230,7 +226,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(
             "Aspect correction applied to all (other) frames of "
             + or_maskname
-            + f" ({i}/{num})"
+            + f" ({i+1}/{num})"
         )
 
     if error is False:

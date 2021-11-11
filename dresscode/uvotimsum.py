@@ -44,7 +44,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
         print("Appending all frames...")
 
-        # For all files in the working directory:
         for i, filename in enumerate(sorted(os.listdir(yearpath))):
 
             # Check the type of the image and give the image a type label.
@@ -94,7 +93,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         # Check the output of the uvotimsum task.
         error = False
 
-        # For all files in the working directory:
         for filename in sorted(os.listdir(yearpath)):
 
             # If the file is an output text file of uvotimsum, open the file.

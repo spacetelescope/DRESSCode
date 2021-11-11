@@ -29,20 +29,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print("Creating sky images...")
 
     # Count the total number of raw images. Initialize the error flag.
-    num = sum(
-        1
+    raw_images = [
+        filename
         for filename in sorted(os.listdir(path))
         if filename.endswith("rw.img") or filename.endswith(".evt")
-    )
+    ]
+    num = len(raw_images)
     error = False
 
-    # For all files in the working directory:
-    for i, filename in enumerate(sorted(os.listdir(path))):
-
-        # If the file is not a raw image or an event file, skip this file and continue
-        # with the next file.
-        if not filename.endswith("rw.img") and not filename.endswith(".evt"):
-            continue
+    for i, filename in enumerate(raw_images):
 
         # Specify the input file, the prefix for the output file, the attitude file and
         # the terminal output file.
@@ -94,7 +89,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             if "skipping event based image HDU" in line:
                 print(line, " in file " + filename)
 
-        print(f"Sky image created for all (other) frames of {filename} ({i}/{num})")
+        print(f"Sky image created for all (other) frames of {filename} ({i+1}/{num})")
 
     if error is False:
         print("Sky images were successfully created for all raw images and event files")

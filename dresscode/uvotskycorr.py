@@ -33,15 +33,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print("Calculating aspect corrections...")
 
     # Count the total number of sky images. Initialize the error flag.
-    num = sum(1 for filename in sorted(os.listdir(path)) if filename.endswith("sk.img"))
+    sky_images = [
+        filename for filename in sorted(os.listdir(path)) if filename.endswith("sk.img")
+    ]
+    num = len(sky_images)
     error = False
 
-    # For all files in the working directory:
-    for i, filename in enumerate(sorted(os.listdir(path))):
-
-        # If the file is not a sky image, skip this file and continue with the next file
-        if not filename.endswith("sk.img"):
-            continue
+    for i, filename in enumerate(sky_images):
 
         # Specify the input skyfile, the output file, the attitude file, the terminal
         # output file and the path to the catalog file.
@@ -85,7 +83,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 error = True
 
         print(
-            f"Aspect correction calculated for all (other) frames of {filename} ({i}/{num})"
+            f"Aspect correction calculated for all (other) frames of {filename} ({i+1}/{num})"
         )
 
     if error is False:

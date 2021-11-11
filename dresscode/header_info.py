@@ -30,7 +30,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # Print titles of columns.
     print("filename\t\t\t#frames\tfilter\tdate\n")
 
-    # For all files in the path directory:
     for filename in sorted(os.listdir(path)):
 
         # If the file is not a raw image file, skip this file and continue with the next

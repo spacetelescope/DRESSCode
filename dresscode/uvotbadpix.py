@@ -28,21 +28,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print("Creating quality maps...")
 
     # Count the total number of sky images
-    num = sum(
-        1
+    sky_images = [
+        filename
         for filename in sorted(os.listdir(path))
         if filename.endswith("sk.img") and "uat" in filename
-    )
+    ]
+    num = len(sky_images)
     # Initialize the error flag
     error = False
 
-    # For all files in the working directory:
-    for i, filename in enumerate(sorted(os.listdir(path))):
-
-        # If the file is not a sky image (created with the uat attitude file), skip this
-        # file & continue with the next file.
-        if not filename.endswith("sk.img") or "uat" not in filename:
-            continue
+    for i, filename in enumerate(sky_images):
 
         # Specify the input file, the output file and the terminal output file.
         infile = filename
@@ -70,7 +65,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             print("An error has occurred for image " + filename)
             error = True
 
-        print(f"Quality map created for all (other) frames of {filename} ({i}/{num})")
+        print(f"Quality map created for all (other) frames of {filename} ({i+1}/{num})")
 
     if error is False:
         print("Quality maps were successfully created for all sky images.")

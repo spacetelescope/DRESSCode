@@ -29,18 +29,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print("Creating large scale sensitivity maps...")
 
     # Count the total number of corrected sky images. Initialize the error flag
-    num = sum(
-        1 for filename in sorted(os.listdir(path)) if filename.endswith("sk_corr.img")
-    )
+    corr_sky_images = [
+        filename
+        for filename in sorted(os.listdir(path))
+        if filename.endswith("sk_corr.img")
+    ]
+    num = len(corr_sky_images)
     error = False
 
-    # For all files in the working directory:
-    for i, filename in enumerate(sorted(os.listdir(path))):
-
-        # If the file is not an aspect corrected sky image (created with the uat attitude
-        # file), skip this file and continue with the next file.
-        if not filename.endswith("sk_corr.img"):
-            continue
+    for i, filename in enumerate(corr_sky_images):
 
         # Specify the input file, the output file, the attitude file and the terminal output
         # file.
@@ -75,7 +72,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             error = True
 
         print(
-            f"Large scale sensitivity map created for all (other) frames of {filename} ({i}/{num})"
+            f"Large scale sensitivity map created for all (other) frames of {filename} ({i+1}/{num})"
         )
 
     if error is False:
