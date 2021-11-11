@@ -24,7 +24,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     config = load_config(args.config)
 
     galaxy = config["galaxy"]
-    path = config["path"] + galaxy + "/working_dir/"
+    path = config["path"] + galaxy
 
     # Define the paths of the raw data and of the new directory with raw images.
     rawpath = path + "/Raw_data/"
