@@ -30,6 +30,7 @@ RUN \
     && wget https://heasarc.gsfc.nasa.gov/FTP/caldb/data/swift/uvota/goodfiles_swift_uvota.tar.Z \
     && tar -zxf goodfiles_swift_uvota.tar.Z \
     && rm goodfiles_swift_uvota.tar.Z \
+    && caldbinfo INST swift uvota \
     && /bin/echo 'export CALDB='$CALDB >> /home/heasoft/.profile \
     && /bin/echo 'export CALDB='$CALDB >> /home/heasoft/.bashrc \
     && /bin/echo 'setenv CALDB '$CALDB >> /home/heasoft/.cshrc

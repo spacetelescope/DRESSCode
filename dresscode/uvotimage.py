@@ -59,18 +59,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         # https://heasarc.gsfc.nasa.gov/lheasoft/ftools/headas/uvotimage.html
         with open(terminal_output_file, "w") as terminal:
             subprocess.call(
-                "uvotimage infile="
-                + infile
-                + " prefix="
-                + prefix
-                + " attfile="
-                + attfile
-                + " teldeffile=CALDB alignfile=CALDB ra="
-                + str(RA)
-                + " dec="
-                + str(DEC)
-                + " roll="
-                + str(PA)
+                f"uvotimage infile={infile} prefix={prefix} attfile={attfile}"
+                + f" teldeffile=CALDB alignfile=CALDB ra={RA} dec={DEC} roll={PA}"
                 + " mod8corr=yes refattopt='ANGLE_d=5,OFFSET_s=1000'",
                 cwd=path,
                 shell=True,
@@ -78,16 +68,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             )
 
         # Check if the sky image was successfully created.
-        file = open(terminal_output_file, "r")
-        for line in file:
-            # If the word "error" is encountered, print an error message.
-            if "error" in line:
-                print("An error has occurred for image " + filename)
-                error = True
+        with open(terminal_output_file, "r") as file:
+            for line in file:
+                # If the word "error" is encountered, print an error message.
+                if "error" in line:
+                    print("An error has occurred for image " + filename)
+                    error = True
 
-            # If uvotimage skipped an event based image HDU, let the user know.
-            if "skipping event based image HDU" in line:
-                print(line, " in file " + filename)
+                # If uvotimage skipped an event based image HDU, let the user know.
+                if "skipping event based image HDU" in line:
+                    print(line, " in file " + filename)
 
         print(f"Sky image created for all (other) frames of {filename} ({i+1}/{num})")
 
