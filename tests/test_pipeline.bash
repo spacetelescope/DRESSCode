@@ -56,7 +56,7 @@ then
     rmdir $DATA_DIR/$GALAXY/Raw_images
 fi
 
-collect_images -c config.txt
+dc-collect_images -c config.txt
 
 # uncompress Raw_images
 gunzip $DATA_DIR/$GALAXY/Raw_images/*.gz
