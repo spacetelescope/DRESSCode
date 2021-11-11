@@ -14,7 +14,7 @@ from utils import load_config
 
 
 # Function to convert the units of an image.
-def convert(filename, factor):
+def convert(filename, factor, galaxy):
     # Open the image and convert the units.
     hdulist = fits.open(filename)
     header = hdulist[0].header
@@ -32,7 +32,7 @@ def convert(filename, factor):
         [primary, hdulist[0].data[1], coicorr_unc, hdulist[0].data[3], poisson], header
     )
     new_hdu.writeto(
-        filename.replace("total_sum", GALAXY + "_final").replace("nm", "Jy"),
+        filename.replace("total_sum", galaxy + "_final").replace("nm", "Jy"),
         overwrite=True,
     )
 
@@ -68,11 +68,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     # Convert the units of the images.
     if os.path.isfile(path + "total_sum_uw2_nm.fits"):
-        convert(path + "total_sum_uw2_nm.fits", factor_UVW2)
+        convert(path + "total_sum_uw2_nm.fits", factor_UVW2, galaxy)
     if os.path.isfile(path + "total_sum_um2_nm.fits"):
-        convert(path + "total_sum_um2_nm.fits", factor_UVM2)
+        convert(path + "total_sum_um2_nm.fits", factor_UVM2, galaxy)
     if os.path.isfile(path + "total_sum_uw1_nm.fits"):
-        convert(path + "total_sum_uw1_nm.fits", factor_UVW1)
+        convert(path + "total_sum_uw1_nm.fits", factor_UVW1, galaxy)
 
     return 0
 

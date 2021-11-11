@@ -136,14 +136,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
         # Sum the sky images (and uncertainties) and the exposure maps.
         sum_datacube, sum_exp_data, header = sum_years(
-            new_skylist, new_explist, filter, ref_path
+            new_skylist, new_explist, filter, ref_path, path
         )
 
         # PART 5: Normalize the total sky image.
 
         print("Normalizing the total sky image of filter " + filter + "...")
         # Normalize the total sky image.
-        norm(sum_datacube, sum_exp_data, filter, header)
+        norm(sum_datacube, sum_exp_data, filter, header, path)
 
     return 0
 
@@ -265,7 +265,7 @@ def replaceNaN(datacube, expdata):
 # Function for PART 4: Sum the years and calculate the Poisson noise.
 # Function to sum the images (and uncertainties) and exposure maps and to calculate the
 # Poisson noise.
-def sum_years(skylist, explist, filter, ref_path):
+def sum_years(skylist, explist, filter, ref_path, path):
     # Sum the sky frames.
     sum_datacube = np.zeros_like(skylist[0])
     for datacube in skylist:
@@ -321,7 +321,7 @@ def sum_years(skylist, explist, filter, ref_path):
 
 # Function for PART 5: Normalizing the total sky image.
 # Function to normalize an image.
-def norm(datacube, exp_data, filter, header):
+def norm(datacube, exp_data, filter, header, path):
     # Normalize the image
     datacube[0] = datacube[0] / exp_data
 
