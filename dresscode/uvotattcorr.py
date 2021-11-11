@@ -11,7 +11,7 @@ import subprocess
 from argparse import ArgumentParser
 from typing import Optional, Sequence
 
-from utils import load_config
+from dresscode.utils import load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:

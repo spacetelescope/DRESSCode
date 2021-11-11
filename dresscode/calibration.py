@@ -10,7 +10,8 @@ from argparse import ArgumentParser
 from typing import Optional, Sequence
 
 from astropy.io import fits
-from utils import load_config
+
+from dresscode.utils import load_config
 
 
 # Function to convert the units of an image.

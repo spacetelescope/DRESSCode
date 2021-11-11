@@ -13,7 +13,8 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 from astropy.io import fits
-from utils import load_config
+
+from dresscode.utils import load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:

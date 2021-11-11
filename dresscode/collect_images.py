@@ -10,7 +10,7 @@ import shutil
 from argparse import ArgumentParser
 from typing import Optional, Sequence
 
-from utils import listdir_nohidden, load_config
+from dresscode.utils import listdir_nohidden, load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:

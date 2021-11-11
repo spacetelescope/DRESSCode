@@ -14,7 +14,8 @@ import numpy as np
 from astropy import wcs
 from astropy.io import fits
 from ccdproc import CCDData, wcs_project
-from utils import load_config
+
+from dresscode.utils import load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:

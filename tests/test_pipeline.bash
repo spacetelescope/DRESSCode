@@ -4,9 +4,6 @@ set -e
 
 # this bash script runs the pipeline, assumes test data already downloaded
 
-# if running as another user, need to source the venv
-source /home/heasoft/venv/bin/activate
-
 # set dresscode install location if specified as argument, otherwise use current directory
 if [ $# -eq 0 ]
 then
@@ -46,14 +43,10 @@ file="$DRESSCODE_INSTALL/config.txt"
 # change directory to dresscode install
 cd $DRESSCODE_INSTALL
 
-# installs the package & scripts
-pip install -e .
-
 # rearranging files into Raw_images directory
 if [ -d $DATA_DIR/$GALAXY/Raw_images/ ]
 then
-    rm -r $DATA_DIR/$GALAXY/Raw_images/*
-    rmdir $DATA_DIR/$GALAXY/Raw_images
+    rm -rf $DATA_DIR/$GALAXY/Raw_images
 fi
 
 dc-collect_images -c config.txt
@@ -64,8 +57,7 @@ gunzip $DATA_DIR/$GALAXY/Raw_images/*.gz
 # copy Raw_images to working_dir
 if [ -d $DATA_DIR/$GALAXY/working_dir/ ]
 then
-    rm -r $DATA_DIR/$GALAXY/working_dir/*
-    rmdir $DATA_DIR/$GALAXY/working_dir
+    rm -rf $DATA_DIR/$GALAXY/working_dir
 fi
 cp -r $DATA_DIR/$GALAXY/Raw_images $DATA_DIR/$GALAXY/working_dir
 

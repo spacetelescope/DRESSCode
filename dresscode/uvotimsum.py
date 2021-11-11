@@ -17,7 +17,8 @@ from typing import Optional, Sequence
 
 import numpy as np
 from astropy.io import fits
-from utils import load_config
+
+from dresscode.utils import load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
