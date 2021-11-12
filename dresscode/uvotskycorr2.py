@@ -13,6 +13,7 @@ the WCSTools.
 import os
 import shutil
 import subprocess
+from argparse import ArgumentParser
 from typing import Optional, Sequence
 
 try:
@@ -20,8 +21,6 @@ try:
 except ImportError:
     # Try backported to PY<37 `importlib_resources`
     import importlib_resources as pkg_resources  # type: ignore
-
-from argparse import ArgumentParser
 
 from dresscode.utils import load_config
 
@@ -66,7 +65,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             path + "output_uvotskycorrID_" + original_filename.replace(".img", ".txt")
         )
 
-        with pkg_resources.path(__package__, "calfiles/usnob1.spec") as catfilepath:
+        with pkg_resources.path("dresscode.calfiles", "usnob1.spec") as catfilepath:
             catfile = str(catfilepath.absolute().resolve())
 
             # Open the terminal output file and run uvotskycorr ID with the specified parameters

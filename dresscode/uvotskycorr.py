@@ -14,6 +14,12 @@ import subprocess
 from argparse import ArgumentParser
 from typing import Optional, Sequence
 
+try:
+    import importlib.resources as pkg_resources
+except ImportError:
+    # Try backported to PY<37 `importlib_resources`
+    import importlib_resources as pkg_resources  # type: ignore
+
 from dresscode.utils import load_config
 
 
@@ -49,25 +55,26 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         terminal_output_file = (
             path + "output_uvotskycorrID_" + filename.replace(".img", ".txt")
         )
-        catfile = os.getcwd() + "/usnob1.spec"
+        with pkg_resources.path("dresscode.calfiles", "usnob1.spec") as catfilepath:
+            catfile = catfilepath.absolute().resolve()
 
-        # Open the terminal output file and run uvotskycorr ID with the specified
-        # parameters
-        with open(terminal_output_file, "w") as terminal:
-            subprocess.call(
-                "uvotskycorr what=ID skyfile="
-                + skyfile
-                + " corrfile=NONE attfile="
-                + attfile
-                + " outfile="
-                + outfile
-                + " starid='matchtol=20 cntcorr=3 n.reference=200 n.observation=40 max.rate=1000' catspec="  # NoQA
-                + catfile
-                + " chatter=5",
-                cwd=path,
-                shell=True,
-                stdout=terminal,
-            )
+            # Open the terminal output file and run uvotskycorr ID with the specified
+            # parameters
+            with open(terminal_output_file, "w") as terminal:
+                subprocess.call(
+                    "uvotskycorr what=ID skyfile="
+                    + skyfile
+                    + " corrfile=NONE attfile="
+                    + attfile
+                    + " outfile="
+                    + outfile
+                    + " starid='matchtol=20 cntcorr=3 n.reference=200 n.observation=40 max.rate=1000' catspec="  # NoQA
+                    + catfile
+                    + " chatter=5",
+                    cwd=path,
+                    shell=True,
+                    stdout=terminal,
+                )
 
         # Check if an aspect correction was found.
         file = open(terminal_output_file, "r")
