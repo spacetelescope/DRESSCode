@@ -56,7 +56,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             path + "output_uvotskycorrID_" + filename.replace(".img", ".txt")
         )
         with pkg_resources.path("dresscode.calfiles", "usnob1.spec") as catfilepath:
-            catfile = catfilepath.absolute().resolve()
+            catfile = str(catfilepath.absolute().resolve())
 
             # Open the terminal output file and run uvotskycorr ID with the specified
             # parameters
