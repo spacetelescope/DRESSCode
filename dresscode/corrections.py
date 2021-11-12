@@ -81,8 +81,8 @@ def coicorr(filename):
     # the 9x9 pixels box.
     for x in range(5, data.shape[1] - 5):
         for y in range(5, data.shape[0] - 5):
-            total_flux[y, x] = np.sum((data[y - 4 : y + 5, x - 4 : x + 5]))
-            std[y, x] = np.std((data[y - 4 : y + 5, x - 4 : x + 5]))
+            total_flux[y, x] = np.sum(data[y - 4 : y + 5, x - 4 : x + 5])
+            std[y, x] = np.std(data[y - 4 : y + 5, x - 4 : x + 5])
 
     # Obtain the dead time correction factor and the frame time (in s) from the header
     # of the image.
