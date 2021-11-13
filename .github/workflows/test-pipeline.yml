@@ -40,7 +40,7 @@ jobs:
           mkdir -p ~/dresscode-data/NGC0628
           cp -r ~/Raw_data ~/dresscode-data/NGC0628/Raw_data
           chmod -R a=rwx ~/dresscode-data
-          docker run --user root --rm -t -v ~/dresscode-data:/data dresscodeswift/dresscode /bin/bash /opt/dresscode/tests/test_pipeline.bash /opt/dresscode /data
+          docker run --user root --rm -t -v ~/dresscode-data:/data dresscodeswift/dresscode /bin/bash /opt/dresscode/tests/test_pipeline.bash /data
 
       - name: Save pipeline output
         uses: actions/upload-artifact@v2

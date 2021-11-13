@@ -31,6 +31,8 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+# don't ignore cal file
+!usnob1.spec 
 
 # Installer logs
 pip-log.txt

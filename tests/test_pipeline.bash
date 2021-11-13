@@ -7,20 +7,13 @@ set -e
 # if running as another user (e.g. root), need to source the venv
 source /home/heasoft/venv/bin/activate
 
-# set dresscode install location if specified as argument, otherwise use current directory
-if [ $# -eq 0 ]
-then
-    echo "Dresscode installation not specified, using current environment: $PWD"
-    DRESSCODE_INSTALL=$PWD
-else
-    DRESSCODE_INSTALL=$1
-fi
+CUR_DIR=$(pwd)
 
 # creating data directories
 # if user specifies a data directory, we use that here, otherwise we use home directory
-if [ $# -eq 2 ]
+if [ $# -eq 1 ]
 then
-    cd $2
+    cd $1
     DATA_DIR=$(pwd)
     echo "Data volume location specified using: $DATA_DIR"
 else
@@ -31,9 +24,10 @@ else
 fi
 GALAXY="NGC0628"
 
-# creating config.txt
+cd $CUR_DIR
 
-file="$DRESSCODE_INSTALL/config.txt"
+# creating config.txt
+file="$CUR_DIR/config.txt"
 {
     echo "path = $DATA_DIR/"
     echo "galaxy = $GALAXY"
@@ -43,13 +37,10 @@ file="$DRESSCODE_INSTALL/config.txt"
     echo "add_ypix = 200"
 } > "$file"
 
-# change directory to dresscode install
-cd $DRESSCODE_INSTALL
-
 # rearranging files into Raw_images directory
-if [ -d $DATA_DIR/$GALAXY/Raw_images/ ]
+if [ -d "$DATA_DIR/$GALAXY/Raw_images/" ]
 then
-    rm -rf $DATA_DIR/$GALAXY/Raw_images
+    rm -rf "$DATA_DIR/$GALAXY/Raw_images"
 fi
 
 dc-collect_images -c config.txt
@@ -58,11 +49,11 @@ dc-collect_images -c config.txt
 gunzip $DATA_DIR/$GALAXY/Raw_images/*.gz
 
 # copy Raw_images to working_dir
-if [ -d $DATA_DIR/$GALAXY/working_dir/ ]
+if [ -d "$DATA_DIR/$GALAXY/working_dir/" ]
 then
-    rm -rf $DATA_DIR/$GALAXY/working_dir
+    rm -rf "$DATA_DIR/$GALAXY/working_dir"
 fi
-cp -r $DATA_DIR/$GALAXY/Raw_images $DATA_DIR/$GALAXY/working_dir
+cp -r "$DATA_DIR/$GALAXY/Raw_images" "$DATA_DIR/$GALAXY/working_dir"
 
 # run the pipeline
 echo "Running the pipeline"
