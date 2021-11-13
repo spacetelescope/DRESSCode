@@ -20,16 +20,23 @@ ENV CALDB=/opt/heasoft/caldb \
 
 RUN \
     # get/make wcstools
-    wget tdc-www.harvard.edu/software/wcstools/wcstools-3.9.6.tar.gz \
+    wget --no-verbose tdc-www.harvard.edu/software/wcstools/wcstools-3.9.6.tar.gz \
     && tar -xf wcstools-3.9.6.tar.gz -C /opt/heasoft \
     && rm wcstools-3.9.6.tar.gz \
     && cd /opt/heasoft/wcstools-3.9.6 \
     && make all \
     # get caldb
     && cd $CALDB \
-    && wget https://heasarc.gsfc.nasa.gov/FTP/caldb/data/swift/uvota/goodfiles_swift_uvota.tar.Z \
+    && wget --no-verbose https://heasarc.gsfc.nasa.gov/FTP/caldb/software/tools/caldb_setup_files.tar.Z \
+    && tar -zxvf caldb_setup_files.tar.Z \
+    && rm caldb_setup_files.tar.Z \
+    && wget --no-verbose https://heasarc.gsfc.nasa.gov/FTP/caldb/data/swift/uvota/goodfiles_swift_uvota.tar.Z \
     && tar -zxf goodfiles_swift_uvota.tar.Z \
     && rm goodfiles_swift_uvota.tar.Z \
+    && caldbinfo INST swift uvota \
     && /bin/echo 'export CALDB='$CALDB >> /home/heasoft/.profile \
+    && /bin/echo "source $CALDB/software/tools/caldbinit.sh" >> /home/heasoft/.profile \
     && /bin/echo 'export CALDB='$CALDB >> /home/heasoft/.bashrc \
-    && /bin/echo 'setenv CALDB '$CALDB >> /home/heasoft/.cshrc
+    && /bin/echo "source $CALDB/software/tools/caldbinit.sh" >> /home/heasoft/.bashrc \
+    && /bin/echo 'setenv CALDB '$CALDB >> /home/heasoft/.cshrc \
+    && /bin/echo "source $CALDB/software/tools/caldbinit.csh" >> /home/heasoft/.cshrc

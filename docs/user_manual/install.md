@@ -69,8 +69,18 @@ All subsequent steps are for Ubuntu platforms:
 
 More info can be found on the wcstools <a href="http://tdc-www.harvard.edu/wcstools/" target="_blank">website</a>.
 
-### Download DRESSCode from GitHub
+### Install DRESSCode
 
-1. Python is needed to run the scripts. DRESSCode was written and tested in python 3.6 and up. Make sure you have a working python environment.
-2. Download the code from github: `git clone git@github.com:spacetelescope/DRESSCode.git`
-3. `cd` into the DRESSCode directory and install the dependencies into your Python environment: `pip install -r requirements.txt`
+Requires Python >= 3.7. Make sure you have a working python environment then install from source:
+
+```cmd
+pip install https://git+https://github.com/spacetelescope/DRESSCode.git
+```
+
+Alternatively, clone the repo to a directory install from there:
+
+1. `git clone git@github.com:spacetelescope/DRESSCode.git`
+2. `cd DRESSCode`
+3. `pip install .` or for an editable install `pip install -e .`
+
+To install extra dev dependencies: `pip install -e ".[dev]"`

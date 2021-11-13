@@ -28,10 +28,12 @@ jobs:
 
       - name: Build the dependency Docker image
         if: github.ref == 'refs/heads/main'
-        run: docker build --tag dresscodeswift/heasoft-caldb-wcstools:latest -f Docker/heasoft-caldb-wcstools.dockerfile .
+        run: |
+          docker build --pull --tag dresscodeswift/heasoft-caldb-wcstools:latest -f Docker/heasoft-caldb-wcstools.dockerfile .
 
       - name: Build the DRESSCode Docker image
-        run: docker build --tag dresscodeswift/dresscode:latest -f Docker/dockerfile .
+        run: |
+          docker build --pull --tag dresscodeswift/dresscode:latest -f Docker/dockerfile .
 
       - name: Run the pipeline
         run: |

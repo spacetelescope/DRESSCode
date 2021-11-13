@@ -1,40 +1,45 @@
+#!/usr/bin/env python3
+
 """
 combine.py: Script to combine the images from different observing periods.
 
 Note: This script assumes that the largest image covers all other images!
 """
 
-# Import the necessary packages.
 import os
+from argparse import ArgumentParser
+from typing import Optional, Sequence
 
 import numpy as np
 from astropy import wcs
 from astropy.io import fits
 from ccdproc import CCDData, wcs_project
 
-import configloader
-
-# Load the configuration file.
-config = configloader.load_config()
-
-# Specify the galaxy, the path to the working directory and the different years.
-galaxy = config["galaxy"]
-path = config["path"] + galaxy + "/working_dir/"
-years = config["years"]
-enlarge = config["enlarge"]
-add_x = int(config["add_xpix"])
-add_y = int(config["add_ypix"])
-
-# Specify the different filters.
-filters = ["uw2", "um2", "uw1"]
+from dresscode.utils import load_config
 
 
-# This is the main function.
-def main():
+def main(argv: Optional[Sequence[str]] = None) -> int:
+
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-c", "--config", help="path to config.txt", default="config.txt"
+    )
+    args = parser.parse_args(argv)
+
+    config = load_config(args.config)
+
+    galaxy = config["galaxy"]
+    path = config["path"] + galaxy + "/working_dir/"
+    years = config["years"]
+    enlarge = config["enlarge"]
+    add_x = int(config["add_xpix"])
+    add_y = int(config["add_ypix"])
+
+    filters = ["uw2", "um2", "uw1"]
 
     # PART 1: Convert the units of the corrected images (and their uncertainties) from
     # counts/s to counts.
-    # Print user information.
+
     print("Converting units from counts/s to counts...")
 
     # Loop over the different years.
@@ -49,7 +54,7 @@ def main():
 
     # PART 2: Reproject the images to one reference image so that they all have the same
     # size.
-    # Print user information.
+
     print("Reprojecting images...")
 
     # Loop over the filters.
@@ -67,7 +72,6 @@ def main():
                     size = hdulist[0].header["NAXIS1"]
                     ref_path = yearpath
 
-        # Print user information.
         if ref_path is None:
             print(
                 "No images were found for filter "
@@ -128,19 +132,21 @@ def main():
             )
 
         # PART 4: Sum the images of the different years and calculate the Poisson noise.
-        # Print user information.
+
         print("Summing the images of filter " + filter + "...")
 
         # Sum the sky images (and uncertainties) and the exposure maps.
         sum_datacube, sum_exp_data, header = sum_years(
-            new_skylist, new_explist, filter, ref_path
+            new_skylist, new_explist, filter, ref_path, path
         )
 
         # PART 5: Normalize the total sky image.
-        # Print user information.
+
         print("Normalizing the total sky image of filter " + filter + "...")
         # Normalize the total sky image.
-        norm(sum_datacube, sum_exp_data, filter, header)
+        norm(sum_datacube, sum_exp_data, filter, header, path)
+
+    return 0
 
 
 # Function for PART 1: Unit conversion.
@@ -260,7 +266,7 @@ def replaceNaN(datacube, expdata):
 # Function for PART 4: Sum the years and calculate the Poisson noise.
 # Function to sum the images (and uncertainties) and exposure maps and to calculate the
 # Poisson noise.
-def sum_years(skylist, explist, filter, ref_path):
+def sum_years(skylist, explist, filter, ref_path, path):
     # Sum the sky frames.
     sum_datacube = np.zeros_like(skylist[0])
     for datacube in skylist:
@@ -316,7 +322,7 @@ def sum_years(skylist, explist, filter, ref_path):
 
 # Function for PART 5: Normalizing the total sky image.
 # Function to normalize an image.
-def norm(datacube, exp_data, filter, header):
+def norm(datacube, exp_data, filter, header, path):
     # Normalize the image
     datacube[0] = datacube[0] / exp_data
 
@@ -329,4 +335,4 @@ def norm(datacube, exp_data, filter, header):
 
 
 if __name__ == "__main__":
-    main()
+    exit(main())

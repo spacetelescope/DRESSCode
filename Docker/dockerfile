@@ -15,4 +15,11 @@ RUN \
 
 COPY --chown=heasoft . /opt/dresscode
 
-# add /opt/dresscode to PATH ?
+WORKDIR /opt/dresscode
+
+RUN \
+    # if running as another user, need to source the venv
+    source /home/heasoft/venv/bin/activate \
+    # installs the package & scripts
+    && pip install pip -U \
+    && pip install .

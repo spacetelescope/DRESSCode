@@ -1,36 +1,41 @@
+#!/usr/bin/env python3
+
 """
 corrections.py: Script to apply corrections to the images.
 """
 
-# Import the necessary packages.
 import os
+from argparse import ArgumentParser
 from datetime import date, datetime
+from typing import Optional, Sequence
 
 import numpy as np
 from astropy.io import fits
 
-import configloader
-
-# Load the configuration file.
-config = configloader.load_config()
-
-# Specify the galaxy, the path to the working directory and the different years.
-galaxy = config["galaxy"]
-path = config["path"] + galaxy + "/working_dir/"
-years = config["years"]
+from dresscode.utils import load_config
 
 
-# This is the main function.
-def main():
+def main(argv: Optional[Sequence[str]] = None) -> int:
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-c", "--config", help="path to config.txt", default="config.txt"
+    )
+    args = parser.parse_args(argv)
+
+    config = load_config(args.config)
+
+    galaxy = config["galaxy"]
+    path = config["path"] + galaxy + "/working_dir/"
+    years = config["years"]
 
     # Loop over the different years.
     for year in years:
-        # Print user information.
+
         print("Year: " + year)
         yearpath = path + year + "/"
 
         # PART 1: Apply a coincidence loss correction.
-        # Print user information.
+
         print("Applying coincidence loss corrections...")
         if os.path.isfile(yearpath + "sum_um2_nm.img"):
             coicorr(yearpath + "sum_um2_nm.img")
@@ -40,7 +45,7 @@ def main():
             coicorr(yearpath + "sum_uw1_nm.img")
 
         # PART 2: Apply a large scale sensitivity correction.
-        # Print user information.
+
         print("Applying large scale sensitivity corrections...")
         if os.path.isfile(yearpath + "sum_um2_nm_coi.img"):
             lsscorr(yearpath + "sum_um2_nm_coi.img")
@@ -50,7 +55,7 @@ def main():
             lsscorr(yearpath + "sum_uw1_nm_coi.img")
 
         # PART 3: Apply a zero point correction.
-        # Print user information.
+
         print("Applying zero point corrections...")
         if os.path.isfile(yearpath + "sum_um2_nm_coilss.img"):
             zeropoint(yearpath + "sum_um2_nm_coilss.img", -2.330e-3, -1.361e-3)
@@ -58,6 +63,8 @@ def main():
             zeropoint(yearpath + "sum_uw2_nm_coilss.img", 1.108e-3, -1.960e-3)
         if os.path.isfile(yearpath + "sum_uw1_nm_coilss.img"):
             zeropoint(yearpath + "sum_uw1_nm_coilss.img", 2.041e-3, -1.748e-3)
+
+    return 0
 
 
 # Functions for PART 1: Coincidence loss correction.
@@ -74,8 +81,8 @@ def coicorr(filename):
     # the 9x9 pixels box.
     for x in range(5, data.shape[1] - 5):
         for y in range(5, data.shape[0] - 5):
-            total_flux[y, x] = np.sum((data[y - 4 : y + 5, x - 4 : x + 5]))
-            std[y, x] = np.std((data[y - 4 : y + 5, x - 4 : x + 5]))
+            total_flux[y, x] = np.sum(data[y - 4 : y + 5, x - 4 : x + 5])
+            std[y, x] = np.std(data[y - 4 : y + 5, x - 4 : x + 5])
 
     # Obtain the dead time correction factor and the frame time (in s) from the header
     # of the image.
@@ -135,7 +142,6 @@ def coicorr(filename):
     coicorr_rel = coicorr_unc / new_data
     coicorr_rel[coicorr_unc == 0.0] = 0.0
 
-    # Print user information.
     print(
         "The median coincidence loss correction factor for image "
         + os.path.basename(filename)
@@ -155,7 +161,6 @@ def coicorr(filename):
     new_hdu = fits.PrimaryHDU(datacube, header)
     new_hdu.writeto(filename.replace(".img", "_coi.img"), overwrite=True)
 
-    # Print user information.
     print(os.path.basename(filename) + " has been corrected for coincidence loss.")
 
 
@@ -190,7 +195,6 @@ def lsscorr(filename):
     new_hdu = fits.PrimaryHDU(new_datacube, header)
     new_hdu.writeto(filename.replace(".img", "lss.img"), overwrite=True)
 
-    # Print user information.
     print(
         os.path.basename(filename)
         + " has been corrected for large scale sensitivity variations."
@@ -226,7 +230,6 @@ def zeropoint(filename, param1, param2):
     new_hdu = fits.PrimaryHDU(datacube, header)
     new_hdu.writeto(filename.replace(".img", "zp.img"), overwrite=True)
 
-    # Print user information.
     print(
         os.path.basename(filename)
         + " has been corrected for sensitivity loss of the detector over time."
@@ -234,4 +237,4 @@ def zeropoint(filename, param1, param2):
 
 
 if __name__ == "__main__":
-    main()
+    exit(main())
