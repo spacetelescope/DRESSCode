@@ -26,7 +26,7 @@ The following mounts a local volume into the docker image and runs the `test_pip
 ```sh
 docker run --rm -it -v ~/dresscode-data/:/data \
     dresscodeswift/dresscode \
-    /bin/bash /opt/dresscode/tests/test_pipeline.bash /opt/dresscode /data
+    /bin/bash /opt/dresscode/tests/test_pipeline.bash /data
 ```
 
 ## Build and push dependency docker image
