@@ -7,7 +7,7 @@ set -e
 # if running as another user (e.g. root), need to source the venv
 source /home/heasoft/venv/bin/activate
 
-CUR_DIR=$(PWD)
+CUR_DIR=$(pwd)
 
 # creating data directories
 # if user specifies a data directory, we use that here, otherwise we use home directory
