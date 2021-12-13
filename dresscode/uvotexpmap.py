@@ -14,6 +14,12 @@ from astropy.io import fits
 
 from dresscode.utils import load_config
 
+try:
+    import importlib.resources as pkg_resources
+except ImportError:
+    # Try backported to PY<37 `importlib_resources`
+    import importlib_resources as pkg_resources  # type: ignore
+
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
 
@@ -40,8 +46,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     error = False
 
     # Open the sss masks.
-    sss_1x1 = np.ma.make_mask(fits.open("sss/sss_UV_1x1.fits")[0].data)
-    sss_2x2 = np.ma.make_mask(fits.open("sss/sss_UV_2x2.fits")[0].data)
+    with pkg_resources.path("dresscode.sss", "sss_UV_1x1.fits") as sss_1x1_fh:
+        sss_1x1 = np.ma.make_mask(fits.open(sss_1x1_fh)[0].data)
+    with pkg_resources.path("dresscode.sss", "sss_UV_2x2.fits") as sss_2x2_fh:
+        sss_2x2 = np.ma.make_mask(fits.open(sss_2x2_fh)[0].data)
 
     for i, filename in enumerate(sky_images):
 
