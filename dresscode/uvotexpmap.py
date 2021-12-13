@@ -46,7 +46,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     error = False
 
     # Open the sss masks.
-    # pkg_resources.path("dresscode.calfiles", "usnob1.spec")
     with pkg_resources.path("dresscode.sss", "sss_UV_1x1.fits") as sss_1x1_fh:
         sss_1x1 = np.ma.make_mask(fits.open(sss_1x1_fh)[0].data)
     with pkg_resources.path("dresscode.sss", "sss_UV_2x2.fits") as sss_2x2_fh:
