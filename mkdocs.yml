@@ -25,11 +25,11 @@ theme:
 
 nav:
   - Home: "index.md"
-  - User Manual:
-      - user_manual/install.md
-      - user_manual/download_data.md
-      - user_manual/data_reduction_with_dresscode.md
-      - user_manual/notes.md
+  - Install: "install.md"
+  - Acquire Data: download_data.md
+  - Usage: usage.md
+  - Notes to user: notes.md
+  - Contributing: developer_notes.md
 
 repo_name: spacetelescope/DRESSCode
 repo_url: https://github.com/spacetelescope/DRESSCode

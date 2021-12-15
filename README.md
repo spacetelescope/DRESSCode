@@ -22,7 +22,7 @@ For the original version of this software, see <a href="https://github.com/mdecl
 
 DRESSCode has been written and tested on Linux and Mac, and relies on several tasks from the specialized <a href="https://heasarc.gsfc.nasa.gov/docs/software/heasoft/" target="_blank">HEASoft</a> software, provided by NASA.
 
-See the <a href="https://spacetelescope.github.io/DRESSCode/user_manual/install/" target="_blank">documentation</a> for specific installation instructions.
+See the <a href="https://spacetelescope.github.io/DRESSCode/install/" target="_blank">documentation</a> for specific installation instructions.
 
 The minimum requirements are:
 
@@ -44,7 +44,7 @@ docker run --rm -it dresscodeswift/dresscode /bin/bash
 
 From there run the pipeline, which is located in `/opt/dresscode`
 
-For more, see our <a href="https://spacetelescope.github.io/DRESSCode/user_manual/install/#docker-installation" target="_blank">docker instructions</a>.
+For more, see our <a href="https://spacetelescope.github.io/DRESSCode/install/#docker-installation" target="_blank">docker instructions</a>.
 
 ## Help
 
@@ -61,28 +61,6 @@ This project is Copyright Association of Universities for Research in Astronomy 
 
 ## Contributing
 
-We use [`black`](https://github.com/psf/black) and [`isort`](https://github.com/pycqa/isort) for autoformatting and [`flake8`](https://github.com/PyCQA/flake8) for linting.
+We encourage contributions. If you have ideas for the project or have found a bug, please submit an issue.
 
-You are encouraged to add editor support (enable autoformat on save w/ black) and show linting errors with flake8. See the documentation for your editor to set up.
-
-To manually run each of the tools:
-
-black:
-
-```sh
-black . --check --diff
-```
-
-isort:
-
-```sh
-isort . --check --diff
-```
-
-flake8:
-
-```sh
-flake8 .
-```
-
-We also have pre-commit hooks. You can install them with `pre-commit install`
+For more information on contributing, see <a href="https://spacetelescope.github.io/DRESSCode/developer_notes/" target="_blank">developer notes</a>.
