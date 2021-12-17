@@ -98,8 +98,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
             # If the file is an output text file of uvotimsum, open the file.
             if filename.startswith("output_uvotimsum"):
-                file = open(yearpath + filename, "r")
-                text = file.read()
+                with open(yearpath + filename, "r") as fh:
+                    text = fh.read()
 
                 # If the word "error" is encountered, print an error message.
                 if (
