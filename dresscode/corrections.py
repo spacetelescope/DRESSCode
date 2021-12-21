@@ -11,8 +11,9 @@ from typing import Optional, Sequence
 
 import numpy as np
 from astropy.io import fits
+from scipy.ndimage import convolve
 
-from dresscode.utils import load_config
+from dresscode.utils import check_filter, load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
@@ -26,43 +27,42 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     galaxy = config["galaxy"]
     path = config["path"] + galaxy + "/working_dir/"
-    years = config["years"]
 
-    # Loop over the different years.
-    for year in years:
+    # we don't run corrections on mask files (mk_corr.img)
+    file_patt_to_corr = ("sk_corr.img", "ex_corr.img", "lss_corr.img")
+    filenames = [
+        filename
+        for filename in sorted(os.listdir(path))
+        if filename.endswith(file_patt_to_corr)
+    ]
 
-        print("Year: " + year)
-        yearpath = path + year + "/"
+    zeropoint_params = {
+        "um2": (-2.330e-3, -1.361e-3),
+        "uw2": (1.108e-3, -1.960e-3),
+        "uw1": (2.041e-3, -1.748e-3),
+    }
+
+    for i, filename in enumerate(filenames):
 
         # PART 1: Apply a coincidence loss correction.
-
+        # todo: do these need to be applied separately for each frame?
         print("Applying coincidence loss corrections...")
-        if os.path.isfile(yearpath + "sum_um2_nm.img"):
-            coicorr(yearpath + "sum_um2_nm.img")
-        if os.path.isfile(yearpath + "sum_uw2_nm.img"):
-            coicorr(yearpath + "sum_uw2_nm.img")
-        if os.path.isfile(yearpath + "sum_uw1_nm.img"):
-            coicorr(yearpath + "sum_uw1_nm.img")
+        coicorr(path + filename)
 
         # PART 2: Apply a large scale sensitivity correction.
-
+        # todo: do these need to be applied separately for each frame?
         print("Applying large scale sensitivity corrections...")
-        if os.path.isfile(yearpath + "sum_um2_nm_coi.img"):
-            lsscorr(yearpath + "sum_um2_nm_coi.img")
-        if os.path.isfile(yearpath + "sum_uw2_nm_coi.img"):
-            lsscorr(yearpath + "sum_uw2_nm_coi.img")
-        if os.path.isfile(yearpath + "sum_uw1_nm_coi.img"):
-            lsscorr(yearpath + "sum_uw1_nm_coi.img")
+        lsscorr(path + filename)
 
         # PART 3: Apply a zero point correction.
-
+        # todo: do these need to be applied separately for each frame?
         print("Applying zero point corrections...")
-        if os.path.isfile(yearpath + "sum_um2_nm_coilss.img"):
-            zeropoint(yearpath + "sum_um2_nm_coilss.img", -2.330e-3, -1.361e-3)
-        if os.path.isfile(yearpath + "sum_uw2_nm_coilss.img"):
-            zeropoint(yearpath + "sum_uw2_nm_coilss.img", 1.108e-3, -1.960e-3)
-        if os.path.isfile(yearpath + "sum_uw1_nm_coilss.img"):
-            zeropoint(yearpath + "sum_uw1_nm_coilss.img", 2.041e-3, -1.748e-3)
+        zeropoint(path + filename, *zeropoint_params[check_filter(filename)])
+
+        print(f"Corrected image {i + 1}/{len(filenames)}.")
+
+        # only one iter
+        break
 
     return 0
 
@@ -71,95 +71,146 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 def coicorr(filename):
     # Open the image. Create arrays with zeros with the shape of the image.
     hdulist = fits.open(filename)
-    data = hdulist[0].data
-    header = hdulist[0].header
-    total_flux = np.full_like(data, np.nan, dtype=np.float64)
-    std = np.full_like(data, np.nan, dtype=np.float64)
 
-    # Loop over all pixels and for each pixel: sum the flux densities (count rates) of
-    # the 9x9 surrounding pixels: Craw (counts/s). Calculate the standard deviation in
-    # the 9x9 pixels box.
-    for x in range(5, data.shape[1] - 5):
-        for y in range(5, data.shape[0] - 5):
-            total_flux[y, x] = np.sum(data[y - 4 : y + 5, x - 4 : x + 5])
-            std[y, x] = np.std(data[y - 4 : y + 5, x - 4 : x + 5])
+    new_hdu_header = fits.PrimaryHDU(header=hdulist[0].header)
+    new_hdulist = fits.HDUList([new_hdu_header])
 
-    # Obtain the dead time correction factor and the frame time (in s) from the header
-    # of the image.
-    alpha = header["DEADC"]
-    ft = header["FRAMTIME"]
+    for frame in hdulist[1:]:
+        data = frame.data
+        header = frame.header
 
-    # Calculate the total number of counts in the 9x9 pixels box: x = Craw*ft (counts).
-    # Calculate the minimum and maximum possible number of counts in the 9x9 pixels box.
-    total_counts = ft * total_flux
-    total_counts_min = ft * (total_flux - 81 * std)
-    total_counts_max = ft * (total_flux + 81 * std)
+        # Sum the flux densities (count rates) of the 9x9 surrounding pixels: Craw (counts/s).
 
-    # Calculate the polynomial correction factor and the minimum and maximum possible
-    # polynomial correction factor.
-    f = polynomial(total_counts)
-    f_min = polynomial(total_counts_min)
-    f_max = polynomial(total_counts_max)
+        import time
 
-    # If alpha*total_counts_max is larger than 1, replace this value by 0.99. Otherwise,
-    # the maximum possible theoretical coincidence-loss-corrected count rate will be NaN
-    # in these pixels.
-    if np.sum(alpha * total_counts_max >= 1.0) != 0:
-        print(
-            "Warning: The following pixels have very high fluxes. The uncertainty on "
-            "the correction factor for these pixels is not to be trusted!",
-            np.where(alpha * total_counts_max >= 1.0),
+        start = time.perf_counter()
+        kernel = np.ones((9, 9))
+        total_flux = convolve(data, kernel, mode="constant", cval=0.0)
+        print(f"Time elapsed: {time.perf_counter() - start}")
+
+        # Calculate the standard deviation in the 9x9 pixels box.
+
+        # radius = 5
+        # c1 = uniform_filter(data, radius * 2, mode="constant", origin=-radius)
+        # c2 = uniform_filter(data * data, radius * 2, mode="constant", origin=-radius)
+        # std_arr = ((c2 - c1 * c1) ** 0.5)[: -radius * 2 + 1, : -radius * 2 + 1]
+        # def window_stdev(arr, radius):
+        #     c1 = uniform_filter(arr, radius * 2, mode="constant", origin=-radius)
+        #     c2 = uniform_filter(arr * arr, radius * 2, mode="constant", origin=-radius)
+        #     return ((c2 - c1 * c1) ** 0.5)[: -radius * 2 + 1, : -radius * 2 + 1]
+        # std = window_stdev(data, 4)
+        # import scipy
+        # from scipy.ndimage.filters import uniform_filter
+
+        # std = scipy.ndimage.generic_filter(
+        #     data, np.std, footprint=np.ones((9, 9)), mode="constant", cval=0.0
+        # )
+
+        # mean (img) using convolution.
+        # Subtract from the original image of p. 1
+        # Calculate the square of each element.
+        # By convolution we find the average, p. 3
+        # Calculates the square root of the elements of p. 4
+
+        # window_mean_kernel = np.ones((9, 9)) / 9 ** 2
+        # mean_flux = convolve(data, window_mean_kernel, mode="constant", cval=0.0)
+        # flux_sub_mean = data - mean_flux
+        # flux_sq = flux_sub_mean ** 2
+        # flux_sq_mean = convolve(flux_sq, window_mean_kernel, mode="constant", cval=0.0)
+        # std = np.sqrt(flux_sq_mean)
+
+        start = time.perf_counter()
+        total_flux2 = np.full_like(data, np.nan, dtype=np.float64)
+        std2 = np.full_like(data, np.nan, dtype=np.float64)
+        for x in range(5, data.shape[1] - 5):
+            for y in range(5, data.shape[0] - 5):
+                total_flux2[y, x] = np.sum(data[y - 4 : y + 5, x - 4 : x + 5])
+                std2[y, x] = np.std(data[y - 4 : y + 5, x - 4 : x + 5])
+        print(f"Time elapsed: {time.perf_counter() - start}")
+
+        # assert total_flux == total_flux2
+        # assert std2 == std
+
+        # Obtain the dead time correction factor and the frame time (in s) from the header
+        # of the image.
+        alpha = header["DEADC"]
+        ft = header["FRAMTIME"]
+
+        # Calculate the total number of counts in the 9x9 pixels box: x = Craw*ft (counts).
+        # Calculate the minimum and maximum possible number of counts in the 9x9 pixels box.
+        total_counts = ft * total_flux
+        total_counts_min = ft * (total_flux - 81 * std)
+        total_counts_max = ft * (total_flux + 81 * std)
+
+        # Calculate the polynomial correction factor and the minimum and maximum possible
+        # polynomial correction factor.
+        f = polynomial(total_counts)
+        f_min = polynomial(total_counts_min)
+        f_max = polynomial(total_counts_max)
+
+        # If alpha*total_counts_max is larger than 1, replace this value by 0.99. Otherwise,
+        # the maximum possible theoretical coincidence-loss-corrected count rate will be NaN
+        # in these pixels.
+        if np.sum(alpha * total_counts_max >= 1.0) != 0:
+            print(
+                "Warning: The following pixels have very high fluxes. The uncertainty on "
+                "the correction factor for these pixels is not to be trusted!",
+                np.where(alpha * total_counts_max >= 1.0),
+            )
+        total_counts_max[alpha * total_counts_max >= 1.0] = 0.99 / alpha
+
+        # Calculate the theoretical coincidence-loss-corrected count rate:
+        # Ctheory = -ln(1 - alpha*Craw*ft) / (alpha*ft) (counts/s).
+        # Calculate the minimum and maximum possible theoretical coincidence-loss-corrected
+        # count rate.
+        Ctheory = -np.log1p(-alpha * total_counts) / (alpha * ft)
+        Ctheory_min = -np.log1p(-alpha * total_counts_min) / (alpha * ft)
+        Ctheory_max = -np.log1p(-alpha * total_counts_max) / (alpha * ft)
+
+        # Calculate the coincidence loss correction factor:
+        # Ccorrfactor = Ctheory*f(x)/Craw.
+        # Calculate the minimum and maximum possible coincidence loss correction factor.
+        corrfactor = (Ctheory * f) / total_flux
+        corrfactor_min = (Ctheory_min * f_min) / (total_flux - 81 * std)
+        corrfactor_max = (Ctheory_max * f_max) / (total_flux + 81 * std)
+
+        # Apply the coincidence loss correction to the data. Apply the minimum and maximum
+        # coincidence loss correction to the data.
+        new_data = corrfactor * data
+        new_data_min = corrfactor_min * data
+        new_data_max = corrfactor_max * data
+
+        # Calculate the uncertainty and the relative uncertainty on the coincidence loss
+        # correction. Put the relative uncertainty to 0 if the uncertainty is 0 (because in
+        # those pixels the flux is also 0 and the relative uncertainty would be NaN).
+        coicorr_unc = np.maximum(
+            np.abs(new_data - new_data_min), np.abs(new_data_max - new_data)
         )
-    total_counts_max[alpha * total_counts_max >= 1.0] = 0.99 / alpha
+        coicorr_rel = coicorr_unc / new_data
+        coicorr_rel[coicorr_unc == 0.0] = 0.0
 
-    # Calculate the theoretical coincidence-loss-corrected count rate:
-    # Ctheory = -ln(1 - alpha*Craw*ft) / (alpha*ft) (counts/s).
-    # Calculate the minimum and maximum possible theoretical coincidence-loss-corrected
-    # count rate.
-    Ctheory = -np.log1p(-alpha * total_counts) / (alpha * ft)
-    Ctheory_min = -np.log1p(-alpha * total_counts_min) / (alpha * ft)
-    Ctheory_max = -np.log1p(-alpha * total_counts_max) / (alpha * ft)
+        print(
+            "The median coincidence loss correction factor for image "
+            + os.path.basename(filename)
+            + " is "
+            + str(np.nanmedian(corrfactor))
+            + " and the median relative uncertainty on the corrected data is "
+            + str(np.nanmedian(coicorr_rel))
+            + "."
+        )
 
-    # Calculate the coincidence loss correction factor:
-    # Ccorrfactor = Ctheory*f(x)/Craw.
-    # Calculate the minimum and maximum possible coincidence loss correction factor.
-    corrfactor = (Ctheory * f) / total_flux
-    corrfactor_min = (Ctheory_min * f_min) / (total_flux - 81 * std)
-    corrfactor_max = (Ctheory_max * f_max) / (total_flux + 81 * std)
+        # Adapt the header. Write the corrected data, the applied coincidence loss
+        # correction and the relative uncertainty to a new image.
+        header["PLANE0"] = "primary (counts/s)"
+        header["PLANE1"] = "coincidence loss correction factor"
+        header["PLANE2"] = "relative coincidence loss correction uncertainty (fraction)"
 
-    # Apply the coincidence loss correction to the data. Apply the minimum and maximum
-    # coincidence loss correction to the data.
-    new_data = corrfactor * data
-    new_data_min = corrfactor_min * data
-    new_data_max = corrfactor_max * data
+        datacube = [new_data, corrfactor, coicorr_rel]
 
-    # Calculate the uncertainty and the relative uncertainty on the coincidence loss
-    # correction. Put the relative uncertainty to 0 if the uncertainty is 0 (because in
-    # those pixels the flux is also 0 and the relative uncertainty would be NaN).
-    coicorr_unc = np.maximum(
-        np.abs(new_data - new_data_min), np.abs(new_data_max - new_data)
-    )
-    coicorr_rel = coicorr_unc / new_data
-    coicorr_rel[coicorr_unc == 0.0] = 0.0
+        new_hdu = fits.ImageHDU(datacube, header)
+        new_hdulist.append(new_hdu)
 
-    print(
-        "The median coincidence loss correction factor for image "
-        + os.path.basename(filename)
-        + " is "
-        + str(np.nanmedian(corrfactor))
-        + " and the median relative uncertainty on the corrected data is "
-        + str(np.nanmedian(coicorr_rel))
-        + "."
-    )
-
-    # Adapt the header. Write the corrected data, the applied coincidence loss
-    # correction and the relative uncertainty to a new image.
-    header["PLANE0"] = "primary (counts/s)"
-    header["PLANE1"] = "coincidence loss correction factor"
-    header["PLANE2"] = "relative coincidence loss correction uncertainty (fraction)"
-    datacube = [new_data, corrfactor, coicorr_rel]
-    new_hdu = fits.PrimaryHDU(datacube, header)
-    new_hdu.writeto(filename.replace(".img", "_coi.img"), overwrite=True)
+    new_hdulist.writeto(filename.replace(".img", "_coi.img"), overwrite=True)
 
     print(os.path.basename(filename) + " has been corrected for coincidence loss.")
 

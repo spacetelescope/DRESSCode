@@ -13,12 +13,13 @@ import os
 import shutil
 import subprocess
 from argparse import ArgumentParser
+from pathlib import Path
 from typing import Optional, Sequence
 
 import numpy as np
 from astropy.io import fits
 
-from dresscode.utils import load_config
+from dresscode.utils import check_filter, load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
@@ -33,105 +34,96 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # Specify the galaxy and the path to the working directory.
     galaxy = config["galaxy"]
     path = config["path"] + galaxy + "/working_dir/"
-    years = config["years"]
 
-    # Loop over the different years.
-    for year in years:
+    # PART 1: Append all frames per filter and per type.
 
-        print("Year: " + year)
-        yearpath = path + year + "/"
+    # clear out the all_* files
+    filters = ("um2", "uw2", "uw1")
+    imgtypes = ("sk", "ex", "lss", "mk")
+    [
+        Path.unlink(path + "all_" + ff + "_" + tt + ".img", exist_ok=True)
+        for ff in filters
+        for tt in imgtypes
+    ]
 
-        # PART 1: Append all frames per filter and per type.
+    file_patt_to_corr = ("sk_corr.img", "ex_corr.img", "lss_corr.img", "mk_corr.img")
+    filenames = [
+        filename
+        for filename in sorted(os.listdir(path))
+        if filename.endswith(file_patt_to_corr)
+    ]
 
-        print("Appending all frames...")
+    print("Appending all frames...")
 
-        for i, filename in enumerate(sorted(os.listdir(yearpath))):
+    for i, filename in enumerate(filenames):
 
-            # Check the type of the image and give the image a type label.
-            typelabel = check_type(filename)
+        # Check the type of the image and give the image a type label.
+        typelabel = check_type(filename)
 
-            if typelabel is None:
-                continue
+        # For the mask files: make sure that also the NaN pixels in the exposure
+        # maps are included in the mask as well as pixels with a very low exposure
+        # time.
+        if typelabel == "mk":
+            update_mask(path + filename)
+            filename = filename.replace(".img", "_new.img")
 
-            # For the mask files: make sure that also the NaN pixels in the exposure
-            # maps are included in the mask as well as pixels with a very low exposure
-            # time.
-            if typelabel == "mk":
-                update_mask(yearpath + filename)
-                filename = filename.replace(".img", "_new.img")
+        # Check the filter of the image and give the image a filter label.
+        filterlabel = check_filter(filename)
 
-            # Check the filter of the image and give the image a filter label.
-            filterlabel = check_filter(filename)
+        # Append all frames to one "total" image.
+        append(path + filename, typelabel, filterlabel, i)
 
-            # Append all frames to one "total" image.
-            append(yearpath + filename, typelabel, filterlabel, i)
+    # PART 2: Co-add the frames in each "total" image.
 
-        # PART 2: Co-add the frames in each "total" image.
+    print("Co-adding all frames...")
 
-        print("Co-adding all frames...")
+    for ff in filters:
+        for tt, param in (("sk", "grid"), ("ex", "expmap"), ("lss", "lssmap")):
+            filename = path + f"all_{ff}_{tt}.img"
+            if os.path.isfile(filename):
+                coaddframes(filename, param)
 
-        if os.path.isfile(yearpath + "all_um2_sk.img"):
-            coaddframes(yearpath + "all_um2_sk.img", "grid")
-        if os.path.isfile(yearpath + "all_uw2_sk.img"):
-            coaddframes(yearpath + "all_uw2_sk.img", "grid")
-        if os.path.isfile(yearpath + "all_uw1_sk.img"):
-            coaddframes(yearpath + "all_uw1_sk.img", "grid")
+    # Check the output of the uvotimsum task.
+    error = False
 
-        if os.path.isfile(yearpath + "all_um2_ex.img"):
-            coaddframes(yearpath + "all_um2_ex.img", "expmap")
-        if os.path.isfile(yearpath + "all_uw2_ex.img"):
-            coaddframes(yearpath + "all_uw2_ex.img", "expmap")
-        if os.path.isfile(yearpath + "all_uw1_ex.img"):
-            coaddframes(yearpath + "all_uw1_ex.img", "expmap")
+    for filename in sorted(os.listdir(path)):
 
-        if os.path.isfile(yearpath + "all_um2_lss.img"):
-            coaddframes(yearpath + "all_um2_lss.img", "lssmap")
-        if os.path.isfile(yearpath + "all_uw2_lss.img"):
-            coaddframes(yearpath + "all_uw2_lss.img", "lssmap")
-        if os.path.isfile(yearpath + "all_uw1_lss.img"):
-            coaddframes(yearpath + "all_uw1_lss.img", "lssmap")
+        # If the file is an output text file of uvotimsum, open the file.
+        if filename.startswith("output_uvotimsum"):
+            with open(path + filename, "r") as fh:
+                text = fh.read()
 
-        # Check the output of the uvotimsum task.
-        error = False
+            # If the word "error" is encountered, print an error message.
+            if (
+                "error" in text
+                or "created output image" not in text
+                or "all checksums are valid" not in text
+            ):
+                print(
+                    "An error has occurred for image all_"
+                    + filename.split("_")[2]
+                    + "_"
+                    + filename.split("_")[3].split(".")[0]
+                    + ".img"
+                )
+                error = True
 
-        for filename in sorted(os.listdir(yearpath)):
+    # PART 3: Normalize the summed sky images.
 
-            # If the file is an output text file of uvotimsum, open the file.
-            if filename.startswith("output_uvotimsum"):
-                with open(yearpath + filename, "r") as fh:
-                    text = fh.read()
+    print("Normalizing the summed sky images...")
 
-                # If the word "error" is encountered, print an error message.
-                if (
-                    "error" in text
-                    or "created output image" not in text
-                    or "all checksums are valid" not in text
-                ):
-                    print(
-                        "An error has occurred for image all_"
-                        + filename.split("_")[2]
-                        + "_"
-                        + filename.split("_")[3].split(".")[0]
-                        + ".img"
-                    )
-                    error = True
+    if os.path.isfile(path + "sum_um2_sk.img"):
+        norm(path + "sum_um2_sk.img")
+    if os.path.isfile(path + "sum_uw2_sk.img"):
+        norm(path + "sum_uw2_sk.img")
+    if os.path.isfile(path + "sum_uw1_sk.img"):
+        norm(path + "sum_uw1_sk.img")
 
-        # PART 3: Normalize the summed sky images.
-
-        print("Normalizing the summed sky images...")
-
-        if os.path.isfile(yearpath + "sum_um2_sk.img"):
-            norm(yearpath + "sum_um2_sk.img")
-        if os.path.isfile(yearpath + "sum_uw2_sk.img"):
-            norm(yearpath + "sum_uw2_sk.img")
-        if os.path.isfile(yearpath + "sum_uw1_sk.img"):
-            norm(yearpath + "sum_uw1_sk.img")
-
-        if error is False:
-            print(
-                "All frames were successfully co-added and the summed sky images were "
-                "normalized."
-            )
+    if error is False:
+        print(
+            "All frames were successfully co-added and the summed sky images were "
+            "normalized."
+        )
 
     return 0
 
@@ -147,16 +139,6 @@ def check_type(filename):
         return "lss"
     elif filename.endswith("mk_corr.img"):
         return "mk"
-
-
-# Function to check the filter of the image and return a filter label.
-def check_filter(filename):
-    if "um2" in filename:
-        return "um2"
-    elif "uw2" in filename:
-        return "uw2"
-    elif "uw1" in filename:
-        return "uw1"
 
 
 # Function to update the mask with pixels that are NaN in the exposure map and pixels

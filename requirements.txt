@@ -1,3 +1,9 @@
 astropy
 ccdproc
 six  # can be removed with ccdproc > 2.2.0, see: https://github.com/astropy/ccdproc/commit/0e97b26b1c2c602df29ef57576a3d8e9e84be57f
+
+# dev
+black
+isort
+pytest
+flake8
