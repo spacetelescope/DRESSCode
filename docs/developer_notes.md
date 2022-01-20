@@ -25,3 +25,15 @@ flake8 .
 ```
 
 We also have pre-commit hooks. You can install them with `pre-commit install`
+
+## Requirements file
+
+We use pip-tools to manage requirements.
+
+Install pip-tools:
+
+`python -m pip install pip-tools`
+
+Compile requirements:
+
+`pip-compile --quiet`
