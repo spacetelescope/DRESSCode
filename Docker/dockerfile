@@ -6,13 +6,13 @@ SHELL ["/bin/bash", "-c"]
 
 RUN \
     python3 -m venv venv \
-    && source venv/bin/activate \
+    && source /home/heasoft/venv/bin/activate \
     && /bin/echo 'source /home/heasoft/venv/bin/activate' >> /home/heasoft/.profile \
     && /bin/echo 'source /home/heasoft/venv/bin/activate' >> /home/heasoft/.bashrc \
     && /bin/echo 'source /home/heasoft/venv/bin/activate' >> /home/heasoft/.cshrc \
-    && pip install pip -U \
-    && pip install --no-cache-dir wheel numpy \
-    && pip install --no-cache-dir -r requirements.txt
+    && python -m pip install pip -U \
+    && python -m pip install --no-cache-dir wheel numpy \
+    && python -m pip install --no-cache-dir -r requirements.txt
 
 COPY --chown=heasoft . /opt/dresscode
 
@@ -22,4 +22,4 @@ RUN \
     # if running as another user, need to source the venv
     source /home/heasoft/venv/bin/activate \
     # installs the package & scripts
-    && pip install .
+    && python -m pip install -e .
