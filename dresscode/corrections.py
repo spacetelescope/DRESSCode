@@ -48,15 +48,17 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
         # PART 1: Apply a coincidence loss correction.
         print("Applying coincidence loss corrections...")
-        coicorr(hdulist, filename)
+        coicorr_hdulist, coicorr_filename = coicorr(hdulist, filename)
 
         # PART 2: Apply a large scale sensitivity correction.
         print("Applying large scale sensitivity corrections...")
-        lsscorr(hdulist, filename)
+        lsscorr_hdulist, lsscorr_filename = lsscorr(coicorr_hdulist, coicorr_filename)
 
         # PART 3: Apply a zero point correction.
         print("Applying zero point corrections...")
-        zeropoint(hdulist, filename, *zeropoint_params[check_filter(filename)])
+        zeropoint(
+            lsscorr_hdulist, lsscorr_filename, *zeropoint_params[check_filter(filename)]
+        )
 
         print(f"Corrected image {i + 1}/{len(filenames)}.")
 
@@ -77,7 +79,7 @@ def coicorr(hdulist, filename):
 
         # Sum the flux densities (count rates) of the 9x9 surrounding pixels: Craw (counts/s).
         size = 9
-        radius = (size - 1) / 2
+        radius = (size - 1) // 2
         window_pixels = size ** 2
         total_flux = sum_window(data, radius)
 
@@ -166,9 +168,12 @@ def coicorr(hdulist, filename):
         new_hdu = fits.ImageHDU(datacube, header)
         new_hdulist.append(new_hdu)
 
-    new_hdulist.writeto(filename.replace(".img", "_coi.img"), overwrite=True)
+    new_filename = filename.replace(".img", "_coi.img")
+    new_hdulist.writeto(new_filename, overwrite=True)
 
     print(os.path.basename(filename) + " has been corrected for coincidence loss.")
+
+    return new_hdulist, new_filename
 
 
 # Function to calculate the empirical polynomial correction to account for the
@@ -184,59 +189,89 @@ def polynomial(x):
 
 # Function for PART 2: Large scale sensitivity correction.
 def lsscorr(hdulist, filename):
-    data = hdulist[0].data[0]
-    coicorr = hdulist[0].data[1]
-    coicorr_rel = hdulist[0].data[2]
-    header = hdulist[0].header
+
+    new_hdu_header = fits.PrimaryHDU(header=hdulist[0].header)
+    new_hdulist = fits.HDUList([new_hdu_header])
 
     lss_hdulist = fits.open(filename.replace("nm_coi", "lss"))
     lss_data = lss_hdulist[1].data
 
-    # Apply the large scale sensitivity correction to the data.
-    new_data = data / lss_data
-    new_datacube = [new_data, coicorr, coicorr_rel]
+    for frame in hdulist[1:]:
+
+        data = frame.data[0]
+        coicorr = frame.data[1]
+        coicorr_rel = frame.data[2]
+        header = frame.header
+
+        # Apply the large scale sensitivity correction to the data.
+        new_data = data / lss_data
+        datacube = [new_data, coicorr, coicorr_rel]
+
+        new_hdu = fits.ImageHDU(datacube, header)
+        new_hdulist.append(new_hdu)
 
     # Write the corrected data to a new image.
-    new_hdu = fits.PrimaryHDU(new_datacube, header)
-    new_hdu.writeto(filename.replace(".img", "lss.img"), overwrite=True)
+    new_filename = filename.replace(".img", "lss.img")
+    new_hdulist.writeto(new_filename, overwrite=True)
 
     print(
         os.path.basename(filename)
         + " has been corrected for large scale sensitivity variations."
     )
 
+    return new_hdulist, new_filename
+
 
 # Function for PART 3: Zero point correction.
 def zeropoint(hdulist, filename, param1, param2):
-    data = hdulist[0].data[0]
-    coicorr = hdulist[0].data[1]
-    coicorr_rel = hdulist[0].data[2]
-    header = hdulist[0].header
-    # Calculate the average date of observation.
-    start_date = datetime.strptime(header["DATE-OBS"].split("T")[0], "%Y-%m-%d").date()
-    end_date = datetime.strptime(header["DATE-END"].split("T")[0], "%Y-%m-%d").date()
-    obs_date = (end_date - start_date) / 2 + start_date
-    # Calculate the number of years that have elapsed since the 1st of January 2005.
-    first_date = date(2005, 1, 1)
-    elapsed_time = obs_date - first_date
-    years_passed = elapsed_time.days / 365.25
 
-    # Calculate the zero point correction.
-    zerocorr = 1 + param1 * years_passed + param2 * years_passed ** 2
+    new_hdu_header = fits.PrimaryHDU(header=hdulist[0].header)
+    new_hdulist = fits.HDUList([new_hdu_header])
 
-    # Apply the correction to the data.
-    new_data = data / zerocorr
+    for frame in hdulist[1:]:
 
-    # Adapt the header. Write the corrected data to a new image.
-    header["ZPCORR"] = zerocorr
-    datacube = [new_data, coicorr, coicorr_rel]
-    new_hdu = fits.PrimaryHDU(datacube, header)
-    new_hdu.writeto(filename.replace(".img", "zp.img"), overwrite=True)
+        data = frame.data[0]
+        coicorr = frame.data[1]
+        coicorr_rel = frame.data[2]
+        header = frame.header
+
+        # todo: remove avg date and just use the exact date of the observation
+        # Calculate the average date of observation.
+        start_date = datetime.strptime(
+            header["DATE-OBS"].split("T")[0], "%Y-%m-%d"
+        ).date()
+        end_date = datetime.strptime(
+            header["DATE-END"].split("T")[0], "%Y-%m-%d"
+        ).date()
+        obs_date = (end_date - start_date) / 2 + start_date
+        # Calculate the number of years that have elapsed since the 1st of January 2005.
+        first_date = date(2005, 1, 1)
+        elapsed_time = obs_date - first_date
+        years_passed = elapsed_time.days / 365.25
+
+        # Calculate the zero point correction.
+        zerocorr = 1 + param1 * years_passed + param2 * years_passed ** 2
+
+        # Apply the correction to the data.
+        new_data = data / zerocorr
+
+        # Adapt the header.
+        header["ZPCORR"] = zerocorr
+
+        # Write the corrected data to a new image.
+        datacube = [new_data, coicorr, coicorr_rel]
+        new_hdu = fits.ImageHDU(datacube, header)
+        new_hdulist.append(new_hdu)
+
+    new_filename = filename.replace(".img", "zp.img")
+    new_hdulist.writeto(new_filename, overwrite=True)
 
     print(
         os.path.basename(filename)
         + " has been corrected for sensitivity loss of the detector over time."
     )
+
+    return new_hdulist, new_filename
 
 
 if __name__ == "__main__":
