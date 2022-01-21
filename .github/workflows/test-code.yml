@@ -14,16 +14,16 @@ jobs:
 
       - uses: psf/black@stable
 
-      - name: Install lint dependencies
-        run: pip install flake8 isort
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install -e ".[dev]"
 
       - name: Check isort
-        run: isort . --check --diff
+        run: isort dresscode --check --diff
 
       - name: Run flake8
-        run: flake8
+        run: flake8 dresscode
 
       - name: Pytest
-        run: |
-          python -m pip install -e ".[dev]"
-          pytest
+        run: pytest
