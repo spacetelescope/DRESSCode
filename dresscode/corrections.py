@@ -43,20 +43,20 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     for i, filename in enumerate(filenames):
 
+        filename = path + filename
+        hdulist = fits.open(filename)
+
         # PART 1: Apply a coincidence loss correction.
-        # todo: do these need to be applied separately for each frame?
         print("Applying coincidence loss corrections...")
-        coicorr(path + filename)
+        coicorr(hdulist, filename)
 
         # PART 2: Apply a large scale sensitivity correction.
-        # todo: do these need to be applied separately for each frame?
         print("Applying large scale sensitivity corrections...")
-        lsscorr(path + filename)
+        lsscorr(hdulist, filename)
 
         # PART 3: Apply a zero point correction.
-        # todo: do these need to be applied separately for each frame?
         print("Applying zero point corrections...")
-        zeropoint(path + filename, *zeropoint_params[check_filter(filename)])
+        zeropoint(hdulist, filename, *zeropoint_params[check_filter(filename)])
 
         print(f"Corrected image {i + 1}/{len(filenames)}.")
 
@@ -67,10 +67,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
 
 # Functions for PART 1: Coincidence loss correction.
-def coicorr(filename):
-    # Open the image. Create arrays with zeros with the shape of the image.
-    hdulist = fits.open(filename)
-
+def coicorr(hdulist, filename):
     new_hdu_header = fits.PrimaryHDU(header=hdulist[0].header)
     new_hdulist = fits.HDUList([new_hdu_header])
 
@@ -107,6 +104,8 @@ def coicorr(filename):
         # If alpha*total_counts_max is larger than 1, replace this value by 0.99. Otherwise,
         # the maximum possible theoretical coincidence-loss-corrected count rate will be NaN
         # in these pixels.
+        # todo: ask Marjorie: Could `total_counts_min` also be > 1?
+        # todo: they aren't replaced by 0.99, but instead by 0.99 / alpha ... ?
         if np.sum(alpha * total_counts_max >= 1.0) != 0:
             print(
                 "Warning: The following pixels have very high fluxes. The uncertainty on "
@@ -126,6 +125,7 @@ def coicorr(filename):
         # Calculate the coincidence loss correction factor:
         # Ccorrfactor = Ctheory*f(x)/Craw.
         # Calculate the minimum and maximum possible coincidence loss correction factor.
+        # todo: ask Marjorie: Do we need to be normalizing by the 9x9 window here?
         corrfactor = (Ctheory * f) / total_flux
         corrfactor_min = (Ctheory_min * f_min) / (total_flux - window_pixels * std)
         corrfactor_max = (Ctheory_max * f_max) / (total_flux + window_pixels * std)
@@ -183,9 +183,7 @@ def polynomial(x):
 
 
 # Function for PART 2: Large scale sensitivity correction.
-def lsscorr(filename):
-    # Open the image and the large scale sensitivity map.
-    hdulist = fits.open(filename)
+def lsscorr(hdulist, filename):
     data = hdulist[0].data[0]
     coicorr = hdulist[0].data[1]
     coicorr_rel = hdulist[0].data[2]
@@ -209,9 +207,7 @@ def lsscorr(filename):
 
 
 # Function for PART 3: Zero point correction.
-def zeropoint(filename, param1, param2):
-    # Open the file.
-    hdulist = fits.open(filename)
+def zeropoint(hdulist, filename, param1, param2):
     data = hdulist[0].data[0]
     coicorr = hdulist[0].data[1]
     coicorr_rel = hdulist[0].data[2]
