@@ -4,16 +4,18 @@ Not intended to be run in CI since the script is a part of CI
 """
 
 
+import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import pytest
 from fits2img import main
 
-# where ben had some output files from the pipeline
+# where ben has output files from the pipeline
 final_image_dir = "~/Documents/SWIFT_data/NGC0628/working_dir"
 
 
+@pytest.mark.skipif(os.getenv("CI") == "true", reason="Skip on CI")
 @pytest.mark.parametrize("fmt", [None, "png", "jpeg"])
 def test_fmt_outputs(fmt):
     with TemporaryDirectory() as tmpdir:
