@@ -4,8 +4,6 @@ import numpy as np
 from scipy.ndimage import convolve
 from scipy.ndimage.filters import uniform_filter
 
-# from scipy.ndimage import generic_filter
-
 
 def listdir_nohidden(path):
     """generator that yields filepaths that aren't hidden (start with a `.`)"""

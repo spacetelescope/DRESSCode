@@ -27,8 +27,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     galaxy = config["galaxy"]
     path = config["path"] + galaxy + "/working_dir/"
 
-    # we don't run corrections on mask files (mk_corr.img)
-    file_patt_to_corr = ("sk_corr.img", "ex_corr.img", "lss_corr.img")
+    # todo: do we apply corrections to lss_corr images?
+    file_patt_to_corr = ("sk_corr.img", "lss_corr.img")
     filenames = [
         filename
         for filename in sorted(os.listdir(path))
@@ -61,9 +61,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         )
 
         print(f"Corrected image {i + 1}/{len(filenames)}.")
-
-        # only one iter
-        break
 
     return 0
 
