@@ -1,5 +1,9 @@
 import os
 
+import numpy as np
+from scipy.ndimage import convolve
+from scipy.ndimage.filters import uniform_filter
+
 
 def listdir_nohidden(path):
     """generator that yields filepaths that aren't hidden (start with a `.`)"""
@@ -22,3 +26,34 @@ def load_config(config_file):
                     value = [value]
             config[key] = value
     return config
+
+
+def sum_window(arr: np.ndarray, radius: int) -> np.ndarray:
+    """Sum around a radius of each element in an array
+    radius is number of pixels in x/y around each pixel to include
+    e.g. radius=1 means the pixel itself and the 8 surrounding pixels
+    Implementation: convolution
+    """
+
+    kernel = np.ones((radius * 2 + 1, radius * 2 + 1))
+    return convolve(arr, kernel, mode="constant", cval=0.0)
+
+
+def stdev_window(arr: np.ndarray, radius: int) -> np.ndarray:
+    """Standard deviation around a radius of each element in an array
+    Edges, equal to radius, are excluded (set to np.nan)
+    radius is number of pixels in x/y around each pixel to include
+    e.g. radius=1 means the pixel itself and the 8 surrounding pixels
+    Implementation: uniform_filter, for details on algorithm see:
+    https://stackoverflow.com/a/18422519/532963
+    """
+
+    output = np.full_like(arr, np.nan, dtype=np.float64)
+    diameter = 2 * radius + 1
+
+    c1 = uniform_filter(arr, diameter, mode="constant", origin=-radius)
+    c2 = uniform_filter(arr * arr, diameter, mode="constant", origin=-radius)
+    output_window = ((c2 - c1 * c1) ** 0.5)[: -radius * 2, : -radius * 2]
+
+    output[radius:-radius, radius:-radius] = output_window
+    return output

@@ -12,7 +12,7 @@ from typing import Optional, Sequence
 import numpy as np
 from astropy.io import fits
 
-from dresscode.utils import load_config
+from dresscode.utils import load_config, stdev_window, sum_window
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
@@ -73,16 +73,15 @@ def coicorr(filename):
     hdulist = fits.open(filename)
     data = hdulist[0].data
     header = hdulist[0].header
-    total_flux = np.full_like(data, np.nan, dtype=np.float64)
-    std = np.full_like(data, np.nan, dtype=np.float64)
 
-    # Loop over all pixels and for each pixel: sum the flux densities (count rates) of
-    # the 9x9 surrounding pixels: Craw (counts/s). Calculate the standard deviation in
-    # the 9x9 pixels box.
-    for x in range(5, data.shape[1] - 5):
-        for y in range(5, data.shape[0] - 5):
-            total_flux[y, x] = np.sum(data[y - 4 : y + 5, x - 4 : x + 5])
-            std[y, x] = np.std(data[y - 4 : y + 5, x - 4 : x + 5])
+    # Sum the flux densities (count rates) of the 9x9 surrounding pixels: Craw (counts/s).
+    size = 9
+    radius = (size - 1) // 2
+    window_pixels = size ** 2
+    total_flux = sum_window(data, radius)
+
+    # standard deviation of the flux densities in the 9x9 pixels box.
+    std = stdev_window(data, radius)
 
     # Obtain the dead time correction factor and the frame time (in s) from the header
     # of the image.
@@ -92,8 +91,8 @@ def coicorr(filename):
     # Calculate the total number of counts in the 9x9 pixels box: x = Craw*ft (counts).
     # Calculate the minimum and maximum possible number of counts in the 9x9 pixels box.
     total_counts = ft * total_flux
-    total_counts_min = ft * (total_flux - 81 * std)
-    total_counts_max = ft * (total_flux + 81 * std)
+    total_counts_min = ft * (total_flux - window_pixels * std)
+    total_counts_max = ft * (total_flux + window_pixels * std)
 
     # Calculate the polynomial correction factor and the minimum and maximum possible
     # polynomial correction factor.
@@ -124,8 +123,8 @@ def coicorr(filename):
     # Ccorrfactor = Ctheory*f(x)/Craw.
     # Calculate the minimum and maximum possible coincidence loss correction factor.
     corrfactor = (Ctheory * f) / total_flux
-    corrfactor_min = (Ctheory_min * f_min) / (total_flux - 81 * std)
-    corrfactor_max = (Ctheory_max * f_max) / (total_flux + 81 * std)
+    corrfactor_min = (Ctheory_min * f_min) / (total_flux - window_pixels * std)
+    corrfactor_max = (Ctheory_max * f_max) / (total_flux + window_pixels * std)
 
     # Apply the coincidence loss correction to the data. Apply the minimum and maximum
     # coincidence loss correction to the data.
