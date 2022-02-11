@@ -15,6 +15,14 @@ except ImportError:
 
 FILE_PATTERN = "*_final*.fits"
 
+IMAGE_TYPES = [
+    (0, "primary_(Jy)"),
+    (1, "avg_coincidence_loss_corr_factor"),
+    (2, "coincidence_loss_corr_uncertainty_(Jy)"),
+    (3, "average_zero_point_corr_factor"),
+    (4, "Poisson_noise_(Jy)"),
+]
+
 
 class BadArgumentError(ValueError):
     pass
@@ -45,25 +53,27 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         image_data = fits.getdata(img_fname, ext=0)
 
         # primary is the first image
-        primary_image = image_data[0, :, :]
+        for i, img_type in [IMAGE_TYPES[i] for i in (0, 2)]:
 
-        out_fn = f"{output_path}/{p.stem}.{args.fmt}"
+            primary_image = image_data[i, :, :]
 
-        plt.figure()
-        plt.axis("off")
-        plt.imshow(
-            primary_image,
-            cmap="gray",
-            norm=simple_norm(primary_image, "linear", max_percent=97.5),
-            aspect="auto",
-            origin="lower",
-        )
-        plt.colorbar()
-        plt.title(p.stem)
-        plt.savefig(
-            out_fn, bbox_inches="tight", transparent=False, pad_inches=0, dpi=150
-        )
-        print(f"Input: {p} -> Output: {out_fn}")
+            out_fn = f"{output_path}/{p.stem}_{img_type}.{args.fmt}"
+
+            plt.figure()
+            plt.axis("off")
+            plt.imshow(
+                primary_image,
+                cmap="gray",
+                norm=simple_norm(primary_image, "linear", max_percent=97.5),
+                aspect="auto",
+                origin="lower",
+            )
+            # plt.colorbar()  # colorbar causes the images to not have the same size
+            plt.title(f"{p.stem} - {img_type}")
+            plt.savefig(
+                out_fn, bbox_inches="tight", transparent=False, pad_inches=0, dpi=150
+            )
+            print(f"Input: {p} -> Output: {out_fn}")
     return 0
 
 
