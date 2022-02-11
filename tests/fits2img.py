@@ -65,7 +65,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 primary_image,
                 cmap="gray",
                 norm=simple_norm(primary_image, "linear", max_percent=97.5),
-                aspect="auto",
+                aspect="equal",
                 origin="lower",
             )
             # plt.colorbar()  # colorbar causes the images to not have the same size
