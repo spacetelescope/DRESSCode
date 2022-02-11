@@ -12,7 +12,7 @@ from typing import Optional, Sequence
 import numpy as np
 from astropy.io import fits
 
-from dresscode.utils import load_config, stdev_window, sum_window
+from dresscode.utils import load_config, stdev_stacked, sum_window
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
@@ -77,11 +77,11 @@ def coicorr(filename):
     # Sum the flux densities (count rates) of the 9x9 surrounding pixels: Craw (counts/s).
     size = 9
     radius = (size - 1) // 2
-    window_pixels = size ** 2
+    window_pixels = size**2
     total_flux = sum_window(data, radius)
 
     # standard deviation of the flux densities in the 9x9 pixels box.
-    std = stdev_window(data, radius)
+    std = stdev_stacked(data, radius)
 
     # Obtain the dead time correction factor and the frame time (in s) from the header
     # of the image.
@@ -171,7 +171,7 @@ def polynomial(x):
     a2 = -0.0907142
     a3 = 0.0285951
     a4 = 0.0308063
-    return 1 + (a1 * x) + (a2 * x ** 2) + (a3 * x ** 3) + (a4 * x ** 4)
+    return 1 + (a1 * x) + (a2 * x**2) + (a3 * x**3) + (a4 * x**4)
 
 
 # Function for PART 2: Large scale sensitivity correction.
@@ -218,7 +218,7 @@ def zeropoint(filename, param1, param2):
     years_passed = elapsed_time.days / 365.25
 
     # Calculate the zero point correction.
-    zerocorr = 1 + param1 * years_passed + param2 * years_passed ** 2
+    zerocorr = 1 + param1 * years_passed + param2 * years_passed**2
 
     # Apply the correction to the data.
     new_data = data / zerocorr

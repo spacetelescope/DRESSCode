@@ -39,6 +39,7 @@ def sum_window(arr: np.ndarray, radius: int) -> np.ndarray:
     return convolve(arr, kernel, mode="constant", cval=0.0)
 
 
+# todo: remove this as we're switching to stacked or a diff. implementation
 def stdev_window(arr: np.ndarray, radius: int) -> np.ndarray:
     """Standard deviation around a radius of each element in an array
     Edges, equal to radius, are excluded (set to np.nan)
@@ -56,4 +57,40 @@ def stdev_window(arr: np.ndarray, radius: int) -> np.ndarray:
     output_window = ((c2 - c1 * c1) ** 0.5)[: -radius * 2, : -radius * 2]
 
     output[radius:-radius, radius:-radius] = output_window
+    return output
+
+
+def stdev_stacked(arr: np.ndarray, radius: int) -> np.ndarray:
+    """
+    Standard deviation around a radius by stacking rolled versions of the array
+    """
+
+    output = np.full_like(arr, np.nan, dtype=np.float64)
+
+    stacked_arr = arr
+    for y in range(-1 * radius, radius + 1):
+        for x in range(-1 * radius, radius + 1):
+            if x == 0 and y == 0:
+                continue
+            # roll array in 2d, by x and y
+            rolled_arr = np.roll(np.roll(arr, x, axis=1), y, axis=0)
+
+            # set edges of rolled array to np.nan
+            if x < 0:
+                rolled_arr[:, x:] = np.nan
+            elif x > 0:
+                rolled_arr[:, 0:x] = np.nan
+            if y < 0:
+                rolled_arr[y:, :] = np.nan
+            elif y > 0:
+                rolled_arr[0:y, :] = np.nan
+
+            # stack rolled_arr on top of stacked_arr
+            stacked_arr = np.dstack((stacked_arr, rolled_arr))
+
+    # std of stacked array
+    # todo: would we rather have nanstd here?
+    std_output = np.std(stacked_arr, axis=2)
+    # set the edges of the output to np.nan
+    output[radius:-radius, radius:-radius] = std_output[radius:-radius, radius:-radius]
     return output
