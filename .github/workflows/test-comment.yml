@@ -12,7 +12,7 @@ jobs:
       - name: ls dir
         id: ls-dir
         run: |
-          echo '::set-output name=CURR_DIR::$(ls)'
+          echo "::set-output name=CURR_DIR::$(ls)"
 
       - name: Comment PR
         if: ${{ github.event_name == 'pull_request' }}
