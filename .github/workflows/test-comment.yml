@@ -12,7 +12,11 @@ jobs:
       - name: ls dir
         id: ls-dir
         run: |
-          echo "OUTPUT=$(ls)" >> $GITHUB_ENV
+          export OUTPUT_LS="$(ls)"
+          OUTPUT_LS="${OUTPUT_LS//'%'/'%25'}"
+          OUTPUT_LS="${OUTPUT_LS//$'\n'/'%0A'}"
+          OUTPUT_LS="${OUTPUT_LS//$'\r'/'%0D'}"
+          echo "::set-output name=output_ls::$(echo "$OUTPUT_LS")"
 
       - name: Comment PR
         if: ${{ github.event_name == 'pull_request' }}
@@ -22,7 +26,7 @@ jobs:
         with:
           msg: "# Pipeline output (`*_final*.fits`)
             \n
-            \n${{ env.OUTPUT }}
+            \n${{ steps.ls-dir.outputs.output_ls }}
             \n
             \n|column1|column2|
             \n|-|-|
