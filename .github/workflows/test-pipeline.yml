@@ -80,6 +80,7 @@ jobs:
 
       - name: format imgur links to markdown table
         id: format-imgur-table
+        # store in env. variable and escape white space characters, then set as github output
         run: |
           export OUTPUT="$(python tests/pr_comment.py '${{ join(fromJSON(steps.publish-to-imgur.outputs.markdown_urls)) }}')"
           OUTPUT="${OUTPUT//'%'/'%25'}"
