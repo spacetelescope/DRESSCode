@@ -1,7 +1,7 @@
 name: "Test Action"
 
 on:
-  pull_request:
+  # pull_request:
 
 jobs:
   test_GH_action:
