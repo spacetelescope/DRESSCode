@@ -12,11 +12,11 @@ jobs:
       - name: ls dir
         id: ls-dir
         run: |
-          export OUTPUT_LS="$(ls)"
-          OUTPUT_LS="${OUTPUT_LS//'%'/'%25'}"
-          OUTPUT_LS="${OUTPUT_LS//$'\n'/'%0A'}"
-          OUTPUT_LS="${OUTPUT_LS//$'\r'/'%0D'}"
-          echo "::set-output name=output_ls::$(echo "$OUTPUT_LS")"
+          export OUTPUT="$(python tests/pr_comment.py '![Imgur Images](https://i.imgur.com/FbRXwrg.png),![Imgur Images](https://i.imgur.com/XdEYTIz.png),![Imgur Images](https://i.imgur.com/UO4lzz0.png),![Imgur Images](https://i.imgur.com/rZh7FOg.png),![Imgur Images](https://i.imgur.com/c5SmtXg.png),![Imgur Images](https://i.imgur.com/fLWDrAS.png)')"
+          OUTPUT="${OUTPUT//'%'/'%25'}"
+          OUTPUT="${OUTPUT//$'\n'/'%0A'}"
+          OUTPUT="${OUTPUT//$'\r'/'%0D'}"
+          echo "::set-output name=comment_output::$(echo "$OUTPUT")"
 
       - name: Comment PR
         if: ${{ github.event_name == 'pull_request' }}
@@ -26,13 +26,7 @@ jobs:
         with:
           msg: "# Pipeline output (`*_final*.fits`)
             \n
-            \n${{ steps.ls-dir.outputs.output_ls }}
-            \n
-            \n|column1|column2|
-            \n|-|-|
-            \n|item1a|item1b|
-            \n|item2a|item2b|
-            \n|item3a|item3b|
+            \n${{ steps.ls-dir.outputs.comment_output }}
             \n"
           check_for_duplicate_msg: false
           # delete_prev_regex_msg: '^Pipeline output \(`\*_final\*\.fits`\)'
