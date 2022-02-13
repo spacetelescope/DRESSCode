@@ -12,10 +12,7 @@ jobs:
       - name: ls dir
         id: ls-dir
         run: |
-          OUTPUT="$(ls)"
-          OUTPUT="${OUTPUT//'%'/'%25'}"
-          OUTPUT="${OUTPUT//$'\n'/'%0A'}"
-          OUTPUT="${OUTPUT//$'\r'/'%0D'}"
+          echo "OUTPUT=${ls}" >> $GITHUB_ENV
 
       - name: Comment PR
         if: ${{ github.event_name == 'pull_request' }}
