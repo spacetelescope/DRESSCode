@@ -69,7 +69,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 origin="lower",
             )
             # plt.colorbar()  # colorbar causes the images to not have the same size
-            plt.title(f"{p.stem} - {img_type}")
+            plt.title(f"{p.stem}\n{img_type}")
             plt.savefig(
                 out_fn, bbox_inches="tight", transparent=False, pad_inches=0, dpi=150
             )
