@@ -1,6 +1,6 @@
 name: "Test package"
 
-on: [push]
+# on: [push]
 
 jobs:
   test_code:

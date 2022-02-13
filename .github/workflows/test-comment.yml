@@ -14,12 +14,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           msg: "# Pipeline output (`*_final*.fits`)
-
-|column1|column2|
-|-|-|
-|item1a|item1b|
-|item2a|item2b|
-|item3a|item3b|
-"
+            \n
+            \n|column1|column2|
+            \n|-|-|
+            \n|item1a|item1b|
+            \n|item2a|item2b|
+            \n|item3a|item3b|
+            \n"
           check_for_duplicate_msg: false
           # delete_prev_regex_msg: '^Pipeline output \(`\*_final\*\.fits`\)'
