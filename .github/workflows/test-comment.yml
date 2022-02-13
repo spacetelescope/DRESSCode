@@ -12,7 +12,7 @@ jobs:
       - name: ls dir
         id: ls-dir
         run: |
-          echo "OUTPUT=${ls}" >> $GITHUB_ENV
+          echo "OUTPUT=$(ls)" >> $GITHUB_ENV
 
       - name: Comment PR
         if: ${{ github.event_name == 'pull_request' }}
