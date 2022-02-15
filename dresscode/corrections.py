@@ -12,7 +12,7 @@ from typing import Optional, Sequence
 import numpy as np
 from astropy.io import fits
 
-from dresscode.utils import load_config, stdev_stacked, sum_window
+from dresscode.utils import load_config, windowed_std, windowed_sum
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
@@ -78,10 +78,10 @@ def coicorr(filename):
     size = 9
     radius = (size - 1) // 2
     window_pixels = size**2
-    total_flux = sum_window(data, radius)
+    total_flux = windowed_sum(data, radius)
 
     # standard deviation of the flux densities in the 9x9 pixels box.
-    std = stdev_stacked(data, radius)
+    std = windowed_std(data, radius)
 
     # Obtain the dead time correction factor and the frame time (in s) from the header
     # of the image.

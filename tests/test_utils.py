@@ -5,7 +5,7 @@ from dresscode import utils
 np.set_printoptions(precision=2, threshold=10_000)  # for debugging/printing
 
 
-def sum_count_rates_window_loop(arr: np.ndarray, radius: int) -> np.ndarray:
+def windowed_sum_loop(arr: np.ndarray, radius: int) -> np.ndarray:
     """Sum around a radius of each element in an array
 
     Old implementation, only for comparison / equivalence testing
@@ -24,7 +24,7 @@ def sum_count_rates_window_loop(arr: np.ndarray, radius: int) -> np.ndarray:
     return output
 
 
-def std_count_rates_window_loop(arr: np.ndarray, radius: int, ddof=0) -> np.ndarray:
+def windowed_std_loop(arr: np.ndarray, radius: int, ddof=0) -> np.ndarray:
     """Standard deviation around a radius of each elemnt in an array
 
     pixels around edges are excluded (edge size=radius)
@@ -82,11 +82,11 @@ sum_eye_10_10_rad_1_diag[0] = sum_eye_10_10_rad_1_diag[-1] = 2
 
 def test_sum_count_rates_window_loop_small():
     """Asserts our test output data matches the iteration version"""
-    test_output = sum_count_rates_window_loop(input_3_3, 1)
+    test_output = windowed_sum_loop(input_3_3, 1)
     assert np.array_equal(test_output, sum_3_3_rad_1, equal_nan=True)
 
     # eye
-    test_output = sum_count_rates_window_loop(input_eye_10_10, 1)
+    test_output = windowed_sum_loop(input_eye_10_10, 1)
     # check diagonal equal
     assert np.array_equal(
         np.diag(test_output), sum_eye_10_10_rad_1_diag, equal_nan=True
@@ -95,32 +95,49 @@ def test_sum_count_rates_window_loop_small():
 
 def test_sum_count_rates_window():
 
-    test_output = utils.sum_window(input_3_3, 1)
+    test_output = utils.windowed_sum(input_3_3, 1)
     assert np.array_equal(test_output, sum_3_3_rad_1, equal_nan=True)
 
     # eye
-    test_output = utils.sum_window(input_eye_10_10, 1)
+    test_output = utils.windowed_sum(input_eye_10_10, 1)
     # check diagonal equal
     assert np.array_equal(
         np.diag(test_output), sum_eye_10_10_rad_1_diag, equal_nan=True
     )
 
 
+def test_sum_nan_data():
+    data = input_10_10
+    data[3:4, 3:4] = np.nan
+    output_loop = windowed_sum_loop(data, 1)
+    output_window = utils.windowed_sum(data, 1)
+    assert np.allclose(output_loop, output_window, equal_nan=True)
+
+
 def test_sum_compare_loop_vs_window():
     """Asserts our iteration version matches the convolve version"""
 
     data = np.random.random((3, 3))
-    output_loop = sum_count_rates_window_loop(data, 1)
-    output_window = utils.sum_window(data, 1)
+    output_loop = windowed_sum_loop(data, 1)
+    output_window = utils.windowed_sum(data, 1)
     assert np.allclose(output_loop, output_window, equal_nan=True)
 
     data = np.random.random((45, 100))
-    output_loop = sum_count_rates_window_loop(data, 4)
-    output_window = utils.sum_window(data, 4)
+    output_loop = windowed_sum_loop(data, 4)
+    output_window = utils.windowed_sum(data, 4)
     assert np.allclose(output_loop, output_window, equal_nan=True)
 
+    # setup
+    data = np.random.random((45, 50))
+    # throw in some nan's
+    nan_indices_y = np.random.choice(np.arange(45), size=10, replace=False)
+    nan_indices_x = np.random.choice(np.arange(50), size=10, replace=False)
+    data[nan_indices_y, nan_indices_x] = np.nan
 
-# todo: test that our sums handle nan's correctly
+    output_loop = windowed_sum_loop(data, 4)
+    output_stacked = utils.windowed_sum(data, 4)
+    assert np.allclose(output_loop, output_stacked, equal_nan=True)
+
 
 # STD COUNT RATES TESTS
 
@@ -128,80 +145,60 @@ def test_sum_compare_loop_vs_window():
 def test_std_count_rates_window_loop():
     """Asserts our test output data matches the iteration version"""
 
-    test_output = std_count_rates_window_loop(input_3_3, 1)
+    test_output = windowed_std_loop(input_3_3, 1)
     assert np.allclose(test_output, std_3_3_rad_1, equal_nan=True)
 
-    test_output = std_count_rates_window_loop(input_3_3, 3)
+    test_output = windowed_std_loop(input_3_3, 3)
     assert np.allclose(test_output, std_3_3_rad_3, equal_nan=True)
 
-    test_output = std_count_rates_window_loop(input_10_10, 3)
+    test_output = windowed_std_loop(input_10_10, 3)
     assert np.allclose(test_output, std_10_10_rad_3, equal_nan=True)
 
-    test_output = std_count_rates_window_loop(input_10_10_diag, 3)
+    test_output = windowed_std_loop(input_10_10_diag, 3)
     assert np.allclose(test_output, std_10_10_diag_rad_3, equal_nan=True)
 
 
 def test_std_compare_loop_vs_window_vs_stacked():
     """Asserts our iteration version matches the uniform_filter version"""
     data = np.random.random((3, 3))
-    output_loop = std_count_rates_window_loop(data, 1)
-    output_window = utils.stdev_window(data, 1)
-    output_stacked = utils.stdev_stacked(data, 1)
+    output_loop = windowed_std_loop(data, 1)
+    output_window = utils.windowed_std(data, 1)
     assert np.allclose(output_loop, output_window, equal_nan=True)
-    assert np.allclose(output_loop, output_stacked, equal_nan=True)
 
     data = np.random.random((99, 100))
-    output_loop = std_count_rates_window_loop(data, 4)
-    output_window = utils.stdev_window(data, 4)
-    output_stacked = utils.stdev_stacked(data, 4)
+    output_loop = windowed_std_loop(data, 4)
+    output_window = utils.windowed_std(data, 4)
     assert np.allclose(output_loop, output_window, equal_nan=True)
-    assert np.allclose(output_loop, output_stacked, equal_nan=True)
 
-    # throw in some nan's
+    # setup
     data = np.random.random((45, 50))
-    data[20:22, 32:34] = np.nan
-    output_loop = std_count_rates_window_loop(data, 4)
-    output_stacked = utils.stdev_stacked(data, 4)
-    # output_window = utils.stdev_window(data, 4)
-    # here windowed function diffs from looped function
-    # assert np.allclose(output_loop, output_window, equal_nan=True)
+    # throw in some nan's
+    nan_indices_y = np.random.choice(np.arange(45), size=10, replace=False)
+    nan_indices_x = np.random.choice(np.arange(50), size=10, replace=False)
+    data[nan_indices_y, nan_indices_x] = np.nan
+
+    output_loop = windowed_std_loop(data, 4)
+    output_stacked = utils.windowed_std(data, 4)
     assert np.allclose(output_loop, output_stacked, equal_nan=True)
 
 
-# todo: can probably remove this
 def test_std_window():
-    test_output = utils.stdev_window(input_3_3, 1)
+    test_output = utils.windowed_std(input_3_3, 1)
     assert np.allclose(test_output, std_3_3_rad_1, equal_nan=True)
 
-    test_output = utils.stdev_window(input_3_3, 3)
+    test_output = utils.windowed_std(input_3_3, 3)
     assert np.allclose(test_output, std_3_3_rad_3, equal_nan=True)
 
-    test_output = utils.stdev_window(input_10_10, 3)
+    test_output = utils.windowed_std(input_10_10, 3)
     assert np.allclose(test_output, std_10_10_rad_3, equal_nan=True)
 
-    test_output = utils.stdev_window(input_10_10_diag, 3)
-    assert np.allclose(test_output, std_10_10_diag_rad_3, equal_nan=True)
-
-
-def test_std_stacked():
-    test_output = utils.stdev_stacked(input_3_3, 1)
-    assert np.allclose(test_output, std_3_3_rad_1, equal_nan=True)
-
-    test_output = utils.stdev_window(input_3_3, 3)
-    assert np.allclose(test_output, std_3_3_rad_3, equal_nan=True)
-
-    test_output = utils.stdev_window(input_10_10, 3)
-    assert np.allclose(test_output, std_10_10_rad_3, equal_nan=True)
-
-    test_output = utils.stdev_window(input_10_10_diag, 3)
+    test_output = utils.windowed_std(input_10_10_diag, 3)
     assert np.allclose(test_output, std_10_10_diag_rad_3, equal_nan=True)
 
 
 def test_std_nan_data():
     data = input_10_10
     data[3:4, 3:4] = np.nan
-    output_loop = std_count_rates_window_loop(data, 1)
-    output_stacked = utils.stdev_stacked(data, 1)
-    # output_window = utils.stdev_window(data, 1)
-    # assert np.allclose(output_loop, output_window, equal_nan=True)
-    assert np.allclose(output_loop, output_stacked, equal_nan=True)
+    output_loop = windowed_std_loop(data, 1)
+    test_output = utils.windowed_std(data, 1)
+    assert np.allclose(output_loop, test_output, equal_nan=True)
