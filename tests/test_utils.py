@@ -107,7 +107,7 @@ def test_sum_count_rates_window():
 
 
 def test_sum_nan_data():
-    data = input_10_10
+    data = input_10_10.copy()
     data[3:4, 3:4] = np.nan
     output_loop = windowed_sum_loop(data, 1)
     output_window = utils.windowed_sum(data, 1)
@@ -197,7 +197,7 @@ def test_std_window():
 
 
 def test_std_nan_data():
-    data = input_10_10
+    data = input_10_10.copy()
     data[3:4, 3:4] = np.nan
     output_loop = windowed_std_loop(data, 1)
     test_output = utils.windowed_std(data, 1)
