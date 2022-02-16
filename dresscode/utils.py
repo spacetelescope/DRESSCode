@@ -41,17 +41,22 @@ def windowed_sum(arr: np.ndarray, radius: int) -> np.ndarray:
 def windowed_var(arr: np.ndarray, radius: int) -> np.ndarray:
     """Calculate the variance of a window around each pixel in an array
     Adapted from the this SO: https://stackoverflow.com/a/18423835/532963
-    We use our windowed_sum convolution calc. which performs better with nan's
+    We use our windowed_sum convolution calc. which can handle nan's
+
     This is the same algorithm as https://stackoverflow.com/a/18422519/532963
     to computer the variance using just the sum of squares and sum of values in a window
+    however we need to add a normalization because we aren't using uniform_filter
+
+    Note: this returns smaller in size than the input array (by radius)
     """
     diameter = radius * 2 + 1
-    win_a = windowed_sum(arr, radius)[radius:-radius, radius:-radius]
-    win_a2 = windowed_sum(arr * arr, radius)[radius:-radius, radius:-radius]
-    return (win_a2 - win_a * win_a / diameter / diameter) / diameter / diameter
+    win_sum = windowed_sum(arr, radius)[radius:-radius, radius:-radius]
+    win_sum_2 = windowed_sum(arr * arr, radius)[radius:-radius, radius:-radius]
+    return (win_sum_2 - win_sum * win_sum / diameter / diameter) / diameter / diameter
 
 
 def windowed_std(arr: np.ndarray, radius: int) -> np.ndarray:
+    """Standard deviation around a radius of each elemnt in an array"""
 
     output = np.full_like(arr, np.nan, dtype=np.float64)
 
