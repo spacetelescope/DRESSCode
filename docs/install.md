@@ -77,10 +77,11 @@ Requires Python >= 3.7. Make sure you have a working python environment then ins
 python -m pip install https://git+https://github.com/spacetelescope/DRESSCode.git
 ```
 
-Alternatively, clone the repo to a directory install from there:
+Alternatively, clone the repo to a directory & install from there:
 
 1. `git clone git@github.com:spacetelescope/DRESSCode.git`
 2. `cd DRESSCode`
-3. `python -m pip install .` or for an editable install `python -m pip install -e .`
+3. Create a virtual environment: `python3 -m venv venv`
+4. `python -m pip install .` or for an editable install `python -m pip install -e .`
 
 To install extra dev dependencies: `python -m pip install -e ".[dev]"`

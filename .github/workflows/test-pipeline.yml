@@ -1,4 +1,4 @@
-name: "Build docker images, run pipeline"
+name: "Build docker images & run pipeline"
 
 on:
   push:
@@ -12,6 +12,10 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
 
       - name: Cache Raw_data
         id: cache-test-images
@@ -40,7 +44,7 @@ jobs:
           mkdir -p ~/dresscode-data/NGC0628
           cp -r ~/Raw_data ~/dresscode-data/NGC0628/Raw_data
           chmod -R a=rwx ~/dresscode-data
-          docker run --user root --rm -t -v ~/dresscode-data:/data dresscodeswift/dresscode /bin/bash /opt/dresscode/tests/test_pipeline.bash /data
+          docker run --user root --rm -t -v ~/dresscode-data:/data dresscodeswift/dresscode:latest /bin/bash /opt/dresscode/tests/test_pipeline.bash /data
 
       - name: Save pipeline output
         uses: actions/upload-artifact@v2
@@ -67,8 +71,8 @@ jobs:
       - name: Create thumbnail of pipeline output
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          pip install astropy matplotlib
-          python3 tests/fits2img.py ~/dresscode-data/NGC0628/working_dir/
+          python -m pip install astropy matplotlib
+          python tests/fits2img.py ~/dresscode-data/NGC0628/working_dir/
 
       - name: Publish to imgur
         if: ${{ github.event_name == 'pull_request' }}
@@ -78,15 +82,26 @@ jobs:
           path: "*.png"
           client_id: ${{secrets.IMGUR_CLIENT_ID}}
 
+      - name: format imgur links to markdown table
+        id: format-imgur-table
+        # store in env. variable and escape white space characters, then set as github output
+        run: |
+          export OUTPUT="$(python tests/pr_comment.py '${{ join(fromJSON(steps.publish-to-imgur.outputs.markdown_urls)) }}')"
+          OUTPUT="${OUTPUT//'%'/'%25'}"
+          OUTPUT="${OUTPUT//$'\n'/'%0A'}"
+          OUTPUT="${OUTPUT//$'\r'/'%0D'}"
+          echo "::set-output name=comment_output::$(echo "$OUTPUT")"
+
       - name: Comment PR
         if: ${{ github.event_name == 'pull_request' }}
         uses: unsplash/comment-on-pr@v1.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          msg: "Pipeline output (`*_final*.fits`):
-            ${{ join(fromJSON(steps.publish-to-imgur.outputs.markdown_urls)) }}
-
-            Download artifacts (fits files) from the run's [actions page](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          msg: "# Pipeline output (`*_final*.fits`)
+            \n
+            \n${{ steps.format-imgur-table.outputs.comment_output }}
+            \n
+            \nDownload full fits files from the run's [actions page](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           check_for_duplicate_msg: false
-          delete_prev_regex_msg: '^Pipeline output \(`\*_final\*\.fits`\)'
+          delete_prev_regex_msg: '^# Pipeline output \(`\*_final\*\.fits`\)'

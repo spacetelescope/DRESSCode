@@ -239,7 +239,7 @@ def coaddframes(allfile, method):
     outfile = allfile.replace("all", "sum")
     maskfile = allfile.rsplit("_", 1)[0] + "_mk.img"
     terminal_output_file = (
-        path + "output_uvotimsum" + allfile.split("ll")[1].split(".")[0] + ".txt"
+        path + "output_uvotimsum" + allfile.split("ll")[-1].split(".")[0] + ".txt"
     )
 
     # Open the terminal output file and run uvotimsum with the specified parameters.

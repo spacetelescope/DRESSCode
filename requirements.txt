@@ -17,7 +17,7 @@ astroscrappy==1.1.0
     # via ccdproc
 ccdproc==2.3.0
     # via dresscode (setup.py)
-imageio==2.14.0
+imageio==2.14.1
     # via scikit-image
 networkx==2.6.3
     # via scikit-image
@@ -44,7 +44,7 @@ pillow==9.0.0
     #   scikit-image
 pyerfa==2.0.0.1
     # via astropy
-pyparsing==3.0.6
+pyparsing==3.0.7
     # via packaging
 pywavelets==1.2.0
     # via scikit-image

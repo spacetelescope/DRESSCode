@@ -2,7 +2,6 @@ import os
 
 import numpy as np
 from scipy.ndimage import convolve
-from scipy.ndimage.filters import uniform_filter
 
 
 def listdir_nohidden(path):
@@ -38,37 +37,41 @@ def check_filter(filename):
         return "uw1"
 
 
-def sum_window(arr: np.ndarray, radius: int) -> np.ndarray:
+def windowed_sum(arr: np.ndarray, radius: int) -> np.ndarray:
     """Sum around a radius of each element in an array
-
     radius is number of pixels in x/y around each pixel to include
     e.g. radius=1 means the pixel itself and the 8 surrounding pixels
-
     Implementation: convolution
     """
 
-    kernel = np.ones((radius * 2 + 1, radius * 2 + 1))
+    kernel = np.ones((radius * 2 + 1, radius * 2 + 1), dtype=int)
     return convolve(arr, kernel, mode="constant", cval=0.0)
 
 
-def stdev_window(arr: np.ndarray, radius: int) -> np.ndarray:
-    """Standard deviation around a radius of each element in an array
+def windowed_var(arr: np.ndarray, radius: int) -> np.ndarray:
+    """Calculate the variance of a window around each pixel in an array
+    Adapted from the this SO: https://stackoverflow.com/a/18423835/532963
+    We use our windowed_sum convolution calc. which can handle nan's
 
-    Edges, equal to radius, are excluded (set to np.nan)
+    This is the same algorithm as https://stackoverflow.com/a/18422519/532963
+    to computer the variance using just the sum of squares and sum of values in a window
+    however we need to add a normalization because we aren't using uniform_filter
 
-    radius is number of pixels in x/y around each pixel to include
-    e.g. radius=1 means the pixel itself and the 8 surrounding pixels
-
-    Implementation: uniform_filter, for details on algorithm see:
-    https://stackoverflow.com/a/18422519/532963
+    Note: this returns smaller in size than the input array (by radius)
     """
+    diameter = radius * 2 + 1
+    win_sum = windowed_sum(arr, radius)[radius:-radius, radius:-radius]
+    win_sum_2 = windowed_sum(arr * arr, radius)[radius:-radius, radius:-radius]
+    return (win_sum_2 - win_sum * win_sum / diameter / diameter) / diameter / diameter
+
+
+def windowed_std(arr: np.ndarray, radius: int) -> np.ndarray:
+    """Standard deviation around a radius of each elemnt in an array"""
 
     output = np.full_like(arr, np.nan, dtype=np.float64)
-    diameter = 2 * radius + 1
 
-    c1 = uniform_filter(arr, diameter, mode="constant", origin=-radius)
-    c2 = uniform_filter(arr * arr, diameter, mode="constant", origin=-radius)
-    output_window = ((c2 - c1 * c1) ** 0.5)[: -radius * 2, : -radius * 2]
+    var_arr = windowed_var(arr, radius)
+    std_arr = np.sqrt(var_arr)
+    output[radius:-radius, radius:-radius] = std_arr
 
-    output[radius:-radius, radius:-radius] = output_window
     return output
