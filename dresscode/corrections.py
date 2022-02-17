@@ -230,15 +230,7 @@ def zeropoint(hdulist, filename, param1, param2):
         coicorr_rel = frame.data[2]
         header = frame.header
 
-        # todo: remove avg date and just use the exact date of the observation
-        # Calculate the average date of observation.
-        start_date = datetime.strptime(
-            header["DATE-OBS"].split("T")[0], "%Y-%m-%d"
-        ).date()
-        end_date = datetime.strptime(
-            header["DATE-END"].split("T")[0], "%Y-%m-%d"
-        ).date()
-        obs_date = (end_date - start_date) / 2 + start_date
+        obs_date = datetime.fromisoformat(header["DATE-OBS"]).date()
         # Calculate the number of years that have elapsed since the 1st of January 2005.
         first_date = date(2005, 1, 1)
         elapsed_time = obs_date - first_date
