@@ -15,8 +15,8 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY requirements.txt .
 
 RUN \
-    pip install --no-cache-dir pip wheel -U \
-    && pip install --no-cache-dir -r requirements.txt
+    python -m pip install --no-cache-dir pip wheel -U \
+    && python -m pip install --no-cache-dir -r requirements.txt
 
 COPY --chown=heasoft . /opt/dresscode
 
