@@ -68,7 +68,7 @@ def windowed_var(arr: np.ndarray, radius: int) -> np.ndarray:
 def windowed_std(arr: np.ndarray, radius: int) -> np.ndarray:
     """Standard deviation around a radius of each elemnt in an array"""
 
-    output = np.full_like(arr, np.nan, dtype=np.float64)
+    output = np.full_like(arr, np.nan)
 
     var_arr = windowed_var(arr, radius)
     std_arr = np.sqrt(var_arr)

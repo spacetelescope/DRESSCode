@@ -27,8 +27,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     galaxy = config["galaxy"]
     path = config["path"] + galaxy + "/working_dir/"
 
-    # todo: do we apply corrections to lss_corr images?
-    file_patt_to_corr = ("sk_corr.img", "lss_corr.img")
+    # todo: are these the only files to apply corrections to?
+    file_patt_to_corr = ("sk_corr.img",)
     filenames = [
         filename
         for filename in sorted(os.listdir(path))
@@ -189,10 +189,9 @@ def lsscorr(hdulist, filename):
     new_hdu_header = fits.PrimaryHDU(header=hdulist[0].header)
     new_hdulist = fits.HDUList([new_hdu_header])
 
-    lss_hdulist = fits.open(filename.replace("nm_coi", "lss"))
-    lss_data = lss_hdulist[1].data
+    lss_hdulist = fits.open(filename.replace("sk_corr_coi.img", "lss_corr.img"))
 
-    for frame in hdulist[1:]:
+    for frame, lss_frame in zip(hdulist[1:], lss_hdulist[1:]):
 
         data = frame.data[0]
         coicorr = frame.data[1]
@@ -200,14 +199,14 @@ def lsscorr(hdulist, filename):
         header = frame.header
 
         # Apply the large scale sensitivity correction to the data.
-        new_data = data / lss_data
+        new_data = data / lss_frame.data
         datacube = [new_data, coicorr, coicorr_rel]
 
         new_hdu = fits.ImageHDU(datacube, header)
         new_hdulist.append(new_hdu)
 
     # Write the corrected data to a new image.
-    new_filename = filename.replace(".img", "lss.img")
+    new_filename = filename.replace(".img", "_lss.img")
     new_hdulist.writeto(new_filename, overwrite=True)
 
     print(
@@ -259,7 +258,7 @@ def zeropoint(hdulist, filename, param1, param2):
         new_hdu = fits.ImageHDU(datacube, header)
         new_hdulist.append(new_hdu)
 
-    new_filename = filename.replace(".img", "zp.img")
+    new_filename = filename.replace(".img", "_zp.img")
     new_hdulist.writeto(new_filename, overwrite=True)
 
     print(
