@@ -101,13 +101,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # Check the output of the uvotimsum task.
     error = False
 
-    output_ovitimsum_files = [
+    output_uvotimsum_files = [
         filename
         for filename in sorted(os.listdir(path))
         if filename.startswith("output_uvotimsum")
     ]
 
-    for filename in output_ovitimsum_files:
+    for filename in output_uvotimsum_files:
 
         # If the file is an output text file of uvotimsum, open the file.
         with open(path + filename, "r") as fh:
