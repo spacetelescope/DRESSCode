@@ -1,25 +1,25 @@
 FROM dresscodeswift/heasoft-caldb-wcstools:latest
 
+ENV VIRTUAL_ENV=/opt/venv
+
+# temporarily switch to root to create virtual env. in /opt
+USER root
+RUN \
+    python -m venv $VIRTUAL_ENV && \
+    chown -R heasoft:heasoft $VIRTUAL_ENV
+USER heasoft
+
+# activate the virtual environment
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
 COPY requirements.txt .
 
-SHELL ["/bin/bash", "-c"]
-
 RUN \
-    python3 -m venv venv \
-    && source venv/bin/activate \
-    && /bin/echo 'source /home/heasoft/venv/bin/activate' >> /home/heasoft/.profile \
-    && /bin/echo 'source /home/heasoft/venv/bin/activate' >> /home/heasoft/.bashrc \
-    && /bin/echo 'source /home/heasoft/venv/bin/activate' >> /home/heasoft/.cshrc \
-    && pip install pip -U \
-    && pip install --no-cache-dir wheel numpy \
-    && pip install --no-cache-dir -r requirements.txt
+    python -m pip install --no-cache-dir pip wheel -U \
+    && python -m pip install --no-cache-dir -r requirements.txt
 
 COPY --chown=heasoft . /opt/dresscode
 
 WORKDIR /opt/dresscode
 
-RUN \
-    # if running as another user, need to source the venv
-    source /home/heasoft/venv/bin/activate \
-    # installs the package & scripts
-    && pip install .
+RUN python -m pip install .

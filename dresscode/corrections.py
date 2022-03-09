@@ -12,7 +12,7 @@ from typing import Optional, Sequence
 import numpy as np
 from astropy.io import fits
 
-from dresscode.utils import load_config
+from dresscode.utils import load_config, windowed_std, windowed_sum
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
@@ -73,16 +73,15 @@ def coicorr(filename):
     hdulist = fits.open(filename)
     data = hdulist[0].data
     header = hdulist[0].header
-    total_flux = np.full_like(data, np.nan, dtype=np.float64)
-    std = np.full_like(data, np.nan, dtype=np.float64)
 
-    # Loop over all pixels and for each pixel: sum the flux densities (count rates) of
-    # the 9x9 surrounding pixels: Craw (counts/s). Calculate the standard deviation in
-    # the 9x9 pixels box.
-    for x in range(5, data.shape[1] - 5):
-        for y in range(5, data.shape[0] - 5):
-            total_flux[y, x] = np.sum(data[y - 4 : y + 5, x - 4 : x + 5])
-            std[y, x] = np.std(data[y - 4 : y + 5, x - 4 : x + 5])
+    # Sum the flux densities (count rates) of the 9x9 surrounding pixels: Craw (counts/s).
+    size = 9
+    radius = (size - 1) // 2
+    window_pixels = size**2
+    total_flux = windowed_sum(data, radius)
+
+    # standard deviation of the flux densities in the 9x9 pixels box.
+    std = windowed_std(data, radius)
 
     # Obtain the dead time correction factor and the frame time (in s) from the header
     # of the image.
@@ -92,8 +91,8 @@ def coicorr(filename):
     # Calculate the total number of counts in the 9x9 pixels box: x = Craw*ft (counts).
     # Calculate the minimum and maximum possible number of counts in the 9x9 pixels box.
     total_counts = ft * total_flux
-    total_counts_min = ft * (total_flux - 81 * std)
-    total_counts_max = ft * (total_flux + 81 * std)
+    total_counts_min = ft * (total_flux - window_pixels * std)
+    total_counts_max = ft * (total_flux + window_pixels * std)
 
     # Calculate the polynomial correction factor and the minimum and maximum possible
     # polynomial correction factor.
@@ -124,8 +123,8 @@ def coicorr(filename):
     # Ccorrfactor = Ctheory*f(x)/Craw.
     # Calculate the minimum and maximum possible coincidence loss correction factor.
     corrfactor = (Ctheory * f) / total_flux
-    corrfactor_min = (Ctheory_min * f_min) / (total_flux - 81 * std)
-    corrfactor_max = (Ctheory_max * f_max) / (total_flux + 81 * std)
+    corrfactor_min = (Ctheory_min * f_min) / (total_flux - window_pixels * std)
+    corrfactor_max = (Ctheory_max * f_max) / (total_flux + window_pixels * std)
 
     # Apply the coincidence loss correction to the data. Apply the minimum and maximum
     # coincidence loss correction to the data.
@@ -172,7 +171,7 @@ def polynomial(x):
     a2 = -0.0907142
     a3 = 0.0285951
     a4 = 0.0308063
-    return 1 + (a1 * x) + (a2 * x ** 2) + (a3 * x ** 3) + (a4 * x ** 4)
+    return 1 + (a1 * x) + (a2 * x**2) + (a3 * x**3) + (a4 * x**4)
 
 
 # Function for PART 2: Large scale sensitivity correction.
@@ -219,7 +218,7 @@ def zeropoint(filename, param1, param2):
     years_passed = elapsed_time.days / 365.25
 
     # Calculate the zero point correction.
-    zerocorr = 1 + param1 * years_passed + param2 * years_passed ** 2
+    zerocorr = 1 + param1 * years_passed + param2 * years_passed**2
 
     # Apply the correction to the data.
     new_data = data / zerocorr
