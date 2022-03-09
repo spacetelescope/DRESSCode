@@ -53,6 +53,12 @@ jobs:
           path: |
             ~/dresscode-data/NGC0628/working_dir/*final*.fits
 
+      - name: Check for final files
+        run: |
+          EXPECTED_FINAL_FILES=3
+          FINAL_FILES="$(ls ~/dresscode-data/NGC0628/working_dir/*final*.fits | wc -l)"
+          if [[ $FINAL_FILES -ne $EXPECTED_FINAL_FILES ]]; then echo "Number of output files = $FINAL_FILES"; exit 1; fi
+
       - name: Login to DockerHub
         if: github.ref == 'refs/heads/main'
         uses: docker/login-action@v1
