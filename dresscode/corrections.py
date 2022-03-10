@@ -56,9 +56,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
         # PART 3: Apply a zero point correction.
         print("Applying zero point corrections...")
-        zeropoint(
+        zp_corr_hdulist, _ = zeropoint(
             lsscorr_hdulist, lsscorr_filename, *zeropoint_params[check_filter(filename)]
         )
+
+        # requirement of coadding step, data must be 2D
+        print(
+            "Splitting the corrected data, coincidence corr, and coicorr_rel into separate files"
+        )
+        separate_files(zp_corr_hdulist, filename)
 
         print(f"Corrected image {i + 1}/{len(filenames)}.")
 
@@ -259,6 +265,53 @@ def zeropoint(hdulist, filename, param1, param2):
     )
 
     return new_hdulist, new_filename
+
+
+def separate_files(hdulist, filename):
+    """Separate data into different files for data, coicorr and coicorr_rel."""
+    data_hdu_header = fits.PrimaryHDU(header=hdulist[0].header)
+    data_hdulist = fits.HDUList([data_hdu_header])
+
+    coicorr_hdu_header = fits.PrimaryHDU(header=hdulist[0].header)
+    coicorr_hdulist = fits.HDUList([coicorr_hdu_header])
+
+    coicorr_rel_hdu_header = fits.PrimaryHDU(header=hdulist[0].header)
+    coicorr_rel_data_hdulist = fits.HDUList([coicorr_rel_hdu_header])
+    for frame in hdulist[1:]:
+
+        for header, plane0_txt in zip(
+            (data_hdu_header, coicorr_hdu_header, coicorr_rel_hdu_header),
+            (
+                "primary (counts/s)",
+                "coincidence loss correction factor",
+                "relative coincidence loss correction uncertainty (fraction)",
+            ),
+        ):
+            header["PLANE0"] = plane0_txt
+            header.remove("PLANE1")
+            header.remove("PLANE2")
+
+        data = frame.data[0]
+        data_hdulist.append(fits.ImageHDU(data, data_hdu_header))
+
+        coicorr = frame.data[1]
+        coicorr_hdulist.append(fits.ImageHDU(coicorr, coicorr_hdu_header))
+
+        coicorr_rel = frame.data[2]
+        coicorr_rel_data_hdulist.append(
+            fits.ImageHDU(coicorr_rel, coicorr_rel_hdu_header)
+        )
+
+    data_filename = filename.replace("coi_lss_zp.img", "coi_lss_zp_data.img")
+    data_hdulist.writeto(data_filename, overwrite=True)
+
+    coicorr_filename = filename.replace("coi_lss_zp.img", "coi_lss_zp_coicorr.img")
+    coicorr_hdulist.writeto(coicorr_filename, overwrite=True)
+
+    coicorr_rel_filename = filename.replace(
+        "coi_lss_zp.img", "coi_lss_zp_coicorr_rel.img"
+    )
+    coicorr_rel_data_hdulist.writeto(coicorr_rel_filename, overwrite=True)
 
 
 if __name__ == "__main__":

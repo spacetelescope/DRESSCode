@@ -21,7 +21,9 @@ from astropy.io import fits
 from dresscode.utils import check_filter, load_config
 
 FILE_PATT_TO_SUM = {
-    "_sk_corr_coi_lss_zp.img": "sk",
+    "_sk_corr_coi_lss_zp_data.img": "sk",
+    "_sk_corr_coi_lss_zp_coicorr.img": "sk",
+    "_sk_corr_coi_lss_zp_coicorr_rel.img": "sk",
     "_mk_corr.img": "mk",
     "_ex_corr.img": "ex",
 }
@@ -39,13 +41,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # Specify the galaxy and the path to the working directory.
     galaxy = config["galaxy"]
     path = config["path"] + galaxy + "/working_dir/"
-
-    # todo: what files are we supposed to sum here? -- @mdecleir
-    # orig: *sk_corr.img, *ex_corr.img, *lss_corr.img, *mk_corr.img
-
-    # since lss_corr images have already been used for applying corrections per observation... no longer needed
-
-    # new: *_sk_corr_coi_lss_zp.img, *_mk_corr.img, *_ex_corr.img
 
     files_to_sum = [
         filename
@@ -75,8 +70,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         # Check the filter of the image and give the image a filter label.
         filterlabel = check_filter(filename)
 
+        corr_type = check_corr_type(filename)
+
         # Append all frames to one "total" image.
-        append(path + filename, typelabel, filterlabel)
+        append(path + filename, typelabel, filterlabel, corr_type)
 
         print(f"Finished appending frames for image {i+1}/{len(files_to_sum)}.")
 
@@ -84,13 +81,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     print("Co-adding all frames...")
 
-    if os.path.isfile(path + "all_um2_sk.img"):
-        coaddframes(path + "all_um2_sk.img", "grid")
-    if os.path.isfile(path + "all_uw2_sk.img"):
-        coaddframes(path + "all_uw2_sk.img", "grid")
-    if os.path.isfile(path + "all_uw1_sk.img"):
-        coaddframes(path + "all_uw1_sk.img", "grid")
+    filter_types = ["um2", "uw1", "uw1"]
+    data_types = ["data", "coicorr", "coicorr_rel"]
+    for filt in filter_types:
+        for data_type in data_types:
+            all_fname = f"all_{filt}_sk_{data_type}.img"
+            if os.path.isfile(path + all_fname):
+                coaddframes(path + all_fname, "grid")
 
+    # handle the exposure maps
     if os.path.isfile(path + "all_um2_ex.img"):
         coaddframes(path + "all_um2_ex.img", "expmap")
     if os.path.isfile(path + "all_uw2_ex.img"):
@@ -156,6 +155,21 @@ def check_type(filename):
             return filetype
 
 
+def check_corr_type(filename: str) -> Optional[str]:
+    """check whether this is:
+    - primary data (counts)
+    - coincidence loss correction factor
+    - relative coincidence loss correction
+    """
+
+    if filename.endswith("_coicorr_rel.img"):
+        return "coicorr_rel"
+    elif filename.endswith("_coicorr.img"):
+        return "coicorr"
+    elif filename.endswith("_data.img"):
+        return "data"
+
+
 def update_mask(filename):
     """update the mask with pixels that are NaN in the exposure map and pixels
     that have very low exposure times."""
@@ -178,11 +192,17 @@ def update_mask(filename):
     new_hdulist.writeto(filename.replace(".img", "_new.img"))
 
 
-def append(filename, typelabel, filterlabel):
+def append(filename, typelabel, filterlabel, corr_type):
     """Copy the first image of a filter and type into new image
     OR append frames, depending on whether it is the first image or not"""
+
+    if corr_type is None:
+        corr_type_str = ""
+    else:
+        corr_type_str = "_" + corr_type
+
     allfile = (
-        os.path.dirname(filename) + "/all_" + filterlabel + "_" + typelabel + ".img"
+        f"{os.path.dirname(filename)}/all_{filterlabel}_{typelabel}{corr_type_str}.img"
     )
 
     # If the "total" image of this type and this filter does not yet exist, create it.
@@ -203,7 +223,6 @@ def appendframes(filename, allfile):
     for j in range(1, len(hdulist)):
         infile = filename + "+" + str(j)
         totfile = allfile
-        # todo: sk images: how to append frames when frames have been corrected [data, corrfactor, coicorr_rel]
         subprocess.call("ftappend " + infile + " " + totfile, cwd=path, shell=True)
 
         print(
