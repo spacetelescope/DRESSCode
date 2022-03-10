@@ -279,28 +279,26 @@ def separate_files(hdulist, filename):
     coicorr_rel_data_hdulist = fits.HDUList([coicorr_rel_hdu_header])
     for frame in hdulist[1:]:
 
-        for header, plane0_txt in zip(
-            (data_hdu_header, coicorr_hdu_header, coicorr_rel_hdu_header),
-            (
-                "primary (counts/s)",
-                "coincidence loss correction factor",
-                "relative coincidence loss correction uncertainty (fraction)",
-            ),
-        ):
-            header["PLANE0"] = plane0_txt
-            header.remove("PLANE1")
-            header.remove("PLANE2")
+        frame_header = frame.header
+        frame_header.remove("PLANE1")
+        frame_header.remove("PLANE2")
 
+        data_header = frame_header.copy()
+        data_header["PLANE0"] = "primary (counts/s)"
         data = frame.data[0]
-        data_hdulist.append(fits.ImageHDU(data, data_hdu_header))
+        data_hdulist.append(fits.ImageHDU(data, data_header))
 
+        coicorr_header = frame_header.copy()
+        coicorr_header["PLANE0"] = "coincidence loss correction factor"
         coicorr = frame.data[1]
-        coicorr_hdulist.append(fits.ImageHDU(coicorr, coicorr_hdu_header))
+        coicorr_hdulist.append(fits.ImageHDU(coicorr, coicorr_header))
 
+        coicorr_rel_header = frame_header.copy()
+        coicorr_rel_header[
+            "PLANE0"
+        ] = "relative coincidence loss correction uncertainty (fraction)"
         coicorr_rel = frame.data[2]
-        coicorr_rel_data_hdulist.append(
-            fits.ImageHDU(coicorr_rel, coicorr_rel_hdu_header)
-        )
+        coicorr_rel_data_hdulist.append(fits.ImageHDU(coicorr_rel, coicorr_rel_header))
 
     data_filename = filename.replace("coi_lss_zp.img", "coi_lss_zp_data.img")
     data_hdulist.writeto(data_filename, overwrite=True)
