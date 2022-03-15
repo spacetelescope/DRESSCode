@@ -15,12 +15,13 @@ def windowed_sum_loop(arr: np.ndarray, radius: int) -> np.ndarray:
     output = np.full_like(arr, np.nan, dtype=np.float64)
     for y in range(arr.shape[0]):
         for x in range(arr.shape[1]):
-            output[y, x] = np.sum(
-                arr[
-                    max(0, y - radius) : min(y + radius + 1, arr.shape[0]),
-                    max(0, x - radius) : min(x + radius + 1, arr.shape[1]),
-                ]
-            )
+            if np.isfinite(arr[y, x]):
+                output[y, x] = np.nansum(
+                    arr[
+                        max(0, y - radius) : min(y + radius + 1, arr.shape[0]),
+                        max(0, x - radius) : min(x + radius + 1, arr.shape[1]),
+                    ]
+                )
     return output
 
 
@@ -36,12 +37,16 @@ def windowed_std_loop(arr: np.ndarray, radius: int, ddof=0) -> np.ndarray:
     assert len(arr.shape) == 2, "arr should be 2D"
 
     output = np.full_like(arr, np.nan, dtype=np.float64)
-    height, width = arr.shape
-    for y in range(radius, height - radius):
-        for x in range(radius, width - radius):
-            output[y, x] = np.std(
-                arr[y - radius : y + radius + 1, x - radius : x + radius + 1], ddof=ddof
-            )
+    for y in range(arr.shape[0]):
+        for x in range(arr.shape[1]):
+            if np.isfinite(arr[y, x]):
+                output[y, x] = np.nanstd(
+                    arr[
+                        max(0, y - radius) : min(y + radius + 1, arr.shape[0]),
+                        max(0, x - radius) : min(x + radius + 1, arr.shape[1]),
+                    ],
+                    ddof=ddof,
+                )
     return output
 
 
@@ -71,29 +76,10 @@ def windowed_finite_vals_loop(arr: np.ndarray, radius: int) -> np.ndarray:
 
 input_3_3 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float64)
 sum_3_3_rad_1 = np.array([[12, 21, 16], [27, 45, 33], [24, 39, 28]], dtype=np.float64)
-std_3_3_rad_1 = np.full_like(input_3_3, np.nan, dtype=np.float64)
-std_3_3_rad_1[1, 1] = np.std(input_3_3)
-std_3_3_rad_3 = np.full_like(input_3_3, np.nan, dtype=np.float64)
 
 input_10_10 = np.arange(100, dtype=np.float64).reshape(10, 10)
-std_val = np.std(input_10_10[0:7, 0:7])
-std_10_10_rad_3 = np.full_like(input_10_10, np.nan, dtype=np.float64)
-std_10_10_rad_3[3:7, 3:7] = std_val
 
 input_10_10_diag = np.eye(10, 10, dtype=np.float64)
-std_10_10_diag_rad_3 = np.full_like(input_10_10_diag, np.nan, dtype=np.float64)
-std_val_4 = np.std([0] * 45 + [1] * 4)
-std_val_5 = np.std([0] * 44 + [1] * 5)
-std_val_6 = np.std([0] * 43 + [1] * 6)
-std_val_7 = np.std([0] * 42 + [1] * 7)
-std_10_10_diag_rad_3[range(3, 7), range(3, 7)] = std_val_7
-std_10_10_diag_rad_3[range(4, 7), range(3, 6)] = std_val_6
-std_10_10_diag_rad_3[range(3, 6), range(4, 7)] = std_val_6
-std_10_10_diag_rad_3[range(5, 7), range(3, 5)] = std_val_5
-std_10_10_diag_rad_3[range(3, 5), range(5, 7)] = std_val_5
-std_10_10_diag_rad_3[6, 3] = std_val_4
-std_10_10_diag_rad_3[3, 6] = std_val_4
-
 
 input_eye_10_10 = np.eye(10, 10, dtype=np.float64)
 sum_eye_10_10_rad_1_diag = np.ones(10, dtype=np.float64) * 3
@@ -164,20 +150,22 @@ def test_sum_compare_loop_vs_window():
 # STD COUNT RATES TESTS
 
 
-def test_std_count_rates_window_loop():
-    """Asserts our test output data matches the iteration version"""
+def test_std_window():
+    test_output = utils.windowed_std(input_3_3, 1)
+    expected_output = windowed_std_loop(input_3_3, 1)
+    assert np.allclose(test_output, expected_output, equal_nan=True)
 
-    test_output = windowed_std_loop(input_3_3, 1)
-    assert np.allclose(test_output, std_3_3_rad_1, equal_nan=True)
+    test_output = utils.windowed_std(input_3_3, 3)
+    expected_output = windowed_std_loop(input_3_3, 3)
+    assert np.allclose(test_output, expected_output, equal_nan=True)
 
-    test_output = windowed_std_loop(input_3_3, 3)
-    assert np.allclose(test_output, std_3_3_rad_3, equal_nan=True)
+    test_output = utils.windowed_std(input_10_10, 3)
+    expected_output = windowed_std_loop(input_10_10, 3)
+    assert np.allclose(test_output, expected_output, equal_nan=True)
 
-    test_output = windowed_std_loop(input_10_10, 3)
-    assert np.allclose(test_output, std_10_10_rad_3, equal_nan=True)
-
-    test_output = windowed_std_loop(input_10_10_diag, 3)
-    assert np.allclose(test_output, std_10_10_diag_rad_3, equal_nan=True)
+    test_output = utils.windowed_std(input_10_10_diag, 3)
+    expected_output = windowed_std_loop(input_10_10_diag, 3)
+    assert np.allclose(test_output, expected_output, equal_nan=True)
 
 
 def test_std_compare_loop_vs_window_vs_stacked():
@@ -202,20 +190,6 @@ def test_std_compare_loop_vs_window_vs_stacked():
     output_loop = windowed_std_loop(data, 4)
     output_stacked = utils.windowed_std(data, 4)
     assert np.allclose(output_loop, output_stacked, equal_nan=True)
-
-
-def test_std_window():
-    test_output = utils.windowed_std(input_3_3, 1)
-    assert np.allclose(test_output, std_3_3_rad_1, equal_nan=True)
-
-    test_output = utils.windowed_std(input_3_3, 3)
-    assert np.allclose(test_output, std_3_3_rad_3, equal_nan=True)
-
-    test_output = utils.windowed_std(input_10_10, 3)
-    assert np.allclose(test_output, std_10_10_rad_3, equal_nan=True)
-
-    test_output = utils.windowed_std(input_10_10_diag, 3)
-    assert np.allclose(test_output, std_10_10_diag_rad_3, equal_nan=True)
 
 
 def test_std_nan_data():

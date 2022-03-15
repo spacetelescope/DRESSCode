@@ -86,7 +86,7 @@ def coicorr(filename):
     total_flux = windowed_sum(data, radius)
 
     # standard deviation of the flux densities in the 9x9 pixels box.
-    std = windowed_std(data, radius)
+    std = windowed_std(data, radius, win_finite_vals=window_pixels)
 
     # Obtain the dead time correction factor and the frame time (in s) from the header
     # of the image.
