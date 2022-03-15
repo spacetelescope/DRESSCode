@@ -65,3 +65,12 @@ def windowed_std(arr: np.ndarray, radius: int) -> np.ndarray:
     output[radius:-radius, radius:-radius] = std_arr
 
     return output
+
+
+def windowed_finite_vals(arr: np.ndarray, radius: int) -> np.ndarray:
+    """Number of finite values around a radius of each element in an array"""
+
+    finite_arr = np.isfinite(arr).astype(int)
+    output = windowed_sum(finite_arr, radius)
+
+    return output

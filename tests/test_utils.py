@@ -45,6 +45,28 @@ def windowed_std_loop(arr: np.ndarray, radius: int, ddof=0) -> np.ndarray:
     return output
 
 
+def windowed_finite_vals_loop(arr: np.ndarray, radius: int) -> np.ndarray:
+    """Number of finite values around a radius of each element in an array
+
+    only for comparison / equivalence testing
+
+    Implementation: iteration"""
+
+    output = np.full_like(arr, np.nan, dtype=np.float64)
+
+    for y in range(arr.shape[0]):
+        for x in range(arr.shape[1]):
+            output[y, x] = np.sum(
+                np.isfinite(
+                    arr[
+                        max(0, y - radius) : min(y + radius + 1, arr.shape[0]),
+                        max(0, x - radius) : min(x + radius + 1, arr.shape[1]),
+                    ]
+                )
+            )
+    return output
+
+
 # test data
 
 input_3_3 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float64)
@@ -202,3 +224,23 @@ def test_std_nan_data():
     output_loop = windowed_std_loop(data, 1)
     test_output = utils.windowed_std(data, 1)
     assert np.allclose(output_loop, test_output, equal_nan=True)
+
+
+def test_windowed_finite_vals():
+    data = np.random.random((10, 10))
+    data[3:4, 3:4] = np.nan
+    output_loop = windowed_finite_vals_loop(data, 1)
+    test_output = utils.windowed_finite_vals(data, 1)
+    assert np.array_equal(output_loop, test_output)
+
+
+def test_windowed_finite_vals_larger_arr():
+    data = np.random.random((45, 50))
+    # throw in some nan's
+    nan_indices_y = np.random.choice(np.arange(45), size=10, replace=False)
+    nan_indices_x = np.random.choice(np.arange(50), size=10, replace=False)
+    data[nan_indices_y, nan_indices_x] = np.nan
+
+    output_loop = windowed_finite_vals_loop(data, 1)
+    test_output = utils.windowed_finite_vals(data, 1)
+    assert np.array_equal(output_loop, test_output)
