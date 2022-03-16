@@ -12,7 +12,13 @@ from typing import Optional, Sequence
 import numpy as np
 from astropy.io import fits
 
-from dresscode.utils import check_filter, load_config, windowed_std, windowed_sum
+from dresscode.utils import (
+    check_filter,
+    load_config,
+    windowed_finite_vals,
+    windowed_std,
+    windowed_sum,
+)
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
@@ -83,11 +89,11 @@ def coicorr(hdulist, filename):
         # Sum the flux densities (count rates) of the 9x9 surrounding pixels: Craw (counts/s).
         size = 9
         radius = (size - 1) // 2
-        window_pixels = size**2
+        window_pixels = windowed_finite_vals(data, radius)
         total_flux = windowed_sum(data, radius)
 
         # standard deviation of the flux densities in the 9x9 pixels box.
-        std = windowed_std(data, radius)
+        std = windowed_std(data, radius, win_finite_vals=window_pixels)
 
         # Obtain the dead time correction factor and the frame time (in s) from the header
         # of the image.

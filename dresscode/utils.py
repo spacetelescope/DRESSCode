@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import os
+from typing import Optional
 
 import numpy as np
-from scipy.ndimage import convolve
+from astropy.convolution import convolve
 
 
 def listdir_nohidden(path):
@@ -45,10 +48,20 @@ def windowed_sum(arr: np.ndarray, radius: int) -> np.ndarray:
     """
 
     kernel = np.ones((radius * 2 + 1, radius * 2 + 1), dtype=int)
-    return convolve(arr, kernel, mode="constant", cval=0.0)
+    return convolve(
+        arr,
+        kernel,
+        boundary="fill",
+        fill_value=0.0,
+        nan_treatment="fill",
+        normalize_kernel=False,
+        preserve_nan=True,
+    )
 
 
-def windowed_var(arr: np.ndarray, radius: int) -> np.ndarray:
+def windowed_var(
+    arr: np.ndarray, radius: int, win_finite_vals: Optional[np.ndarray] = None
+) -> np.ndarray:
     """Calculate the variance of a window around each pixel in an array
     Adapted from the this SO: https://stackoverflow.com/a/18423835/532963
     We use our windowed_sum convolution calc. which can handle nan's
@@ -59,19 +72,30 @@ def windowed_var(arr: np.ndarray, radius: int) -> np.ndarray:
 
     Note: this returns smaller in size than the input array (by radius)
     """
-    diameter = radius * 2 + 1
-    win_sum = windowed_sum(arr, radius)[radius:-radius, radius:-radius]
-    win_sum_2 = windowed_sum(arr * arr, radius)[radius:-radius, radius:-radius]
-    return (win_sum_2 - win_sum * win_sum / diameter / diameter) / diameter / diameter
+
+    if win_finite_vals is None:
+        win_finite_vals = windowed_finite_vals(arr, radius)
+    win_sum = windowed_sum(arr, radius)
+    win_sum_2 = windowed_sum(arr * arr, radius)
+    output = (win_sum_2 - win_sum * win_sum / win_finite_vals) / win_finite_vals
+    return output
 
 
-def windowed_std(arr: np.ndarray, radius: int) -> np.ndarray:
+def windowed_std(
+    arr: np.ndarray, radius: int, win_finite_vals: Optional[np.ndarray] = None
+) -> np.ndarray:
     """Standard deviation around a radius of each elemnt in an array"""
 
-    output = np.full_like(arr, np.nan)
-
-    var_arr = windowed_var(arr, radius)
+    var_arr = windowed_var(arr, radius, win_finite_vals)
     std_arr = np.sqrt(var_arr)
-    output[radius:-radius, radius:-radius] = std_arr
+
+    return std_arr
+
+
+def windowed_finite_vals(arr: np.ndarray, radius: int) -> np.ndarray:
+    """Number of finite values around a radius of each element in an array"""
+
+    finite_arr = np.isfinite(arr).astype(int)
+    output = windowed_sum(finite_arr, radius)
 
     return output
