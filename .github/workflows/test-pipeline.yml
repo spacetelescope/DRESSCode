@@ -83,6 +83,7 @@ jobs:
           client_id: ${{secrets.IMGUR_CLIENT_ID}}
 
       - name: format imgur links to markdown table
+        if: ${{ github.event_name == 'pull_request' }}
         id: format-imgur-table
         # store in env. variable and escape white space characters, then set as github output
         run: |
