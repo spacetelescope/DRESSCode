@@ -4,6 +4,8 @@
 corrections.py: Script to apply corrections to the images.
 """
 
+from __future__ import annotations
+
 import os
 from argparse import ArgumentParser
 from datetime import date, datetime
@@ -11,6 +13,7 @@ from typing import Optional, Sequence
 
 import numpy as np
 from astropy.io import fits
+from astropy.io.fits.hdu.hdulist import HDUList
 
 from dresscode.utils import (
     check_filter,
@@ -19,6 +22,12 @@ from dresscode.utils import (
     windowed_std,
     windowed_sum,
 )
+
+ZEROPOINT_PARAMS = {
+    "um2": (-2.330e-3, -1.361e-3),
+    "uw2": (1.108e-3, -1.960e-3),
+    "uw1": (2.041e-3, -1.748e-3),
+}
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
@@ -33,37 +42,47 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     galaxy = config["galaxy"]
     path = config["path"] + galaxy + "/working_dir/"
 
-    # todo: are these the only files to apply corrections to?
     file_patt_to_corr = ("sk_corr.img",)
     filenames = [
         filename
         for filename in sorted(os.listdir(path))
         if filename.endswith(file_patt_to_corr)
     ]
-
-    zeropoint_params = {
-        "um2": (-2.330e-3, -1.361e-3),
-        "uw2": (1.108e-3, -1.960e-3),
-        "uw1": (2.041e-3, -1.748e-3),
-    }
-
     for i, filename in enumerate(filenames):
 
         filename = path + filename
-        hdulist = fits.open(filename)
 
-        # PART 1: Apply a coincidence loss correction.
+        # update the masks
+        mask_fname = filename.replace("_sk_corr.img", "_mk_corr.img")
+        exp_fname = mask_fname.replace("mk", "ex")
+        new_mask_data = update_mask(mask_fname, exp_fname)
+
+        # we manipulate the data directly, so open it in memory
+        hdulist_unmasked = fits.open(filename)
+
+        # apply mask to data
+        # coincidence loss correction factor & uncertainties need to take into account missing data
+        masked_hdulist_fname = filename.replace(".img", "_masked.img")
+        hdulist = apply_mask(hdulist_unmasked, new_mask_data, masked_hdulist_fname)
+
+        # apply normalization to data to convert to counts/sec
+
+        # run corrections on data, saving "planes" as separate files
+
+        # separate file for zero point correction
+
+        # Apply a coincidence loss correction.
         print("Applying coincidence loss corrections...")
         coicorr_hdulist, coicorr_filename = coicorr(hdulist, filename)
 
-        # PART 2: Apply a large scale sensitivity correction.
+        # Apply a large scale sensitivity correction.
         print("Applying large scale sensitivity corrections...")
         lsscorr_hdulist, lsscorr_filename = lsscorr(coicorr_hdulist, coicorr_filename)
 
-        # PART 3: Apply a zero point correction.
+        # Apply a zero point correction.
         print("Applying zero point corrections...")
         zp_corr_hdulist, _ = zeropoint(
-            lsscorr_hdulist, lsscorr_filename, *zeropoint_params[check_filter(filename)]
+            lsscorr_hdulist, lsscorr_filename, *ZEROPOINT_PARAMS[check_filter(filename)]
         )
 
         # requirement of coadding step, data must be 2D
@@ -75,6 +94,68 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"Corrected image {i + 1}/{len(filenames)}.")
 
     return 0
+
+
+def apply_mask(
+    hdulist: HDUList, mask: HDUList, output_fname: str, dry_run: bool = False
+) -> HDUList:
+    """apply the mask to the image frames"""
+    new_hdu_header = fits.PrimaryHDU(header=hdulist[0].header)
+    new_hdulist = fits.HDUList([new_hdu_header])
+
+    for frame, mask_frame in zip(hdulist[1:], mask[1:]):
+        new_frame = frame.data * mask_frame.data
+        new_hdu = fits.ImageHDU(new_frame, frame.header)
+        new_hdulist.append(new_hdu)
+
+    if not dry_run:
+        # save the hdulist to a new file
+        new_hdulist.writeto(output_fname)
+
+    return new_hdulist
+
+
+def update_mask(mask_fname: str, exp_fname: str, dry_run: bool = False) -> HDUList:
+    """update the mask with pixels that are NaN in the exposure map and pixels
+    that have very low exposure times."""
+
+    # Open the mask file and the exposure map and copy the primary header (extension 0
+    # of hdulist) to a new hdulist
+    hdulist_mk = fits.open(mask_fname)
+    hdulist_ex = fits.open(exp_fname)
+    new_hdu_header = fits.PrimaryHDU(header=hdulist_mk[0].header)
+    new_hdulist = fits.HDUList([new_hdu_header])
+
+    for mk_frame, ex_frame in zip(hdulist_mk[1:], hdulist_ex[1:]):
+        # set mask pixels to 0 that are NaN in the exposure map or whose exposure time is very small
+        new_mask = mk_frame.data * np.isfinite(ex_frame.data) * (ex_frame.data > 1.0)
+        new_hdu = fits.ImageHDU(new_mask, mk_frame.header)
+        new_hdulist.append(new_hdu)
+
+    # Write the new hdulist to new mask file
+    if not dry_run:
+        new_hdulist.writeto(mask_fname.replace(".img", "_new.img"))
+
+    return new_hdulist
+
+
+def norm(fname: str, exposure_map):
+    """normalize an image by its exposure map"""
+    path = os.path.dirname(fname) + "/"
+
+    # Specify the input files and the output file.
+    infil1 = fname + "+1"
+    infil2 = fname.replace("sk", "ex") + "+1"
+    outfil = fname.replace("sk", "nm")
+
+    # Run farith with the specified parameters:
+    subprocess.call(
+        f"farith infil1={infil1} infil2={infil2} outfil={outfil} ops=div null=y",
+        cwd=path,
+        shell=True,
+    )
+
+    print(os.path.basename(fname) + " has been normalized.")
 
 
 # Functions for PART 1

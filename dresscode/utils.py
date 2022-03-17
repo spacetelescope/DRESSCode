@@ -30,20 +30,22 @@ def load_config(config_file):
     return config
 
 
-# Function to check the filter of the image and return a filter label.
-def check_filter(filename):
+def check_filter(filename: str) -> str:
+    """Check the filter of the image and return a filter label"""
     if "_um2_" in filename:
         return "um2"
     elif "_uw2_" in filename:
         return "uw2"
     elif "_uw1_" in filename:
         return "uw1"
+    raise ValueError(f"Unknown filter for {filename}")
 
 
 def windowed_sum(arr: np.ndarray, radius: int) -> np.ndarray:
     """Sum around a radius of each element in an array
     radius is number of pixels in x/y around each pixel to include
     e.g. radius=1 means the pixel itself and the 8 surrounding pixels
+
     Implementation: convolution
     """
 

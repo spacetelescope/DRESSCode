@@ -166,28 +166,6 @@ def check_corr_type(filename: str) -> Optional[str]:
         return "data"
 
 
-def update_mask(filename):
-    """update the mask with pixels that are NaN in the exposure map and pixels
-    that have very low exposure times."""
-    # Open the mask file and the exposure map and copy the primary header (extension 0
-    # of hdulist) to a new hdulist.
-    hdulist_mk = fits.open(filename)
-    hdulist_ex = fits.open(filename.replace("mk", "ex"))
-    new_hdu_header = fits.PrimaryHDU(header=hdulist_mk[0].header)
-    new_hdulist = fits.HDUList([new_hdu_header])
-
-    # For all frames in the mask file: Update the mask.
-    for i in range(1, len(hdulist_mk)):
-        new_mask = hdulist_mk[i].data * (
-            np.isfinite(hdulist_ex[i].data) * hdulist_ex[i].data > 1.0
-        )
-        new_hdu = fits.ImageHDU(new_mask, hdulist_mk[i].header)
-        new_hdulist.append(new_hdu)
-
-    # Write the new hdulist to new mask file.
-    new_hdulist.writeto(filename.replace(".img", "_new.img"))
-
-
 def append(filename, typelabel, filterlabel, corr_type):
     """Copy the first image of a filter and type into new image
     OR append frames, depending on whether it is the first image or not"""
@@ -260,25 +238,6 @@ def coaddframes(allfile, method):
         + os.path.basename(outfile)
         + "."
     )
-
-
-def norm(filename):
-    """normalize an image by its exposure map"""
-    path = os.path.dirname(filename) + "/"
-
-    # Specify the input files and the output file.
-    infil1 = filename + "+1"
-    infil2 = filename.replace("sk", "ex") + "+1"
-    outfil = filename.replace("sk", "nm")
-
-    # Run farith with the specified parameters:
-    subprocess.call(
-        f"farith infil1={infil1} infil2={infil2} outfil={outfil} ops=div null=y",
-        cwd=path,
-        shell=True,
-    )
-
-    print(os.path.basename(filename) + " has been normalized.")
 
 
 if __name__ == "__main__":
