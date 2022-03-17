@@ -17,7 +17,7 @@ def listdir_nohidden(path):
 def load_config(config_file):
     """Function to open and read the configuration file"""
     config = {}
-    with open(config_file, "r") as configfile:
+    with open(config_file) as configfile:
         for line in configfile:
             splitline = line.split("=")
             key, value = splitline[0].strip(), splitline[1].strip()
@@ -60,7 +60,7 @@ def windowed_sum(arr: np.ndarray, radius: int) -> np.ndarray:
 
 
 def windowed_var(
-    arr: np.ndarray, radius: int, win_finite_vals: Optional[np.ndarray] = None
+    arr: np.ndarray, radius: int, win_finite_vals: np.ndarray | None = None
 ) -> np.ndarray:
     """Calculate the variance of a window around each pixel in an array
     Adapted from the this SO: https://stackoverflow.com/a/18423835/532963
@@ -82,7 +82,7 @@ def windowed_var(
 
 
 def windowed_std(
-    arr: np.ndarray, radius: int, win_finite_vals: Optional[np.ndarray] = None
+    arr: np.ndarray, radius: int, win_finite_vals: np.ndarray | None = None
 ) -> np.ndarray:
     """Standard deviation around a radius of each elemnt in an array"""
 

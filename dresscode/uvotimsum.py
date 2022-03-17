@@ -48,7 +48,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         if filename.endswith(tuple(FILE_PATT_TO_SUM.keys()))
     ]
 
-    # PART 1: Append all frames per filter and per type.
+    # Append all frames per filter and per type.
 
     print("Appending all frames...")
 
@@ -77,7 +77,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
         print(f"Finished appending frames for image {i+1}/{len(files_to_sum)}.")
 
-    # PART 2: Co-add the frames in each "total" image.
+    # Co-add the frames in each "total" image.
 
     print("Co-adding all frames...")
 
@@ -109,7 +109,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     for filename in output_uvotimsum_files:
 
         # If the file is an output text file of uvotimsum, open the file.
-        with open(path + filename, "r") as fh:
+        with open(path + filename) as fh:
             text = fh.read()
 
         # If the word "error" is encountered, print an error message.
@@ -127,7 +127,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             )
             error = True
 
-    # PART 3: Normalize the summed sky images.
+    # Normalize the summed sky images.
 
     print("Normalizing the summed sky images...")
 
@@ -139,15 +139,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         norm(path + "sum_uw1_sk.img")
 
     if error is False:
-        print(
-            "All frames were successfully co-added and the summed sky images were "
-            "normalized."
-        )
+        print("All frames successfully co-added and the summed sky images normalized.")
 
     return 0
 
 
-# Functions for PART 1: Appending frames.
 def check_type(filename):
     """check the type of the image and return a type label"""
     for file_patt, filetype in FILE_PATT_TO_SUM.items():
@@ -208,7 +204,7 @@ def append(filename, typelabel, filterlabel, corr_type):
     # If the "total" image of this type and this filter does not yet exist, create it.
     if not os.path.isfile(allfile):
         shutil.copyfile(filename, allfile)
-        print("File " + os.path.basename(allfile) + " has been created.")
+        print(f"File {os.path.basename(allfile)} has been created.")
     else:
         appendframes(filename, allfile)
 
@@ -223,7 +219,7 @@ def appendframes(filename, allfile):
     for j in range(1, len(hdulist)):
         infile = filename + "+" + str(j)
         totfile = allfile
-        subprocess.call("ftappend " + infile + " " + totfile, cwd=path, shell=True)
+        subprocess.call(f"ftappend {infile} {totfile}", cwd=path, shell=True)
 
         print(
             f"Frame {os.path.basename(infile)}"
@@ -231,7 +227,6 @@ def appendframes(filename, allfile):
         )
 
 
-# Function for PART 2: Co-add frames.
 def coaddframes(allfile, method):
     """co-add all frames of an image"""
     path = os.path.dirname(allfile) + "/"
@@ -267,9 +262,8 @@ def coaddframes(allfile, method):
     )
 
 
-# Function for PART 3: Normalizing images.
 def norm(filename):
-    """Function to normalize an image"""
+    """normalize an image by its exposure map"""
     path = os.path.dirname(filename) + "/"
 
     # Specify the input files and the output file.
@@ -279,13 +273,7 @@ def norm(filename):
 
     # Run farith with the specified parameters:
     subprocess.call(
-        "farith infil1="
-        + infil1
-        + " infil2="
-        + infil2
-        + " outfil="
-        + outfil
-        + " ops=div null=y",
+        f"farith infil1={infil1} infil2={infil2} outfil={outfil} ops=div null=y",
         cwd=path,
         shell=True,
     )

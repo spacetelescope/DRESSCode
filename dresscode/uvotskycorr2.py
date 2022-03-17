@@ -86,7 +86,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 )
 
             # Check if an aspect correction was found.
-            with open(terminal_output_file, "r") as fh:
+            with open(terminal_output_file) as fh:
 
                 for line in fh.readlines():
                     # If the words "no correction" are encountered, print an error message.
@@ -129,7 +129,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 )
 
             # Check if the aspect correction was applied.
-            with open(terminal_output_file, "r") as fh:
+            with open(terminal_output_file) as fh:
                 text = fh.read()
 
             # If the word "error" is encountered, print an error message.
@@ -170,7 +170,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     stdout=terminal,
                 )
 
-            with open(terminal_output_file, "r") as fh:
+            with open(terminal_output_file) as fh:
                 text = fh.read()
 
             # If the word "error" is encountered, print an error message.
@@ -211,7 +211,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     stdout=terminal,
                 )
 
-        with open(terminal_output_file, "r") as fh:
+        with open(terminal_output_file) as fh:
             text = fh.read()
 
         # If the word "error" is encountered, print an error message.

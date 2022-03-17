@@ -83,7 +83,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             )
 
         # Check if the sky image was successfully created.
-        with open(terminal_output_file, "r") as fh:
+        with open(terminal_output_file) as fh:
             for line in fh.readlines():
                 # If the word "error" is encountered, print an error message.
                 if "error" in line:

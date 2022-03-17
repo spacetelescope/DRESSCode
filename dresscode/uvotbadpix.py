@@ -56,7 +56,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             )
 
         # Check if the badpixel file was succesfully created.
-        with open(terminal_output_file, "r") as fh:
+        with open(terminal_output_file) as fh:
             text = fh.read()
 
         # If the word "error" is encountered or if the words "created output image" are not

@@ -77,8 +77,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     return 0
 
 
-# Functions for PART 1: Coincidence loss correction.
+# Functions for PART 1
 def coicorr(hdulist, filename):
+    """Coincidence loss correction"""
     new_hdu_header = fits.PrimaryHDU(header=hdulist[0].header)
     new_hdulist = fits.HDUList([new_hdu_header])
 
@@ -184,10 +185,12 @@ def coicorr(hdulist, filename):
     return new_hdulist, new_filename
 
 
-# Function to calculate the empirical polynomial correction to account for the
-# differences between the observed and theoretical coincidence loss correction:
-# f(x) = 1 + a1x + a2x**2 + a3x**3 + a4x**4.
 def polynomial(x):
+    """Function to calculate the empirical polynomial correction to account for the
+    differences between the observed and theoretical coincidence loss correction:
+
+    `f(x) = 1 + a1x + a2x**2 + a3x**3 + a4x**4`
+    """
     a1 = 0.0658568
     a2 = -0.0907142
     a3 = 0.0285951

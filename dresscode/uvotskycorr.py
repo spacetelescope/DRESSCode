@@ -77,7 +77,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 )
 
         # Check if an aspect correction was found.
-        with open(terminal_output_file, "r") as fh:
+        with open(terminal_output_file) as fh:
 
             for line in fh.readlines():
                 # If the words "no correction" are encountered, print an error message.

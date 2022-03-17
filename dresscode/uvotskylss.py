@@ -63,7 +63,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             )
 
         # Check if the lss map was successfully created.
-        with open(terminal_output_file, "r") as fh:
+        with open(terminal_output_file) as fh:
             text = fh.read()
 
         # If the word "error" is encountered, print an error message.
