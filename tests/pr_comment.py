@@ -7,7 +7,7 @@ from typing import Optional, Sequence
 def main(argv: Optional[Sequence[str]] = None) -> int:
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("image_urls", help=f"image urls, comma separated")
+    parser.add_argument("image_urls", help="image urls, comma separated")
     args = parser.parse_args(argv)
 
     image_urls = args.image_urls.split(",")

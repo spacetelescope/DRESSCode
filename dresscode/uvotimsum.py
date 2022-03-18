@@ -15,7 +15,6 @@ import subprocess
 from argparse import ArgumentParser
 from typing import Optional, Sequence
 
-import numpy as np
 from astropy.io import fits
 
 from dresscode.utils import check_filter, load_config
