@@ -19,12 +19,13 @@ from astropy.io import fits
 
 from dresscode.utils import check_filter, load_config, norm
 
+# we need to primary data, coicorr, coicorr_rel, masks, and exposure maps
 FILE_PATT_TO_SUM = {
-    "_sk_corr_coi_lss_zp_data.img": "sk",
-    "_sk_corr_coi_lss_zp_coicorr.img": "sk",
-    "_sk_corr_coi_lss_zp_coicorr_rel.img": "sk",
-    "_mk_corr.img": "mk",
-    "_ex_corr.img": "ex",
+    "_sk_corr_mk_nm_coi_lss_zp_dn.img": "sk",  # primary data
+    "_sk_corr_mk_nm_coi_corrfactor.img": "cf",  # coincidence corr factor
+    "_sk_corr_mk_nm_coi_coicorr_unc.img": "ru",  # coincidence corr relative uncertainty
+    "_mk_corr_new.img": "mk",  # masks
+    "_ex_corr.img": "ex",  # exposure map
 }
 
 
@@ -41,46 +42,64 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     galaxy = config["galaxy"]
     path = config["path"] + galaxy + "/working_dir/"
 
-    files_to_sum = [
+    # for diff. image types, append frames to one "total" image.
+
+    print("Appending all image frames...")
+    image_files_to_sum = [
         filename
         for filename in sorted(os.listdir(path))
-        if filename.endswith(tuple(FILE_PATT_TO_SUM.keys()))
+        if filename.endswith("_sk_corr_mk_nm_coi_lss_zp_dn.img")
     ]
+    for i, fname in enumerate(image_files_to_sum):
+        filterlabel = check_filter(fname)
+        append(path + fname, "sk", filterlabel)
+        print(f"Finished appending frames for image {i+1}/{len(image_files_to_sum)}.")
 
-    # Append all frames per filter and per type.
+    print("Appending all coi corr factors...")
+    # todo:
+    # "coincidence loss correction factor": cannot simply be summed.
+    # What we want is a weighted average of the factors (weighted by counts).
+    # To achieve this, we can “undo” the correction for a moment and calculate the counts
+    # as if no coincidence correction happened,
+    # i.e. orig_counts = primary / corr_factor (where orig_counts is the uncorrected counts).
+    # Make sure primary is in counts.
+    # We can then sum all the or_counts with uvotimsum in the same way as we sum primary.
+    # The weighted correction factor for the summed image is then F = summed_primary / summed_orig_counts.
 
-    print("Appending all frames...")
+    print("Appending all coi corr factors relative uncertainties...")
+    # todo:
+    # "coincidence loss correction uncertainty": convert the uncertainty from a relative
+    # fraction to an uncertainty in counts, by multiplying the rel_unc frame with the primary frame (in counts).
 
-    for i, filename in enumerate(files_to_sum):
+    print("Appending all masks...")
+    mask_files_to_sum = [
+        filename
+        for filename in sorted(os.listdir(path))
+        if filename.endswith("_mk_corr_new.img")
+    ]
+    for i, fname in enumerate(mask_files_to_sum):
+        filterlabel = check_filter(fname)
+        # todo: append() possibly needs modifications
+        append(path + fname, "mk", filterlabel)
+        print(f"Finished appending frames for mask {i+1}/{len(image_files_to_sum)}.")
 
-        # Check the type of the image and give the image a type label.
-        typelabel = check_type(filename)
+    print("Appending all exposure maps...")
+    mask_files_to_sum = [
+        filename
+        for filename in sorted(os.listdir(path))
+        if filename.endswith("_ex_corr.img")
+    ]
+    for i, fname in enumerate(mask_files_to_sum):
+        filterlabel = check_filter(fname)
+        # todo: append() possibly needs modifications
+        append(path + fname, "ex", filterlabel)
+        print(f"Finished appending frames for mask {i+1}/{len(image_files_to_sum)}.")
 
-        if typelabel is None:
-            continue
-
-        # For the mask files: make sure that also the NaN pixels in the exposure
-        # maps are included in the mask as well as pixels with a very low exposure
-        # time.
-        if typelabel == "mk":
-            update_mask(path + filename)
-            filename = filename.replace(".img", "_new.img")
-
-        # Check the filter of the image and give the image a filter label.
-        filterlabel = check_filter(filename)
-
-        corr_type = check_corr_type(filename)
-
-        # Append all frames to one "total" image.
-        append(path + filename, typelabel, filterlabel, corr_type)
-
-        print(f"Finished appending frames for image {i+1}/{len(files_to_sum)}.")
-
-    # Co-add the frames in each "total" image.
-
+    # Co-add the frames in each "total" image
     print("Co-adding all frames...")
 
     filter_types = ["um2", "uw1", "uw1"]
+    # todo: data types are incorrect
     data_types = ["data", "coicorr", "coicorr_rel"]
     for filt in filter_types:
         for data_type in data_types:
@@ -105,10 +124,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         if filename.startswith("output_uvotimsum")
     ]
 
-    for filename in output_uvotimsum_files:
+    for fname in output_uvotimsum_files:
 
         # If the file is an output text file of uvotimsum, open the file.
-        with open(path + filename) as fh:
+        with open(path + fname) as fh:
             text = fh.read()
 
         # If the word "error" is encountered, print an error message.
@@ -119,23 +138,22 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         ):
             print(
                 "An error has occurred for image all_"
-                + filename.split("_")[2]
+                + fname.split("_")[2]
                 + "_"
-                + filename.split("_")[3].split(".")[0]
+                + fname.split("_")[3].split(".")[0]
                 + ".img"
             )
             error = True
 
-    # Normalize the summed sky images.
-
     print("Normalizing the summed sky images...")
+    # todo
 
-    if os.path.isfile(path + "sum_um2_sk.img"):
-        norm(path + "sum_um2_sk.img")
-    if os.path.isfile(path + "sum_uw2_sk.img"):
-        norm(path + "sum_uw2_sk.img")
-    if os.path.isfile(path + "sum_uw1_sk.img"):
-        norm(path + "sum_uw1_sk.img")
+    # if os.path.isfile(path + "sum_um2_sk.img"):
+    #     norm(path + "sum_um2_sk.img")
+    # if os.path.isfile(path + "sum_uw2_sk.img"):
+    #     norm(path + "sum_uw2_sk.img")
+    # if os.path.isfile(path + "sum_uw1_sk.img"):
+    #     norm(path + "sum_uw1_sk.img")
 
     if error is False:
         print("All frames successfully co-added and the summed sky images normalized.")
@@ -143,40 +161,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     return 0
 
 
-def check_type(filename):
-    """check the type of the image and return a type label"""
-    for file_patt, filetype in FILE_PATT_TO_SUM.items():
-        if filename.endswith(file_patt):
-            return filetype
-
-
-def check_corr_type(filename: str) -> Optional[str]:
-    """check whether this is:
-    - primary data (counts)
-    - coincidence loss correction factor
-    - relative coincidence loss correction
-    """
-
-    if filename.endswith("_coicorr_rel.img"):
-        return "coicorr_rel"
-    elif filename.endswith("_coicorr.img"):
-        return "coicorr"
-    elif filename.endswith("_data.img"):
-        return "data"
-
-
-def append(filename, typelabel, filterlabel, corr_type):
+def append(filename, typelabel, filterlabel):
     """Copy the first image of a filter and type into new image
     OR append frames, depending on whether it is the first image or not"""
 
-    if corr_type is None:
-        corr_type_str = ""
-    else:
-        corr_type_str = "_" + corr_type
-
-    allfile = (
-        f"{os.path.dirname(filename)}/all_{filterlabel}_{typelabel}{corr_type_str}.img"
-    )
+    allfile = f"{os.path.dirname(filename)}/all_{filterlabel}_{typelabel}.img"
 
     # If the "total" image of this type and this filter does not yet exist, create it.
     if not os.path.isfile(allfile):
