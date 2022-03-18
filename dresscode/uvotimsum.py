@@ -17,7 +17,7 @@ from typing import Optional, Sequence
 
 from astropy.io import fits
 
-from dresscode.utils import check_filter, load_config
+from dresscode.utils import check_filter, load_config, norm
 
 FILE_PATT_TO_SUM = {
     "_sk_corr_coi_lss_zp_data.img": "sk",
