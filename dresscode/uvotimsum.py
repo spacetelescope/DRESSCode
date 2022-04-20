@@ -20,7 +20,7 @@ from typing import Optional, Sequence
 
 from astropy.io import fits
 
-from dresscode.utils import check_filter, load_config
+from dresscode.utils import check_filter, load_config, norm
 
 
 @dataclass(frozen=True)
@@ -120,14 +120,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             if os.path.isfile(path + all_fname):
                 ret_code = coaddframes(path + all_fname, filetype.uvotimsum_method)
 
-    # todo ?
-    # print("Normalizing the summed sky images...")
-    # if os.path.isfile(path + "sum_um2_sk.img"):
-    #     norm(path + "sum_um2_sk.img")
-    # if os.path.isfile(path + "sum_uw2_sk.img"):
-    #     norm(path + "sum_uw2_sk.img")
-    # if os.path.isfile(path + "sum_uw1_sk.img"):
-    #     norm(path + "sum_uw1_sk.img")
+    # normalize the images
+    for filt in FILTER_TYPES:
+        sum_fname = f"{path}sum_{filt}_data.img"
+        expmap_sumfile = sum_fname.replace("data", "ex")
+        out_fname = sum_fname.replace("data", "nm")
+        if os.path.isfile(sum_fname) and os.path.isfile(expmap_sumfile):
+            # open the files w/ astropy
+            sum_hdu = fits.open(sum_fname)
+            expmap_sum_hdu = fits.open(expmap_sumfile)
+            norm(sum_hdu, expmap_sum_hdu, out_fname)
 
     if ret_code == 0:
         print("All frames successfully co-added")
