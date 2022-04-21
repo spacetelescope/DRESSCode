@@ -120,7 +120,7 @@ def apply_mask(
 
     if not dry_run:
         # save the hdulist to a new file
-        new_hdulist.writeto(output_fname)
+        new_hdulist.writeto(output_fname, overwrite=True)
 
     return new_hdulist
 
@@ -146,8 +146,11 @@ def update_mask(
 
     # Write the new hdulist to new mask file
     if not dry_run:
-        new_hdulist.writeto(output_fname)
+        new_hdulist.writeto(output_fname, overwrite=True)
         print(f"Updated exposure map in {os.path.basename(output_fname)}")
+
+    hdulist_mk.close()
+    hdulist_ex.close()
 
     return new_hdulist
 
@@ -176,7 +179,7 @@ def norm(
 
     if not dry_run:
         # save the hdulist to a new file
-        new_hdulist.writeto(output_fname)
+        new_hdulist.writeto(output_fname, overwrite=True)
         print(f"{os.path.basename(output_fname)} normalized")
 
     return new_hdulist
