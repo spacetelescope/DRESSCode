@@ -109,6 +109,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     # the actual weighted summed corr factor is: F = summed_primary / summed_orig_counts
     # open the summed primary image and divide by the summed original counts image
+    # todo: move to function
     for filt in FILTER_TYPES:
         primary_counts_sum_fname = f"{path}sum_{filt}_data.img"
         orig_counts_sum_fname = f"{path}sum_{filt}_orig_counts.img"
@@ -117,9 +118,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         ):
             primary_counts_sum_hdul = fits.open(primary_counts_sum_fname)
             orig_counts_sum_hdul = fits.open(orig_counts_sum_fname)
-            # todo: handle NaN indices
-            sum_coi_corr_factor = (
-                primary_counts_sum_hdul[1].data / orig_counts_sum_hdul[1].data
+            notnan = np.isfinite(primary_counts_sum_hdul[1].data) & np.isfinite(
+                orig_counts_sum_hdul[1].data
+            )
+            sum_coi_corr_factor = np.full_like(primary_counts_sum_hdul[1].data, np.nan)
+            sum_coi_corr_factor[notnan] = (
+                primary_counts_sum_hdul[1].data[notnan]
+                / orig_counts_sum_hdul[1].data[notnan]
             )
             primary_counts_sum_hdul[1].data = sum_coi_corr_factor
             primary_counts_sum_hdul.writeto(
@@ -129,6 +134,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             orig_counts_sum_hdul.close()
 
     # "coincidence loss correction uncertainty": After the summing, take the square root
+    # todo: move to function
     for filt in FILTER_TYPES:
         coicorr_unc_sq_sum_fname = f"{path}sum_{filt}_coicorr_rel_sq.img"
         if os.path.isfile(coicorr_unc_sq_sum_fname):

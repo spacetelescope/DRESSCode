@@ -171,6 +171,7 @@ def coicorr(hdulist: HDUList, fname: str):
         # Calculate the coincidence loss correction factor:
         # Ccorrfactor = Ctheory*f(x)/Craw.
         # Calculate the minimum and maximum possible coincidence loss correction factor.
+        # todo: handle NaN's
         corrfactor = (Ctheory * f) / total_flux
         corrfactor_min = (Ctheory_min * f_min) / (total_flux - window_pixels * std)
         corrfactor_max = (Ctheory_max * f_max) / (total_flux + window_pixels * std)
@@ -187,6 +188,7 @@ def coicorr(hdulist: HDUList, fname: str):
         coicorr_unc = np.maximum(
             np.abs(new_data - new_data_min), np.abs(new_data_max - new_data)
         )
+        # todo: handle NaN's
         coicorr_rel = coicorr_unc / new_data
         coicorr_rel[coicorr_unc == 0.0] = 0.0
 
