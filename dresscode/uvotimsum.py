@@ -117,13 +117,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         ):
             primary_counts_sum_hdul = fits.open(primary_counts_sum_fname)
             orig_counts_sum_hdul = fits.open(orig_counts_sum_fname)
+            # todo: handle NaN indices
             sum_coi_corr_factor = (
-                primary_counts_sum_hdul[0].data / orig_counts_sum_hdul[0].data
+                primary_counts_sum_hdul[1].data / orig_counts_sum_hdul[1].data
             )
-            fits.writeto(
-                f"{path}sum_{filt}_coicorr_factor.img",
-                sum_coi_corr_factor,
-                header=primary_counts_sum_hdul[0].header,
+            primary_counts_sum_hdul[1].data = sum_coi_corr_factor
+            primary_counts_sum_hdul.writeto(
+                f"{path}sum_{filt}_coicorr_factor.img", overwrite=True
             )
             primary_counts_sum_hdul.close()
             orig_counts_sum_hdul.close()
@@ -133,11 +133,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         coicorr_unc_sq_sum_fname = f"{path}sum_{filt}_coicorr_rel_sq.img"
         if os.path.isfile(coicorr_unc_sq_sum_fname):
             coicorr_unc_sq_hdul = fits.open(coicorr_unc_sq_sum_fname)
-            coicorr_unc_data = np.sqrt(coicorr_unc_sq_hdul[0].data)
-            fits.writeto(
-                f"{path}sum_{filt}_coicorr_rel.img",
-                coicorr_unc_data,
-                header=coicorr_unc_sq_hdul[0].header,
+            coicorr_unc_sq_hdul[1].data = np.sqrt(coicorr_unc_sq_hdul[1].data)
+            coicorr_unc_sq_hdul.writeto(
+                f"{path}sum_{filt}_coicorr_rel.img", overwrite=True
             )
             coicorr_unc_sq_hdul.close()
 

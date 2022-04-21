@@ -326,6 +326,7 @@ def rem_corr_factor(data_hdulist: HDUList, corrfactor_hdul: HDUList, fname: str)
 
     for primary_frame, corr_factor_frame in zip(data_hdulist[1:], corrfactor_hdul[1:]):
 
+        # todo: handle NaN indices
         orig_counts = primary_frame.data / corr_factor_frame.data
         header = primary_frame.header
 
