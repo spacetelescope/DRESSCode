@@ -109,41 +109,20 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     # the actual weighted summed corr factor is: F = summed_primary / summed_orig_counts
     # open the summed primary image and divide by the summed original counts image
-    # todo: move to function
+    print("Calculating weighted summed corr factors...")
     for filt in FILTER_TYPES:
         primary_counts_sum_fname = f"{path}sum_{filt}_data.img"
         orig_counts_sum_fname = f"{path}sum_{filt}_orig_counts.img"
         if os.path.isfile(primary_counts_sum_fname) and os.path.isfile(
             orig_counts_sum_fname
         ):
-            primary_counts_sum_hdul = fits.open(primary_counts_sum_fname)
-            orig_counts_sum_hdul = fits.open(orig_counts_sum_fname)
-            notnan = np.isfinite(primary_counts_sum_hdul[1].data) & np.isfinite(
-                orig_counts_sum_hdul[1].data
-            )
-            sum_coi_corr_factor = np.full_like(primary_counts_sum_hdul[1].data, np.nan)
-            sum_coi_corr_factor[notnan] = (
-                primary_counts_sum_hdul[1].data[notnan]
-                / orig_counts_sum_hdul[1].data[notnan]
-            )
-            primary_counts_sum_hdul[1].data = sum_coi_corr_factor
-            primary_counts_sum_hdul.writeto(
-                f"{path}sum_{filt}_coicorr_factor.img", overwrite=True
-            )
-            primary_counts_sum_hdul.close()
-            orig_counts_sum_hdul.close()
+            calc_summed_corr_factor(primary_counts_sum_fname, orig_counts_sum_fname)
 
-    # "coincidence loss correction uncertainty": After the summing, take the square root
-    # todo: move to function
+    print("Calculating coincidence loss correction uncertainty...")
     for filt in FILTER_TYPES:
         coicorr_unc_sq_sum_fname = f"{path}sum_{filt}_coicorr_rel_sq.img"
         if os.path.isfile(coicorr_unc_sq_sum_fname):
-            coicorr_unc_sq_hdul = fits.open(coicorr_unc_sq_sum_fname)
-            coicorr_unc_sq_hdul[1].data = np.sqrt(coicorr_unc_sq_hdul[1].data)
-            coicorr_unc_sq_hdul.writeto(
-                f"{path}sum_{filt}_coicorr_rel.img", overwrite=True
-            )
-            coicorr_unc_sq_hdul.close()
+            calc_coicorr_uncertainty(coicorr_unc_sq_sum_fname)
 
     # normalize
     for filt in FILTER_TYPES:
@@ -164,6 +143,53 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     else:
         print("An error has occurred.")
         return 1
+
+
+def calc_summed_corr_factor(primary_counts_sum_fname: str, orig_counts_sum_fname: str):
+    """Calculate the weighted summed corr factor"""
+
+    primary_counts_sum_hdul = fits.open(primary_counts_sum_fname)
+    orig_counts_sum_hdul = fits.open(orig_counts_sum_fname)
+    finite_vals = np.isfinite(primary_counts_sum_hdul[1].data) & (
+        orig_counts_sum_hdul[1].data > 0
+    )
+    sum_coi_corr_factor = np.full_like(primary_counts_sum_hdul[1].data, np.nan)
+    sum_coi_corr_factor[finite_vals] = (
+        primary_counts_sum_hdul[1].data[finite_vals]
+        / orig_counts_sum_hdul[1].data[finite_vals]
+    )
+
+    # todo: update the header for this data
+    new_hdu_header = fits.PrimaryHDU(header=primary_counts_sum_hdul[0].header)
+    new_hdulist = fits.HDUList([new_hdu_header])
+    new_hdu = fits.ImageHDU(sum_coi_corr_factor, primary_counts_sum_hdul[1].header)
+    new_hdulist.append(new_hdu)
+    new_fname = primary_counts_sum_fname.replace("data.img", "coicorr_factor.img")
+    new_hdulist.writeto(new_fname, overwrite=True)
+
+    primary_counts_sum_hdul.close()
+    orig_counts_sum_hdul.close()
+
+
+def calc_coicorr_uncertainty(coicorr_unc_sq_sum_fname: str):
+    """Calculate coincidence loss correction uncertainty
+
+    After summing, take the square root"""
+
+    coicorr_unc_sq_hdul = fits.open(coicorr_unc_sq_sum_fname)
+    new_data = np.sqrt(coicorr_unc_sq_hdul[1].data)
+
+    # todo: update the header for this data
+    new_hdu_header = fits.PrimaryHDU(header=coicorr_unc_sq_hdul[0].header)
+    new_hdulist = fits.HDUList([new_hdu_header])
+    new_hdu = fits.ImageHDU(new_data, coicorr_unc_sq_hdul[1].header)
+    new_hdulist.append(new_hdu)
+    new_fname = coicorr_unc_sq_sum_fname.replace(
+        "coicorr_rel_sq.img", "coicorr_unc.img"
+    )
+    new_hdulist.writeto(new_fname, overwrite=True)
+
+    coicorr_unc_sq_hdul.close()
 
 
 def append_frames(filename, typelabel, filterlabel):

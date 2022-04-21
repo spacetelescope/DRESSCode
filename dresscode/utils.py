@@ -168,7 +168,11 @@ def norm(
 
     for data_frame, exp_frame in zip(data_hdul[1:], exp_hdul[1:]):
         new_frame = np.full_like(data_frame.data, np.nan)
-        finite_vals = np.isfinite(data_frame.data) * np.isfinite(exp_frame.data)
+        finite_vals = (
+            np.isfinite(data_frame.data)
+            & np.isfinite(exp_frame.data)
+            & (exp_frame.data > 0)
+        )
         if denorm:
             norm_factor = 1.0 / exp_frame.data[finite_vals]
         else:
