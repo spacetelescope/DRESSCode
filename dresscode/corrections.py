@@ -77,7 +77,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
         # Apply a coincidence loss correction, saving "planes" as separate files
         print("Applying coincidence loss corrections...")
-        coicorr_hdul, coicorr_fname = coicorr(norm_hdul, fname)
+        coicorr_hdul, coicorr_fname, corrfactor_hdul, corrfactor_unc_hdul = coicorr(
+            norm_hdul, fname
+        )
 
         # Apply a large scale sensitivity correction.
         print("Applying large scale sensitivity corrections...")
@@ -91,9 +93,20 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
         # remove normalization and convert back to counts (needed for uvotimsum)
         denorm_hdul_fname = zp_corr_fname.replace(".img", "_dn.img")
-        norm(zp_corr_hdul, exp_hdul, denorm_hdul_fname, denorm=True)
+        zp_corr_hdul_nm_hdul = norm(
+            zp_corr_hdul, exp_hdul, denorm_hdul_fname, denorm=True
+        )
+
+        # calc orig counts for each frame (needed for uvotimsum)
+        rem_corr_factor(zp_corr_hdul_nm_hdul, corrfactor_hdul, denorm_hdul_fname)
+
+        squared_coi_loss_corr_uncertainty_counts(
+            zp_corr_hdul_nm_hdul, corrfactor_unc_hdul, fname
+        )
 
         print(f"Corrected image {i + 1}/{len(filenames)}.")
+        unmasked_hdul.close()
+        exp_hdul.close()
 
     return 0
 
@@ -206,7 +219,7 @@ def coicorr(hdulist: HDUList, fname: str):
 
     print(f"{os.path.basename(fname)} has been corrected for coincidence loss.")
 
-    return coi_loss_corr_hdl, new_fname
+    return coi_loss_corr_hdl, new_fname, corrfactor_hdl, coicorr_unc_hdl
 
 
 def polynomial(x):
@@ -250,6 +263,8 @@ def lsscorr(hdulist: HDUList, fname: str):
         + " has been corrected for large scale sensitivity variations."
     )
 
+    lss_hdulist.close()
+
     return new_hdulist, new_fname
 
 
@@ -291,6 +306,73 @@ def zeropoint(hdulist: HDUList, fname: str, param1: float, param2: float):
         f"{os.path.basename(fname)} has been corrected for sensitivity loss of the detector over time."
     )
 
+    return new_hdulist, new_fname
+
+
+def rem_corr_factor(data_hdulist: HDUList, corrfactor_hdul: HDUList, fname: str):
+    """Remove the correction factor on count data for uvotimsum to yield original counts"""
+
+    # "coincidence loss correction factor" cannot simply be summed
+    # What we want is a weighted average of the factors (weighted by counts).
+    # To achieve this, we can “undo” the correction for a moment and calculate the counts
+    # as if no coincidence correction happened,
+    # i.e. orig_counts = primary / corr_factor (where orig_counts is the uncorrected counts).
+    # Make sure primary is in counts.
+    # We can then sum all the original counts with uvotimsum in the same way as we sum primary.
+    # The weighted correction factor for the summed image is then F = summed_primary / summed_orig_counts.
+
+    new_hdu_header = fits.PrimaryHDU(header=data_hdulist[0].header)
+    new_hdulist = fits.HDUList([new_hdu_header])
+
+    for primary_frame, corr_factor_frame in zip(data_hdulist[1:], corrfactor_hdul[1:]):
+
+        orig_counts = primary_frame.data / corr_factor_frame.data
+        header = primary_frame.header
+
+        new_hdu = fits.ImageHDU(orig_counts, header)
+        new_hdulist.append(new_hdu)
+
+    # Write the original counts data to a new image.
+    new_fname = fname.replace(".img", "_oc.img")
+    new_hdulist.writeto(new_fname, overwrite=True)
+    print(
+        os.path.basename(new_fname)
+        + " original counts have been calculated (for summing)."
+    )
+
+    return new_hdulist, new_fname
+
+
+def squared_coi_loss_corr_uncertainty_counts(
+    data_hdulist: HDUList, corrfactor_unc_hdul: HDUList, fname: str
+):
+    """Calculate the squared coincidence loss correction uncertainty (in counts)"""
+
+    # "coincidence loss correction uncertainty": convert the uncertainty from a relative fraction to an
+    # uncertainty in counts,
+    # by multiplying the rel_unc frame with the primary frame (in counts).
+    # Take the squares of all the frames, and then sum these squares with uvotimsum.
+
+    new_hdu_header = fits.PrimaryHDU(header=data_hdulist[0].header)
+    new_hdulist = fits.HDUList([new_hdu_header])
+
+    for primary_frame, corr_factor_rel_unc_frame in zip(
+        data_hdulist[1:], corrfactor_unc_hdul[1:]
+    ):
+        squared_coi_loss_corr_unc_cts = (
+            primary_frame.data * corr_factor_rel_unc_frame.data
+        ) ** 2
+        header = primary_frame.header
+        new_hdu = fits.ImageHDU(squared_coi_loss_corr_unc_cts, header)
+        new_hdulist.append(new_hdu)
+
+    # write the squared coincidence loss correction uncertainty to a new image
+    new_fname = fname.replace(".img", "_coicorr_unc_sq_cts.img")
+    new_hdulist.writeto(new_fname, overwrite=True)
+    print(
+        os.path.basename(new_fname)
+        + " squared coincidence loss correction uncertainty counts have been calculated (for summing)."
+    )
     return new_hdulist, new_fname
 
 

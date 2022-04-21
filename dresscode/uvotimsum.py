@@ -18,6 +18,7 @@ from argparse import ArgumentParser
 from dataclasses import dataclass
 from typing import Optional, Sequence
 
+import numpy as np
 from astropy.io import fits
 
 from dresscode.utils import check_filter, load_config, norm
@@ -38,15 +39,15 @@ FILE_TYPES_TO_SUM = [
     FilePatternItem("mask", "mk", "_mk_corr_new.img", None),
     FilePatternItem("exposure map", "ex", "_ex_corr.img", "expmap"),
     FilePatternItem("primary image", "data", "_sk_corr_coi_lss_zp_dn.img", "grid"),
-    # FilePatternItem(
-    #     "coi corr factor", "coicorr", "_sk_corr_coi_corrfactor.img", "grid"
-    # ),
-    # FilePatternItem(
-    #     "coi corr factors relative uncertainty",
-    #     "coicorr_rel",
-    #     "_sk_corr_coi_coicorr_unc.img",
-    #     "grid",
-    # ),
+    FilePatternItem(
+        "original counts", "orig_counts", "_sk_corr_coi_lss_zp_dn_oc.img", "grid"
+    ),
+    FilePatternItem(
+        "coi corr factors relative uncertainty",
+        "coicorr_rel_sq",
+        "_sk_corr_coicorr_unc_sq_cts.img",
+        "grid",
+    ),
 ]
 
 
@@ -84,25 +85,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         ]
         for i, fname in enumerate(files_to_sum):
             filterlabel = check_filter(fname)
-
-            if filetype.data_type == "coicorr":
-                # todo:
-                # "coincidence loss correction factor" cannot simply be summed.
-                # What we want is a weighted average of the factors (weighted by counts).
-                # To achieve this, we can “undo” the correction for a moment and calculate the counts
-                # as if no coincidence correction happened,
-                # i.e. orig_counts = primary / corr_factor (where orig_counts is the uncorrected counts).
-                # Make sure primary is in counts.
-                # We can then sum all the original counts with uvotimsum in the same way as we sum primary.
-                # The weighted correction factor for the summed image is then F = summed_primary / summed_orig_counts.
-                ...
-            elif filetype.data_type == "coicorr_rel":
-                # todo:
-                # "coincidence loss correction uncertainty": convert the uncertainty from a relative
-                # fraction to an uncertainty in counts, by multiplying the rel_unc frame with the primary frame (in counts).
-                ...
-
-            # todo: append_frames() possibly needs modifications
+            # todo: append_frames() possibly needs modifications?
             append_frames(path + fname, filetype.data_type, filterlabel)
             print(
                 f"Finished appending frames for {filetype.name} {i+1}/{len(files_to_sum)}."
@@ -116,11 +99,49 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             if filetype.uvotimsum_method is None:
                 # skip the mask files, since we don't need to sum those
                 continue
-            all_fname = f"all_{filt}_{filetype.data_type}.img"
-            if os.path.isfile(path + all_fname):
-                ret_code = coaddframes(path + all_fname, filetype.uvotimsum_method)
+            all_fname = f"{path}all_{filt}_{filetype.data_type}.img"
+            out_fname = all_fname.replace("all", "sum")
+            mask_fname = all_fname.rsplit(f"_{filt}_", 1)[0] + f"_{filt}_mk.img"
+            if os.path.isfile(all_fname):
+                ret_code = coaddframes(
+                    all_fname, mask_fname, out_fname, filetype.uvotimsum_method
+                )
 
-    # normalize the images
+    # the actual weighted summed corr factor is: F = summed_primary / summed_orig_counts
+    # open the summed primary image and divide by the summed original counts image
+    for filt in FILTER_TYPES:
+        primary_counts_sum_fname = f"{path}sum_{filt}_data.img"
+        orig_counts_sum_fname = f"{path}sum_{filt}_orig_counts.img"
+        if os.path.isfile(primary_counts_sum_fname) and os.path.isfile(
+            orig_counts_sum_fname
+        ):
+            primary_counts_sum_hdul = fits.open(primary_counts_sum_fname)
+            orig_counts_sum_hdul = fits.open(orig_counts_sum_fname)
+            sum_coi_corr_factor = (
+                primary_counts_sum_hdul[0].data / orig_counts_sum_hdul[0].data
+            )
+            fits.writeto(
+                f"{path}sum_{filt}_coicorr_factor.img",
+                sum_coi_corr_factor,
+                header=primary_counts_sum_hdul[0].header,
+            )
+            primary_counts_sum_hdul.close()
+            orig_counts_sum_hdul.close()
+
+    # "coincidence loss correction uncertainty": After the summing, take the square root
+    for filt in FILTER_TYPES:
+        coicorr_unc_sq_sum_fname = f"{path}sum_{filt}_coicorr_rel_sq.img"
+        if os.path.isfile(coicorr_unc_sq_sum_fname):
+            coicorr_unc_sq_hdul = fits.open(coicorr_unc_sq_sum_fname)
+            coicorr_unc_data = np.sqrt(coicorr_unc_sq_hdul[0].data)
+            fits.writeto(
+                f"{path}sum_{filt}_coicorr_rel.img",
+                coicorr_unc_data,
+                header=coicorr_unc_sq_hdul[0].header,
+            )
+            coicorr_unc_sq_hdul.close()
+
+    # normalize
     for filt in FILTER_TYPES:
         sum_fname = f"{path}sum_{filt}_data.img"
         expmap_sumfile = sum_fname.replace("data", "ex")
@@ -130,6 +151,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             sum_hdu = fits.open(sum_fname)
             expmap_sum_hdu = fits.open(expmap_sumfile)
             norm(sum_hdu, expmap_sum_hdu, out_fname)
+            sum_hdu.close()
+            expmap_sum_hdu.close()
 
     if ret_code == 0:
         print("All frames successfully co-added")
@@ -157,24 +180,22 @@ def appendframes(filename, allfile):
     """open an image and append all its frames to the "total" image"""
     path = os.path.dirname(filename) + "/"
 
-    hdulist = fits.open(filename)
-    for j in range(1, len(hdulist)):
-        infile = f"{filename}+{j}"
-        totfile = allfile
-        subprocess.call(f"ftappend {infile} {totfile}", cwd=path, shell=True)
+    with fits.open(filename) as hdulist:
+        for j in range(1, len(hdulist)):
+            infile = f"{filename}+{j}"
+            totfile = allfile
+            subprocess.call(f"ftappend {infile} {totfile}", cwd=path, shell=True)
 
-        print(
-            f"Frame {os.path.basename(infile)} (frame {j}/{len(hdulist) - 1}) appended to {os.path.basename(allfile)}."
-        )
+            print(
+                f"Frame {os.path.basename(infile)} (frame {j}/{len(hdulist) - 1}) appended to {os.path.basename(allfile)}."
+            )
 
 
-def coaddframes(allfile: str, method: str):
+def coaddframes(allfile: str, maskfile: str, outfile: str, method: str):
     """co-add all frames of an image"""
     path = os.path.dirname(allfile) + "/"
 
     # Specify the output file, the mask file and the terminal output file.
-    outfile = allfile.replace("all", "sum")
-    maskfile = allfile.rsplit("_", 1)[0] + "_mk.img"
     terminal_output_file = (
         path + "output_uvotimsum" + allfile.split("ll")[-1].split(".")[0] + ".txt"
     )
