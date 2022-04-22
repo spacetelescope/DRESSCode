@@ -94,6 +94,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # Co-add the frames in each "total" image
     print("Co-adding all frames...")
 
+    any_error = False
     for filetype in FILE_TYPES_TO_SUM:
         for filt in FILTER_TYPES:
             if filetype.uvotimsum_method is None:
@@ -103,9 +104,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             out_fname = all_fname.replace("all", "sum")
             mask_fname = all_fname.rsplit(f"_{filt}_", 1)[0] + f"_{filt}_mk.img"
             if os.path.isfile(all_fname):
-                ret_code = coaddframes(
+                error = coaddframes(
                     all_fname, mask_fname, out_fname, filetype.uvotimsum_method
                 )
+                any_error = any_error | error
 
     # the actual weighted summed corr factor is: F = summed_primary / summed_orig_counts
     # open the summed primary image and divide by the summed original counts image
@@ -124,7 +126,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         if os.path.isfile(coicorr_unc_sq_sum_fname):
             calc_coicorr_uncertainty(coicorr_unc_sq_sum_fname)
 
-    # normalize
+    print("Normalizing primary image counts by their exposure times...")
     for filt in FILTER_TYPES:
         sum_fname = f"{path}sum_{filt}_data.img"
         expmap_sumfile = sum_fname.replace("data", "ex")
@@ -137,7 +139,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             sum_hdu.close()
             expmap_sum_hdu.close()
 
-    if ret_code == 0:
+    if not any_error:
         print("All frames successfully co-added")
         return 0
     else:
@@ -221,8 +223,10 @@ def appendframes(filename, allfile):
             )
 
 
-def coaddframes(allfile: str, maskfile: str, outfile: str, method: str):
-    """co-add all frames of an image"""
+def coaddframes(allfile: str, maskfile: str, outfile: str, method: str) -> bool:
+    """co-add all frames of an image
+
+    Returns a bool indicating if an error occurred"""
     path = os.path.dirname(allfile) + "/"
 
     # Specify the output file, the mask file and the terminal output file.
@@ -246,7 +250,7 @@ def coaddframes(allfile: str, maskfile: str, outfile: str, method: str):
             stdout=terminal,
         )
 
-    error = False
+    # error checking
     with open(terminal_output_file) as fh:
         text = fh.read()
     if (
@@ -255,15 +259,14 @@ def coaddframes(allfile: str, maskfile: str, outfile: str, method: str):
         or "created output image" not in text
         or "all checksums are valid" not in text
     ):
-        error = True
         print(f"An error has occurred in creating {allfile}")
         print(f"See {terminal_output_file} for more information")
-
-    if not error:
+        return True
+    else:
         print(
             f"All frames in {os.path.basename(allfile)} have been co-added into {os.path.basename(outfile)}."
         )
-    return ret_code
+        return False
 
 
 if __name__ == "__main__":
