@@ -26,30 +26,50 @@ from dresscode.utils import check_filter, load_config, norm
 
 @dataclass(frozen=True)
 class FilePatternItem:
-    name: str
-    data_type: str
-    file_pattern: str
-    uvotimsum_method: str | None
+    name: str = ""
+    in_file_pattern: str = None
+    out_file_type: str = None
+    uvotimsum_method: str | None = None
 
 
 # we need to sum primary data, coicorr, coicorr_rel, masks, and exposure maps for each filter
 FILTER_TYPES = ["um2", "uw2", "uw1"]
 FILE_TYPES_TO_SUM = [
     # masks need to be appended so that they can be used during the co-addition step for the images but aren't summed
-    FilePatternItem("mask", "mk", "_mk_corr_new.img", None),
-    FilePatternItem("exposure map", "ex", "_ex_corr.img", "expmap"),
-    FilePatternItem("primary image", "data", "_sk_corr_coi_lss_zp_dn.img", "grid"),
     FilePatternItem(
-        "original counts", "orig_counts", "_sk_corr_coi_lss_zp_dn_oc.img", "grid"
+        name="mask",
+        in_file_pattern="_mk_corr_new.img",
+        out_file_type="mk",
     ),
     FilePatternItem(
-        "coi corr factors relative uncertainty",
-        "coicorr_rel_sq",
-        "_sk_corr_coicorr_unc_sq_cts.img",
-        "grid",
+        name="exposure map",
+        in_file_pattern="_ex_corr.img",
+        out_file_type="ex",
+        uvotimsum_method="expmap",
     ),
     FilePatternItem(
-        "zero point corr factor in count", "zp_corr_cts", "_zp_cts.img", "grid"
+        name="primary image",
+        in_file_pattern="_sk_corr_coi_lss_zp_dn.img",
+        out_file_type="data",
+        uvotimsum_method="grid",
+    ),
+    FilePatternItem(
+        name="original counts",
+        in_file_pattern="_sk_corr_coi_lss_zp_dn_oc.img",
+        out_file_type="orig_counts",
+        uvotimsum_method="grid",
+    ),
+    FilePatternItem(
+        name="coi corr factors relative uncertainty",
+        in_file_pattern="_sk_corr_coicorr_unc_sq_cts.img",
+        out_file_type="coicorr_rel_sq",
+        uvotimsum_method="grid",
+    ),
+    FilePatternItem(
+        name="zero point corr factor in count",
+        in_file_pattern="_sk_corr_zp_cts.img",
+        out_file_type="zp_corr_cts",
+        uvotimsum_method="grid",
     ),
 ]
 
@@ -70,10 +90,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # clear out the allfile and sum file for each filter/data type
     for filetype in FILE_TYPES_TO_SUM:
         for filter in FILTER_TYPES:
-            allfname = f"{path}all_{filter}_{filetype.data_type}.img"
+            allfname = f"{path}all_{filter}_{filetype.out_file_type}.img"
             if os.path.isfile(allfname):
                 os.remove(allfname)
-            sumfname = f"{path}sum_{filter}_{filetype.data_type}.img"
+            sumfname = f"{path}sum_{filter}_{filetype.out_file_type}.img"
             if filetype.uvotimsum_method and os.path.isfile(sumfname):
                 os.remove(sumfname)
 
@@ -84,26 +104,27 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         files_to_sum = [
             filename
             for filename in sorted(os.listdir(path))
-            if filename.endswith(filetype.file_pattern) and not filename.startswith(".")
+            if filename.endswith(filetype.in_file_pattern)
+            and not filename.startswith(".")
         ]
         for i, fname in enumerate(files_to_sum):
             filterlabel = check_filter(fname)
             # todo: append_frames() possibly needs modifications?
-            append_frames(path + fname, filetype.data_type, filterlabel)
+            append_frames(path + fname, filetype.out_file_type, filterlabel)
             print(
                 f"Finished appending frames for {filetype.name} {i+1}/{len(files_to_sum)}."
             )
 
     # Co-add the frames in each "total" image
-    print("Co-adding all frames...")
 
     any_error = False
     for filetype in FILE_TYPES_TO_SUM:
+        print(f"Co-adding all frames of type {filetype.out_file_type}...")
         for filt in FILTER_TYPES:
             if filetype.uvotimsum_method is None:
                 # skip the mask files, since we don't need to sum those
                 continue
-            all_fname = f"{path}all_{filt}_{filetype.data_type}.img"
+            all_fname = f"{path}all_{filt}_{filetype.out_file_type}.img"
             out_fname = all_fname.replace("all", "sum")
             mask_fname = all_fname.rsplit(f"_{filt}_", 1)[0] + f"_{filt}_mk.img"
             if os.path.isfile(all_fname):
@@ -132,7 +153,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print("Calculating zero point correction factor...")
     for filt in FILTER_TYPES:
         primary_counts_sum_fname = f"{path}sum_{filt}_data.img"
-        zp_corr_sum_fname = f"{path}sum_{filt}_zp_cts.img"
+        zp_corr_sum_fname = f"{path}sum_{filt}_zp_corr_cts.img"
         if os.path.isfile(zp_corr_sum_fname) and os.path.isfile(
             primary_counts_sum_fname
         ):
@@ -141,8 +162,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print("Normalizing primary image counts by their exposure times...")
     for filt in FILTER_TYPES:
         sum_fname = f"{path}sum_{filt}_data.img"
-        expmap_sumfile = sum_fname.replace("data", "ex")
-        out_fname = sum_fname.replace("data", "nm")
+        expmap_sumfile = sum_fname.replace("_data", "_ex")
+        out_fname = sum_fname.replace("_data", "_nm")
         if os.path.isfile(sum_fname) and os.path.isfile(expmap_sumfile):
             # open the files w/ astropy
             sum_hdu = fits.open(sum_fname)
@@ -150,6 +171,40 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             norm(sum_hdu, expmap_sum_hdu, out_fname)
             sum_hdu.close()
             expmap_sum_hdu.close()
+
+    # combine into a single file for each filter
+    print("Saving combined images...")
+    for filt in FILTER_TYPES:
+
+        with fits.open(f"{path}sum_{filt}_nm.img") as primary_hdul, fits.open(
+            f"{path}sum_{filt}_coicorr_factor.img"
+        ) as coicorr_hdul, fits.open(
+            f"{path}sum_{filt}_coicorr_unc.img"
+        ) as coi_unc_hdul, fits.open(
+            f"{path}sum_{filt}_zp_corr_factor.img"
+        ) as zp_corr_hdul:
+
+            primary = primary_hdul[1].data
+            f_coi = coicorr_hdul[1].data
+            coicorr_rel = coi_unc_hdul[1].data
+            f_zp = zp_corr_hdul[1].data
+
+            vals = np.isfinite(primary) & (primary > 0)
+            poisson_rel = np.full_like(primary, np.nan)
+            poisson_rel[vals] = 1.0 / np.sqrt(primary[vals])
+
+            header = primary_hdul[0].header
+            header["PLANE0"] = "primary (counts)"
+            header["PLANE1"] = "average coincidence loss correction factor"
+            header[
+                "PLANE2"
+            ] = "relative coincidence loss correction uncertainty (fraction)"
+            header["PLANE3"] = "average zero point correction factor"
+            header["PLANE4"] = "relative Poisson noise (fraction)"
+
+            new_datacube = np.array([primary, f_coi, coicorr_rel, f_zp, poisson_rel])
+            sum_hdu = fits.PrimaryHDU(new_datacube, header)
+            sum_hdu.writeto(path + "total_sum_" + filt + "_nm.fits", overwrite=True)
 
     if not any_error:
         print("All frames successfully co-added")
@@ -230,7 +285,7 @@ def calc_zp_corr_factor(zp_corr_sum_fname: str, primary_counts_sum_fname: str):
     new_hdulist = fits.HDUList([new_hdu_header])
     new_hdu = fits.ImageHDU(sum_zp_corr_factor, zp_corr_sum_hdul[1].header)
     new_hdulist.append(new_hdu)
-    new_fname = zp_corr_sum_fname.replace("_zp_cts.img", "_zp_factor.img")
+    new_fname = zp_corr_sum_fname.replace("_zp_corr_cts.img", "_zp_corr_factor.img")
     new_hdulist.writeto(new_fname, overwrite=True)
 
     primary_counts_sum_hdul.close()
