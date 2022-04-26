@@ -48,6 +48,9 @@ FILE_TYPES_TO_SUM = [
         "_sk_corr_coicorr_unc_sq_cts.img",
         "grid",
     ),
+    FilePatternItem(
+        "zero point corr factor in count", "zp_corr_cts", "_zp_cts.img", "grid"
+    ),
 ]
 
 
@@ -126,6 +129,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         if os.path.isfile(coicorr_unc_sq_sum_fname):
             calc_coicorr_uncertainty(coicorr_unc_sq_sum_fname)
 
+    print("Calculating zero point correction factor...")
+    for filt in FILTER_TYPES:
+        primary_counts_sum_fname = f"{path}sum_{filt}_data.img"
+        zp_corr_sum_fname = f"{path}sum_{filt}_zp_cts.img"
+        if os.path.isfile(zp_corr_sum_fname) and os.path.isfile(
+            primary_counts_sum_fname
+        ):
+            calc_zp_corr_factor(zp_corr_sum_fname, primary_counts_sum_fname)
+
     print("Normalizing primary image counts by their exposure times...")
     for filt in FILTER_TYPES:
         sum_fname = f"{path}sum_{filt}_data.img"
@@ -192,6 +204,37 @@ def calc_coicorr_uncertainty(coicorr_unc_sq_sum_fname: str):
     new_hdulist.writeto(new_fname, overwrite=True)
 
     coicorr_unc_sq_hdul.close()
+
+
+def calc_zp_corr_factor(zp_corr_sum_fname: str, primary_counts_sum_fname: str):
+    """Calculate the average zero point correction factor"""
+
+    # todo: pass hdul instead of fname to avoid file load
+
+    # take the summed zero point corr. factor _counts_ and convert back to a factor
+
+    primary_counts_sum_hdul = fits.open(primary_counts_sum_fname)
+    zp_corr_sum_hdul = fits.open(zp_corr_sum_fname)
+
+    finite_vals = np.isfinite(primary_counts_sum_hdul[1].data) & (
+        zp_corr_sum_hdul[1].data > 0
+    )
+    sum_zp_corr_factor = np.full_like(zp_corr_sum_hdul[1].data, np.nan)
+    sum_zp_corr_factor[finite_vals] = (
+        zp_corr_sum_hdul[1].data[finite_vals]
+        / primary_counts_sum_hdul[1].data[finite_vals]
+    )
+
+    # todo: update the header for this data
+    new_hdu_header = fits.PrimaryHDU(header=zp_corr_sum_hdul[0].header)
+    new_hdulist = fits.HDUList([new_hdu_header])
+    new_hdu = fits.ImageHDU(sum_zp_corr_factor, zp_corr_sum_hdul[1].header)
+    new_hdulist.append(new_hdu)
+    new_fname = zp_corr_sum_fname.replace("_zp_cts.img", "_zp_factor.img")
+    new_hdulist.writeto(new_fname, overwrite=True)
+
+    primary_counts_sum_hdul.close()
+    zp_corr_sum_hdul.close()
 
 
 def append_frames(filename, typelabel, filterlabel):

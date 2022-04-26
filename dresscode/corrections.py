@@ -104,6 +104,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             zp_corr_hdul_nm_hdul, corrfactor_unc_hdul, fname
         )
 
+        zp_corr_counts(zp_corr_hdul_nm_hdul, fname)
+
         print(f"Corrected image {i + 1}/{len(filenames)}.")
         unmasked_hdul.close()
         exp_hdul.close()
@@ -351,9 +353,9 @@ def squared_coi_loss_corr_uncertainty_counts(
 ):
     """Calculate the squared coincidence loss correction uncertainty (in counts)"""
 
-    # "coincidence loss correction uncertainty": convert the uncertainty from a relative fraction to an
-    # uncertainty in counts,
-    # by multiplying the rel_unc frame with the primary frame (in counts).
+    # "coincidence loss correction uncertainty":
+    # convert the uncertainty from a relative fraction to an uncertainty in counts
+    # multiply the rel_unc frame with the primary frame (in counts).
     # Take the squares of all the frames, and then sum these squares with uvotimsum.
 
     new_hdu_header = fits.PrimaryHDU(header=data_hdulist[0].header)
@@ -375,6 +377,32 @@ def squared_coi_loss_corr_uncertainty_counts(
     print(
         os.path.basename(new_fname)
         + " squared coincidence loss correction uncertainty counts have been calculated (for summing)."
+    )
+    return new_hdulist, new_fname
+
+
+def zp_corr_counts(data_hdulist: HDUList, fname: str):
+    """Calculate the zero point correction (in counts)
+
+    data_hdulist (in counts)
+        needs to contain the ZPCORR header
+    """
+
+    new_hdu_header = fits.PrimaryHDU(header=data_hdulist[0].header)
+    new_hdulist = fits.HDUList([new_hdu_header])
+
+    for primary_frame in data_hdulist[1:]:
+        header = primary_frame.header
+        zp_corr_cts = primary_frame.data * header["ZPCORR"]
+        new_hdu = fits.ImageHDU(zp_corr_cts, header)
+        new_hdulist.append(new_hdu)
+
+    # Write the zero point correction counts to a new image.
+    new_fname = fname.replace(".img", "_zp_cts.img")
+    new_hdulist.writeto(new_fname, overwrite=True)
+    print(
+        os.path.basename(new_fname)
+        + " zero point correction counts have been calculated (for summing)."
     )
     return new_hdulist, new_fname
 
