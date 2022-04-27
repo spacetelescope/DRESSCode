@@ -93,22 +93,21 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         fname_pattern = f"{img_type}_*.img"
         [Path.unlink(f, missing_ok=True) for f in Path(path).glob(fname_pattern)]
 
-    # for diff. image types, append frames to one "total" image.
-
+    # for diff. image types, append frames to one "all" image.
     for filetype in FILE_TYPES_TO_SUM:
         print(f"Appending all {filetype.name} files...")
-        files_to_sum = [
+        files_to_append = [
             filename
             for filename in sorted(os.listdir(path))
             if filename.endswith(filetype.in_file_pattern)
             and not filename.startswith(".")
         ]
-        for i, fname in enumerate(files_to_sum):
+        for i, fname in enumerate(files_to_append):
             filterlabel = check_filter(fname)
-            # todo: append_frames() possibly needs modifications?
-            append_frames(path + fname, filetype.out_file_type, filterlabel)
+            all_fname = f"{os.path.dirname(fname)}/all_{filterlabel}_{filetype.out_file_type}.img"
+            append_frames(path + fname, all_fname)
             print(
-                f"Finished appending frames for {filetype.name} {i+1}/{len(files_to_sum)}."
+                f"Finished appending frames for {filetype.name} {i+1}/{len(files_to_append)}."
             )
 
     # Co-add the frames in each "total" image
@@ -288,33 +287,26 @@ def calc_zp_corr_factor(zp_corr_sum_fname: str, primary_counts_sum_fname: str):
     zp_corr_sum_hdul.close()
 
 
-def append_frames(filename, typelabel, filterlabel):
+def append_frames(fname: str, all_fname: str):
     """Copy the first image of a filter and type into new image
     OR append frames, depending on whether it is the first image or not"""
 
-    allfile = f"{os.path.dirname(filename)}/all_{filterlabel}_{typelabel}.img"
-
     # If the "total" image of this type and this filter does not yet exist, create it.
-    if not os.path.isfile(allfile):
-        shutil.copyfile(filename, allfile)
-        print(f"File {os.path.basename(allfile)} has been created.")
+    if not os.path.isfile(all_fname):
+        shutil.copyfile(fname, all_fname)
+        print(f"File {os.path.basename(all_fname)} has been created.")
     else:
-        appendframes(filename, allfile)
+        path = os.path.dirname(fname) + "/"
 
+        with fits.open(fname) as hdulist:
+            for j in range(1, len(hdulist)):
+                infile = f"{fname}+{j}"
+                subprocess.call(f"ftappend {infile} {all_fname}", cwd=path, shell=True)
 
-def appendframes(filename, allfile):
-    """open an image and append all its frames to the "total" image"""
-    path = os.path.dirname(filename) + "/"
-
-    with fits.open(filename) as hdulist:
-        for j in range(1, len(hdulist)):
-            infile = f"{filename}+{j}"
-            totfile = allfile
-            subprocess.call(f"ftappend {infile} {totfile}", cwd=path, shell=True)
-
-            print(
-                f"Frame {os.path.basename(infile)} (frame {j}/{len(hdulist) - 1}) appended to {os.path.basename(allfile)}."
-            )
+                print(
+                    f"Frame {os.path.basename(infile)} (frame {j}/{len(hdulist) - 1}) "
+                    f"appended to {os.path.basename(all_fname)}."
+                )
 
 
 def coaddframes(allfile: str, maskfile: str, outfile: str, method: str) -> bool:
