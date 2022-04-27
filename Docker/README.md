@@ -59,9 +59,6 @@ cat > config.txt << END
 path = $DATA_DIR  
 galaxy = $GALAXY
 years = 2007, 2008, 2013, 2015
-enlarge = no
-add_xpix = 200
-add_ypix = 100
 END
 
 GIT_TAG=$(git rev-parse --short=8 HEAD)
