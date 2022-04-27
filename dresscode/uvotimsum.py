@@ -104,7 +104,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         ]
         for i, fname in enumerate(files_to_append):
             filterlabel = check_filter(fname)
-            all_fname = f"{os.path.dirname(fname)}/all_{filterlabel}_{filetype.out_file_type}.img"
+            all_fname = f"{path}/all_{filterlabel}_{filetype.out_file_type}.img"
             append_frames(path + fname, all_fname)
             print(
                 f"Finished appending frames for {filetype.name} {i+1}/{len(files_to_append)}."
@@ -114,11 +114,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     any_error = False
     for filetype in FILE_TYPES_TO_SUM:
+        if filetype.uvotimsum_method is None:
+            # skip the mask files, since we don't need to sum those
+            continue
+
         print(f"Co-adding all frames of type {filetype.out_file_type}...")
         for filt in FILTER_TYPES:
-            if filetype.uvotimsum_method is None:
-                # skip the mask files, since we don't need to sum those
-                continue
             all_fname = f"{path}all_{filt}_{filetype.out_file_type}.img"
             out_fname = all_fname.replace("all", "sum")
             mask_fname = all_fname.rsplit(f"_{filt}_", 1)[0] + f"_{filt}_mk.img"
@@ -157,8 +158,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print("Normalizing primary image counts by their exposure times...")
     for filt in FILTER_TYPES:
         sum_fname = f"{path}sum_{filt}_data.img"
-        expmap_sumfile = sum_fname.replace("_data", "_ex")
-        out_fname = sum_fname.replace("_data", "_nm")
+        expmap_sumfile = sum_fname.replace("_data.img", "_ex.img")
+        out_fname = sum_fname.replace("_data.img", "_nm.img")
         if os.path.isfile(sum_fname) and os.path.isfile(expmap_sumfile):
             # open the files w/ astropy
             sum_hdu = fits.open(sum_fname)
