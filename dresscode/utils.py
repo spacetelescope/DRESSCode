@@ -22,11 +22,6 @@ def load_config(config_file):
         for line in configfile:
             splitline = line.split("=")
             key, value = splitline[0].strip(), splitline[1].strip()
-            if key == "years":
-                if ", " in value:
-                    value = [y.strip() for y in value.split(",")]
-                else:
-                    value = [value]
             config[key] = value
     return config
 

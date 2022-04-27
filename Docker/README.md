@@ -55,10 +55,9 @@ DATA_DIR=/internal/work/bfalk/test_pipeline/
 GALAXY=NGC0628_full
 GALAXY_DIR="$DATA_DIR/$GALAXY"
 
-cat > config.txt << END  
-path = $DATA_DIR  
+cat > config.txt << END
+path = $DATA_DIR
 galaxy = $GALAXY
-years = 2007, 2008, 2013, 2015
 END
 
 GIT_TAG=$(git rev-parse --short=8 HEAD)
@@ -68,7 +67,6 @@ docker build --tag dresscodeswift/dresscode:$GIT_TAG -f Docker/dockerfile .
 docker run --rm -it \
     -v $(pwd)/config.txt:/opt/dresscode/config.txt \
     -v "$GALAXY_DIR/working_dir_$GIT_TAG":"$GALAXY_DIR/working_dir" \
-    -v "$GALAXY_DIR/Raw_images":"$GALAXY_DIR/Raw_images" \
     "dresscodeswift/dresscode:$GIT_TAG" \
     /bin/bash pipeline.bash
 ```
