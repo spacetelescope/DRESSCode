@@ -158,7 +158,7 @@ def update_mask(
 def norm(
     data_hdul: HDUList,
     exp_hdul: HDUList,
-    output_fname: str,
+    output_fname: str = "",
     denorm: bool = False,
     dry_run: bool = False,
 ) -> HDUList:

@@ -87,26 +87,35 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
         # Apply a zero point correction
         print("Applying zero point corrections...")
-        zp_corr_hdul, zp_corr_fname = zeropoint(
-            lsscorr_hdul, lsscorr_fname, *ZEROPOINT_PARAMS[check_filter(fname)]
+        zp_corr_fname = lsscorr_fname.replace(".img", "_zp.img")
+        zp_corr_hdul = zeropoint(
+            lsscorr_hdul, zp_corr_fname, *ZEROPOINT_PARAMS[check_filter(fname)]
         )
 
-        # remove normalization and convert back to counts (needed for uvotimsum)
-        denorm_hdul_fname = zp_corr_fname.replace(".img", "_dn.img")
-        zp_corr_hdul_nm_hdul = norm(
-            zp_corr_hdul, exp_hdul, denorm_hdul_fname, denorm=True
-        )
+        # remove normalization to convert back to counts (needed for uvotimsum)
+        print("Removing normalization to convert back to counts...")
+        primary_cts_fname = zp_corr_fname.replace(".img", "_dn.img")
+        primary_cts_hdul = convert_to_cts(zp_corr_hdul, exp_hdul, primary_cts_fname)
 
         # calc orig counts for each frame (needed for uvotimsum)
-        rem_corr_factor(zp_corr_hdul_nm_hdul, corrfactor_hdul, denorm_hdul_fname)
+        print("Removing correction factor to get uncorrected orig. counts...")
+        orig_cts_fname = primary_cts_fname.replace(".img", "_oc.img")
+        rem_corr_factor(primary_cts_hdul, corrfactor_hdul, orig_cts_fname)
 
-        squared_coi_loss_corr_uncertainty_counts(
-            zp_corr_hdul_nm_hdul, corrfactor_unc_hdul, fname
+        # calc the squared coincidence loss uncertainty in counts
+        print("Calculating squared coincidence loss uncertainty in counts...")
+        sq_coicorr_unc_fname = fname.replace(".img", "_coicorr_unc_sq_cts.img")
+        sq_coicorr_uncert_cts(
+            primary_cts_hdul, corrfactor_unc_hdul, sq_coicorr_unc_fname
         )
 
-        zp_corr_counts(zp_corr_hdul_nm_hdul, fname)
+        print("Calculating the zero point correction in counts...")
+        zp_corr_cts_fname = fname.replace(".img", "_zp_cts.img")
+        zp_corr_cts(primary_cts_hdul, zp_corr_cts_fname)
 
         print(f"Corrected image {i + 1}/{len(filenames)}.")
+
+        # close all the hdu lists
         unmasked_hdul.close()
         exp_hdul.close()
 
@@ -272,7 +281,7 @@ def lsscorr(hdulist: HDUList, fname: str):
     return new_hdulist, new_fname
 
 
-def zeropoint(hdulist: HDUList, fname: str, param1: float, param2: float):
+def zeropoint(hdulist: HDUList, out_fname: str, param1: float, param2: float):
     """Zero point correction (sensitivity loss over time)"""
 
     new_hdu_header = fits.PrimaryHDU(header=hdulist[0].header)
@@ -303,17 +312,40 @@ def zeropoint(hdulist: HDUList, fname: str, param1: float, param2: float):
         new_hdu = fits.ImageHDU(new_data, header)
         new_hdulist.append(new_hdu)
 
-    new_fname = fname.replace(".img", "_zp.img")
-    new_hdulist.writeto(new_fname, overwrite=True)
+    new_hdulist.writeto(out_fname, overwrite=True)
 
     print(
-        f"{os.path.basename(fname)} has been corrected for sensitivity loss of the detector over time."
+        f"{os.path.basename(out_fname)} has been corrected for sensitivity loss of the detector over time."
     )
 
-    return new_hdulist, new_fname
+    return new_hdulist
 
 
-def rem_corr_factor(data_hdulist: HDUList, corrfactor_hdul: HDUList, fname: str):
+def convert_to_cts(data_hdulist: HDUList, exp_hdul: HDUList, out_fname: str):
+    """Convert corrected normalized data back to counts"""
+
+    new_hdu_header = fits.PrimaryHDU(header=data_hdulist[0].header)
+    new_hdulist = fits.HDUList([new_hdu_header])
+
+    # denorm
+    primary_cts_hdul = norm(data_hdulist, exp_hdul, denorm=True, dry_run=True)
+
+    # set any NaNs to zero
+    for primary_frame_cts in primary_cts_hdul[1:]:
+        primary_frame_cts[np.isnan(primary_frame_cts)] = 0
+
+        new_hdu = fits.ImageHDU(primary_frame_cts, primary_frame_cts.header)
+        new_hdulist.append(new_hdu)
+
+    # Write the counts data to a new image
+    new_hdulist.writeto(out_fname, overwrite=True)
+
+    print(f"{os.path.basename(out_fname)} has been converted to counts for summing.")
+
+    return new_hdulist
+
+
+def rem_corr_factor(data_hdulist: HDUList, corrfactor_hdul: HDUList, out_fname: str):
     """Remove the correction factor on count data for uvotimsum to yield original counts"""
 
     # "coincidence loss correction factor" cannot simply be summed
@@ -330,26 +362,28 @@ def rem_corr_factor(data_hdulist: HDUList, corrfactor_hdul: HDUList, fname: str)
 
     for primary_frame, corr_factor_frame in zip(data_hdulist[1:], corrfactor_hdul[1:]):
 
-        # todo: handle NaN indices
-        orig_counts = primary_frame.data / corr_factor_frame.data
+        isfinite = (
+            np.isfinite(primary_frame.data)
+            & np.isfinite(corr_factor_frame.data)
+            & (corr_factor_frame.data > 0)
+        )
+        orig_counts = np.full_like(primary_frame.data, 0)
+        orig_counts[isfinite] = (
+            primary_frame.data[isfinite] / corr_factor_frame.data[isfinite]
+        )
         header = primary_frame.header
 
         new_hdu = fits.ImageHDU(orig_counts, header)
         new_hdulist.append(new_hdu)
 
     # Write the original counts data to a new image.
-    new_fname = fname.replace(".img", "_oc.img")
-    new_hdulist.writeto(new_fname, overwrite=True)
-    print(
-        os.path.basename(new_fname)
-        + " original counts have been calculated (for summing)."
-    )
+    new_hdulist.writeto(out_fname, overwrite=True)
 
-    return new_hdulist, new_fname
+    return new_hdulist
 
 
-def squared_coi_loss_corr_uncertainty_counts(
-    data_hdulist: HDUList, corrfactor_unc_hdul: HDUList, fname: str
+def sq_coicorr_uncert_cts(
+    data_hdulist: HDUList, corrfactor_unc_hdul: HDUList, out_fname: str
 ):
     """Calculate the squared coincidence loss correction uncertainty (in counts)"""
 
@@ -367,21 +401,23 @@ def squared_coi_loss_corr_uncertainty_counts(
         squared_coi_loss_corr_unc_cts = (
             primary_frame.data * corr_factor_rel_unc_frame.data
         ) ** 2
+        squared_coi_loss_corr_unc_cts[np.isnan(squared_coi_loss_corr_unc_cts)] = 0
         header = primary_frame.header
         new_hdu = fits.ImageHDU(squared_coi_loss_corr_unc_cts, header)
         new_hdulist.append(new_hdu)
 
     # write the squared coincidence loss correction uncertainty to a new image
-    new_fname = fname.replace(".img", "_coicorr_unc_sq_cts.img")
-    new_hdulist.writeto(new_fname, overwrite=True)
+    new_hdulist.writeto(out_fname, overwrite=True)
+
     print(
-        os.path.basename(new_fname)
+        os.path.basename(out_fname)
         + " squared coincidence loss correction uncertainty counts have been calculated (for summing)."
     )
-    return new_hdulist, new_fname
+
+    return new_hdulist
 
 
-def zp_corr_counts(data_hdulist: HDUList, fname: str):
+def zp_corr_cts(data_hdulist: HDUList, out_fname: str):
     """Calculate the zero point correction (in counts)
 
     data_hdulist (in counts)
@@ -393,18 +429,20 @@ def zp_corr_counts(data_hdulist: HDUList, fname: str):
 
     for primary_frame in data_hdulist[1:]:
         header = primary_frame.header
-        zp_corr_cts = primary_frame.data * header["ZPCORR"]
-        new_hdu = fits.ImageHDU(zp_corr_cts, header)
+        zp_corr_cts_data = primary_frame.data * header["ZPCORR"]
+        zp_corr_cts_data[np.isnan(zp_corr_cts_data)] = 0
+        new_hdu = fits.ImageHDU(zp_corr_cts_data, header)
         new_hdulist.append(new_hdu)
 
     # Write the zero point correction counts to a new image.
-    new_fname = fname.replace(".img", "_zp_cts.img")
-    new_hdulist.writeto(new_fname, overwrite=True)
+    new_hdulist.writeto(out_fname, overwrite=True)
+
     print(
-        os.path.basename(new_fname)
+        os.path.basename(out_fname)
         + " zero point correction counts have been calculated (for summing)."
     )
-    return new_hdulist, new_fname
+
+    return new_hdulist
 
 
 if __name__ == "__main__":
