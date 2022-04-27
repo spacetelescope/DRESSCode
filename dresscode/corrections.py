@@ -331,10 +331,11 @@ def convert_to_cts(data_hdulist: HDUList, exp_hdul: HDUList, out_fname: str):
     primary_cts_hdul = norm(data_hdulist, exp_hdul, denorm=True, dry_run=True)
 
     # set any NaNs to zero
-    for primary_frame_cts in primary_cts_hdul[1:]:
-        primary_frame_cts[np.isnan(primary_frame_cts)] = 0
+    for primary_cts_frame in primary_cts_hdul[1:]:
+        primary_cts_data = primary_cts_frame.data
+        primary_cts_data[np.isnan(primary_cts_data)] = 0
 
-        new_hdu = fits.ImageHDU(primary_frame_cts, primary_frame_cts.header)
+        new_hdu = fits.ImageHDU(primary_cts_data, primary_cts_frame.header)
         new_hdulist.append(new_hdu)
 
     # Write the counts data to a new image
