@@ -251,6 +251,7 @@ def test_update_mask(mask_fname, exp_fname):
     assert mask_data[0, 0] == 0
     assert mask_data[1, 1] == 0
     assert mask_data[2, 2] == 1
+    assert mask_data[3, 3] == 0
 
 
 def test_apply_mask(data_fname, mask_fname):

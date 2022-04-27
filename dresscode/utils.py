@@ -136,7 +136,7 @@ def update_mask(
     for mk_frame, ex_frame in zip(hdulist_mk[1:], hdulist_ex[1:]):
         # set mask pixels to 0 that are NaN in the exposure map or whose exposure time is very small
         new_mask = mk_frame.data
-        excl_vals = np.isnan(ex_frame.data) & (ex_frame.data < 1)
+        excl_vals = np.isnan(ex_frame.data) | (ex_frame.data <= 1)
         new_mask[excl_vals] = 0
         new_hdu = fits.ImageHDU(new_mask, mk_frame.header)
         new_hdulist.append(new_hdu)

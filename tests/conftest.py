@@ -26,8 +26,9 @@ def mask_fname():
 
 @pytest.fixture
 def exp_fname():
-    data = 8 * np.ones((10, 10), dtype=np.uint8)
+    data = 8 * np.ones((10, 10), dtype=np.float32)
     data[1, 1] = 0
+    data[3, 3] = np.nan
     yield from fits_file_gen(data, "_ex_corr.img")
 
 
