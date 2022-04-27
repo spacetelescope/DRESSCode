@@ -14,7 +14,6 @@ setup(
             "dc-uvotexpmap=dresscode.uvotexpmap:main",
             "dc-uvotskycorr2=dresscode.uvotskycorr2:main",
             "dc-uvotskylss=dresscode.uvotskylss:main",
-            "dc-sort_by_year=dresscode.sort_by_year:main",
             "dc-uvotimsum=dresscode.uvotimsum:main",
             "dc-corrections=dresscode.corrections:main",
             "dc-calibration=dresscode.calibration:main",
