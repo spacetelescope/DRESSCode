@@ -16,6 +16,7 @@ import shutil
 import subprocess
 from argparse import ArgumentParser
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional, Sequence
 
 import numpy as np
@@ -27,8 +28,8 @@ from dresscode.utils import check_filter, load_config, norm
 @dataclass(frozen=True)
 class FilePatternItem:
     name: str = ""
-    in_file_pattern: str = None
-    out_file_type: str = None
+    in_file_pattern: str = ""
+    out_file_type: str = ""
     uvotimsum_method: str | None = None
 
 
@@ -87,15 +88,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     galaxy = config["galaxy"]
     path = config["path"] + galaxy + "/working_dir/"
 
-    # clear out the allfile and sum file for each filter/data type
-    for filetype in FILE_TYPES_TO_SUM:
-        for filter in FILTER_TYPES:
-            allfname = f"{path}all_{filter}_{filetype.out_file_type}.img"
-            if os.path.isfile(allfname):
-                os.remove(allfname)
-            sumfname = f"{path}sum_{filter}_{filetype.out_file_type}.img"
-            if filetype.uvotimsum_method and os.path.isfile(sumfname):
-                os.remove(sumfname)
+    # clear out the all / sum images
+    for img_type in ["all", "sum"]:
+        fname_pattern = f"{img_type}_*.img"
+        [Path.unlink(f, missing_ok=True) for f in Path(path).glob(fname_pattern)]
 
     # for diff. image types, append frames to one "total" image.
 
