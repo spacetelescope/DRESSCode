@@ -32,6 +32,7 @@ def test_fmt_outputs(fmt, tmp_path: Path):
     assert len(list(tmp_path.glob(f"*.{fmt}"))) == 3 * 2
 
 
+@pytest.mark.skipif(os.getenv("CI") == "true", reason="Skip on CI")
 def test_args_planes(tmp_path: Path):
 
     args = [
@@ -50,6 +51,7 @@ def test_args_planes(tmp_path: Path):
     assert len(list(tmp_path.glob(f"*.png"))) == 3 * 3
 
 
+@pytest.mark.skipif(os.getenv("CI") == "true", reason="Skip on CI")
 def test_args_cobine(tmp_path: Path):
 
     args = [
