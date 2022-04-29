@@ -1,8 +1,10 @@
 import tempfile
+from pathlib import Path
 
 import numpy as np
 import pytest
 from astropy.io import fits
+from fits2img import IMAGE_TYPES
 
 
 def fits_file_gen(data, suffix=".img"):
@@ -36,3 +38,19 @@ def exp_fname():
 def data_fname():
     data = np.random.random((10, 10))
     yield from fits_file_gen(data, "_sk_corr.img")
+
+
+@pytest.fixture
+def final_fits_path(tmp_path: Path):
+    filters = ["um2", "uw2", "uw1"]
+    for filt in filters:
+        fits_path = tmp_path / f"NGC0628_full_final_{filt}_Jy.fits"
+
+        data_cube = []
+        [data_cube.append(np.random.random((100, 100))) for _ in IMAGE_TYPES]
+
+        header = fits.Header({"EX_DATA": "example header"})
+        hdu = fits.PrimaryHDU(data=data_cube, header=header)
+        hdu.writeto(fits_path)
+
+    yield tmp_path

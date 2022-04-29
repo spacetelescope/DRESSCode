@@ -4,21 +4,16 @@ Not intended to be run in CI since the script is a part of CI
 """
 
 
-import os
 from pathlib import Path
 
 import fits2img
 import pytest
 
-# location of output files from a finished pipeline run
-final_image_dir = "~/Documents/SWIFT_data/NGC0628/working_dir"
 
-
-@pytest.mark.skipif(os.getenv("CI") == "true", reason="Skip on CI")
 @pytest.mark.parametrize("fmt", [None, "png", "jpeg"])
-def test_fmt_outputs(fmt, tmp_path: Path):
+def test_fmt_outputs(fmt, final_fits_path: Path, tmp_path: Path):
     # create args
-    args = [final_image_dir, "-o", str(tmp_path)]
+    args = [str(final_fits_path), "-o", str(tmp_path)]
     if fmt:
         args += ["-f", fmt]
     else:
@@ -32,11 +27,10 @@ def test_fmt_outputs(fmt, tmp_path: Path):
     assert len(list(tmp_path.glob(f"*.{fmt}"))) == 3 * 2
 
 
-@pytest.mark.skipif(os.getenv("CI") == "true", reason="Skip on CI")
-def test_args_planes(tmp_path: Path):
+def test_args_planes(final_fits_path: Path, tmp_path: Path):
 
     args = [
-        final_image_dir,
+        str(final_fits_path),
         "-o",
         str(tmp_path),
         "-f",
@@ -48,14 +42,13 @@ def test_args_planes(tmp_path: Path):
     ]
     fits2img.main(args)
     # assert we have files in the tmpdir that match format
-    assert len(list(tmp_path.glob(f"*.png"))) == 3 * 3
+    assert len(list(tmp_path.glob("*.png"))) == 3 * 3
 
 
-@pytest.mark.skipif(os.getenv("CI") == "true", reason="Skip on CI")
-def test_args_cobine(tmp_path: Path):
+def test_args_cobine(final_fits_path: Path, tmp_path: Path):
 
     args = [
-        final_image_dir,
+        str(final_fits_path),
         "-o",
         str(tmp_path),
         "-f",
@@ -68,4 +61,4 @@ def test_args_cobine(tmp_path: Path):
     ]
     fits2img.main(args)
     # assert we have files in the tmpdir that match format
-    assert len(list(tmp_path.glob(f"*.png"))) == 3
+    assert len(list(tmp_path.glob("*.png"))) == 3
