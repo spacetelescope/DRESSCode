@@ -78,7 +78,7 @@ def create_images(
                 ax = axes[planes.index(i)]
             else:
                 fig = plt.figure()
-                fig.subtitle(out_path.stem)
+                fig.suptitle(out_path.stem)
                 ax = fig.add_subplot(1, 1, 1)
 
             gen_img(ax, primary_image, img_type)
