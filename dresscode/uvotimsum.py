@@ -143,8 +143,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print("Calculating coincidence loss correction uncertainty...")
     for filt in FILTER_TYPES:
         coicorr_unc_sq_sum_fname = f"{path}sum_{filt}_coicorr_rel_sq.img"
+        primary_counts_sum_fname = f"{path}sum_{filt}_data.img"
         if os.path.isfile(coicorr_unc_sq_sum_fname):
-            calc_coicorr_uncertainty(coicorr_unc_sq_sum_fname)
+            calc_coicorr_uncertainty(coicorr_unc_sq_sum_fname, primary_counts_sum_fname)
 
     print("Calculating zero point correction factor...")
     for filt in FILTER_TYPES:
@@ -178,18 +179,23 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             f"{path}sum_{filt}_coicorr_unc.img"
         ) as coi_unc_hdul, fits.open(
             f"{path}sum_{filt}_zp_corr_factor.img"
-        ) as zp_corr_hdul:
+        ) as zp_corr_hdul, fits.open(
+            f"{path}sum_{filt}_data.img"
+        ) as primary_cts_hdul:
 
             primary = primary_hdul[1].data
             f_coi = coicorr_hdul[1].data
             coicorr_rel = coi_unc_hdul[1].data
             f_zp = zp_corr_hdul[1].data
+            primary_cts = primary_cts_hdul[1].data
 
-            vals = np.isfinite(primary) & (primary > 0)
-            poisson_rel = np.full_like(primary, np.nan)
-            poisson_rel[vals] = 1.0 / np.sqrt(primary[vals])
+            vals = np.isfinite(primary_cts) & (primary_cts > 0)
+            poisson_rel = np.full_like(primary_cts, np.nan)
+            poisson_rel[vals] = 1.0 / np.sqrt(primary_cts[vals])
 
-            header = primary_hdul[0].header
+            header_primary = primary_hdul[0].header
+            header_image = primary_hdul[1].header
+            header = {**header_primary, **header_image}
             header["PLANE0"] = "primary (counts)"
             header["PLANE1"] = "average coincidence loss correction factor"
             header[
@@ -236,13 +242,17 @@ def calc_summed_corr_factor(primary_counts_sum_fname: str, orig_counts_sum_fname
     orig_counts_sum_hdul.close()
 
 
-def calc_coicorr_uncertainty(coicorr_unc_sq_sum_fname: str):
+def calc_coicorr_uncertainty(
+    coicorr_unc_sq_sum_fname: str, primary_counts_sum_fname: str
+):
     """Calculate coincidence loss correction uncertainty
 
     After summing, take the square root"""
 
     coicorr_unc_sq_hdul = fits.open(coicorr_unc_sq_sum_fname)
-    new_data = np.sqrt(coicorr_unc_sq_hdul[1].data)
+    primary_counts_sum_hdul = fits.open(primary_counts_sum_fname)
+    # this is in counts but we need to convert to fraction by dividing by corrected summed counts (primary)
+    new_data = np.sqrt(coicorr_unc_sq_hdul[1].data) / primary_counts_sum_hdul[1].data
 
     # todo: update the header for this data
     new_hdu_header = fits.PrimaryHDU(header=coicorr_unc_sq_hdul[0].header)
