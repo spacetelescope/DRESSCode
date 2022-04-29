@@ -71,14 +71,14 @@ def create_images(
 
             primary_image = image_data[i, :, :]
 
-            out_fname = f"{p.stem}_{img_type}.{img_fmt}"
-            out_path = Path(output_path / out_fname)
-
             if combine:
                 ax = axes[planes.index(i)]
             else:
+                out_fname = f"{p.stem}_{img_type}.{img_fmt}"
+                out_path = output_path / out_fname
+
                 fig = plt.figure()
-                fig.suptitle(out_path.stem)
+                fig.suptitle(p.stem.replace("_", " "), fontsize=10)
                 ax = fig.add_subplot(1, 1, 1)
 
             gen_img(ax, primary_image, img_type)
@@ -94,7 +94,7 @@ def create_images(
                 print(f"Output: {out_path}")
 
         if combine:
-            out_path = Path(f"{output_path}/{p.stem}.{img_fmt}")
+            out_path = output_path / f"{p.stem}.{img_fmt}"
             plt.savefig(
                 out_path,
                 bbox_inches="tight",
