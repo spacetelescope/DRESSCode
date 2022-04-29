@@ -193,9 +193,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             poisson_rel = np.full_like(primary_cts, np.nan)
             poisson_rel[vals] = 1.0 / np.sqrt(primary_cts[vals])
 
-            header_primary = primary_hdul[0].header
-            header_image = primary_hdul[1].header
-            header = {**header_primary, **header_image}
+            header = primary_hdul[1].header
             header["PLANE0"] = "primary (counts)"
             header["PLANE1"] = "average coincidence loss correction factor"
             header[
