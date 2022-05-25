@@ -19,7 +19,11 @@ def load_config(config_file):
     """Function to open and read the configuration file"""
     config = {}
     with open(config_file) as configfile:
-        for line in configfile:
+        for line in (
+            line.strip()
+            for line in configfile
+            if line.strip() and not line.startswith("#")
+        ):
             splitline = line.split("=")
             key, value = splitline[0].strip(), splitline[1].strip()
             config[key] = value
