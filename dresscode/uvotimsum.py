@@ -162,49 +162,59 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         expmap_sumfile = sum_fname.replace("_data.img", "_ex.img")
         out_fname = sum_fname.replace("_data.img", "_nm.img")
         if os.path.isfile(sum_fname) and os.path.isfile(expmap_sumfile):
-            # open the files w/ astropy
-            sum_hdu = fits.open(sum_fname)
-            expmap_sum_hdu = fits.open(expmap_sumfile)
-            norm(sum_hdu, expmap_sum_hdu, out_fname)
-            sum_hdu.close()
-            expmap_sum_hdu.close()
+            with fits.open(sum_fname) as sum_hdu, fits.open(
+                expmap_sumfile
+            ) as expmap_sum_hdu:
+                norm(sum_hdu, expmap_sum_hdu, out_fname)
 
     # combine into a single file for each filter
     print("Saving combined images...")
     for filt in FILTER_TYPES:
+        primary_fname = f"{path}sum_{filt}_nm.img"
+        coicorr_factor_fname = f"{path}sum_{filt}_coicorr_factor.img"
+        coicorr_unc_fname = f"{path}sum_{filt}_coicorr_unc.img"
+        zp_corr_factor_fname = f"{path}sum_{filt}_zp_corr_factor.img"
+        primary_cts_fname = f"{path}sum_{filt}_data.img"
 
-        with fits.open(f"{path}sum_{filt}_nm.img") as primary_hdul, fits.open(
-            f"{path}sum_{filt}_coicorr_factor.img"
-        ) as coicorr_hdul, fits.open(
-            f"{path}sum_{filt}_coicorr_unc.img"
-        ) as coi_unc_hdul, fits.open(
-            f"{path}sum_{filt}_zp_corr_factor.img"
-        ) as zp_corr_hdul, fits.open(
-            f"{path}sum_{filt}_data.img"
-        ) as primary_cts_hdul:
+        if (
+            os.path.isfile(primary_fname)
+            and os.path.isfile(coicorr_factor_fname)
+            and os.path.isfile(coicorr_unc_fname)
+            and os.path.isfile(zp_corr_factor_fname)
+            and os.path.isfile(primary_cts_fname)
+        ):
+            with fits.open(primary_fname) as primary_hdul, fits.open(
+                coicorr_factor_fname
+            ) as coicorr_hdul, fits.open(coicorr_unc_fname) as coi_unc_hdul, fits.open(
+                zp_corr_factor_fname
+            ) as zp_corr_hdul, fits.open(
+                primary_cts_fname
+            ) as primary_cts_hdul:
 
-            primary = primary_hdul[1].data
-            f_coi = coicorr_hdul[1].data
-            coicorr_rel = coi_unc_hdul[1].data
-            f_zp = zp_corr_hdul[1].data
-            primary_cts = primary_cts_hdul[1].data
+                primary = primary_hdul[1].data
+                f_coi = coicorr_hdul[1].data
+                coicorr_rel = coi_unc_hdul[1].data
+                f_zp = zp_corr_hdul[1].data
+                primary_cts = primary_cts_hdul[1].data
 
-            vals = np.isfinite(primary_cts) & (primary_cts > 0)
-            poisson_rel = np.full_like(primary_cts, np.nan)
-            poisson_rel[vals] = 1.0 / np.sqrt(primary_cts[vals])
+                vals = np.isfinite(primary_cts) & (primary_cts > 0)
+                poisson_rel = np.full_like(primary_cts, np.nan)
+                poisson_rel[vals] = 1.0 / np.sqrt(primary_cts[vals])
 
-            header = primary_hdul[1].header
-            header["PLANE0"] = "primary (counts)"
-            header["PLANE1"] = "average coincidence loss correction factor"
-            header[
-                "PLANE2"
-            ] = "relative coincidence loss correction uncertainty (fraction)"
-            header["PLANE3"] = "average zero point correction factor"
-            header["PLANE4"] = "relative Poisson noise (fraction)"
+                header = primary_hdul[1].header
+                header["PLANE0"] = "primary (counts)"
+                header["PLANE1"] = "average coincidence loss correction factor"
+                header[
+                    "PLANE2"
+                ] = "relative coincidence loss correction uncertainty (fraction)"
+                header["PLANE3"] = "average zero point correction factor"
+                header["PLANE4"] = "relative Poisson noise (fraction)"
 
-            new_datacube = np.array([primary, f_coi, coicorr_rel, f_zp, poisson_rel])
-            sum_hdu = fits.PrimaryHDU(new_datacube, header)
-            sum_hdu.writeto(path + "total_sum_" + filt + "_nm.fits", overwrite=True)
+                new_datacube = np.array(
+                    [primary, f_coi, coicorr_rel, f_zp, poisson_rel]
+                )
+                sum_hdu = fits.PrimaryHDU(new_datacube, header)
+                sum_hdu.writeto(path + "total_sum_" + filt + "_nm.fits", overwrite=True)
 
     if not any_error:
         print("All frames successfully co-added")
