@@ -105,9 +105,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         # calc the squared coincidence loss uncertainty in counts
         print("Calculating squared coincidence loss uncertainty in counts...")
         sq_coicorr_unc_fname = fname.replace(".img", "_coicorr_unc_sq_cts.img")
-        sq_coicorr_uncert_cts(
-            primary_cts_hdul, corrfactor_unc_hdul, sq_coicorr_unc_fname
-        )
+        coicorr_uncert_cts(primary_cts_hdul, corrfactor_unc_hdul, sq_coicorr_unc_fname)
 
         print("Calculating the zero point correction in counts...")
         zp_corr_cts_fname = fname.replace(".img", "_zp_cts.img")
@@ -383,15 +381,16 @@ def rem_corr_factor(data_hdulist: HDUList, corrfactor_hdul: HDUList, out_fname: 
     return new_hdulist
 
 
-def sq_coicorr_uncert_cts(
+def coicorr_uncert_cts(
     data_hdulist: HDUList, corrfactor_unc_hdul: HDUList, out_fname: str
 ):
-    """Calculate the squared coincidence loss correction uncertainty (in counts)"""
+    """Calculate the coincidence loss correction uncertainty in counts"""
 
     # "coincidence loss correction uncertainty":
     # convert the uncertainty from a relative fraction to an uncertainty in counts
     # multiply the rel_unc frame with the primary frame (in counts).
-    # Take the squares of all the frames, and then sum these squares with uvotimsum.
+
+    # todo: Take the squares of all the frames, so that we sum the squares with uvotimsum
 
     new_hdu_header = fits.PrimaryHDU(header=data_hdulist[0].header)
     new_hdulist = fits.HDUList([new_hdu_header])
@@ -399,12 +398,19 @@ def sq_coicorr_uncert_cts(
     for primary_frame, corr_factor_rel_unc_frame in zip(
         data_hdulist[1:], corrfactor_unc_hdul[1:]
     ):
-        squared_coi_loss_corr_unc_cts = (
-            primary_frame.data * corr_factor_rel_unc_frame.data
-        ) ** 2
-        squared_coi_loss_corr_unc_cts[np.isnan(squared_coi_loss_corr_unc_cts)] = 0
         header = primary_frame.header
-        new_hdu = fits.ImageHDU(squared_coi_loss_corr_unc_cts, header)
+
+        coi_loss_corr_unc_cts = primary_frame.data * corr_factor_rel_unc_frame.data
+        coi_loss_corr_unc_cts[np.isnan(coi_loss_corr_unc_cts)] = 0
+
+        # todo: square before summing
+        # squared_coi_loss_corr_unc_cts = (
+        #     primary_frame.data * corr_factor_rel_unc_frame.data
+        # ) ** 2
+        # squared_coi_loss_corr_unc_cts[np.isnan(squared_coi_loss_corr_unc_cts)] = 0
+        # new_hdu = fits.ImageHDU(squared_coi_loss_corr_unc_cts, header)
+
+        new_hdu = fits.ImageHDU(coi_loss_corr_unc_cts, header)
         new_hdulist.append(new_hdu)
 
     # write the squared coincidence loss correction uncertainty to a new image
