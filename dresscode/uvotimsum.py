@@ -22,7 +22,7 @@ from typing import Optional, Sequence
 import numpy as np
 from astropy.io import fits
 
-from dresscode.utils import check_filter, load_config, norm
+from dresscode.utils import check_filter, load_config, norm, update_mask
 
 
 @dataclass(frozen=True)
@@ -35,43 +35,49 @@ class FilePatternItem:
 
 # we need to sum primary data, coicorr, coicorr_rel, masks, and exposure maps for each filter
 FILTER_TYPES = ["um2", "uw2", "uw1"]
+# masks need to be appended so that they can be used during the co-addition step for the images but aren't summed
+mask_file_pattern = FilePatternItem(
+    name="mask",
+    in_file_pattern="_mk_corr_new.img",
+    out_file_type="mk",
+)
+exp_file_pattern = FilePatternItem(
+    name="exposure map",
+    in_file_pattern="_ex_corr.img",
+    out_file_type="ex",
+    uvotimsum_method="expmap",
+)
+primary_file_pattern = FilePatternItem(
+    name="primary image",
+    in_file_pattern="_sk_corr_coi_lss_zp_dn.img",
+    out_file_type="data",
+    uvotimsum_method="grid",
+)
+orig_counts_file_pattern = FilePatternItem(
+    name="original counts",
+    in_file_pattern="_sk_corr_coi_lss_zp_dn_oc.img",
+    out_file_type="orig_counts",
+    uvotimsum_method="grid",
+)
+coi_corr_file_pattern = FilePatternItem(
+    name="coi corr factors relative uncertainty",
+    in_file_pattern="_sk_corr_coicorr_unc_sq_cts.img",
+    out_file_type="coicorr_rel_sq",
+    uvotimsum_method="grid",
+)
+zero_pt_corr_file_pattern = FilePatternItem(
+    name="zero point corr factor in count",
+    in_file_pattern="_sk_corr_zp_cts.img",
+    out_file_type="zp_corr_cts",
+    uvotimsum_method="grid",
+)
 FILE_TYPES_TO_SUM = [
-    # masks need to be appended so that they can be used during the co-addition step for the images but aren't summed
-    FilePatternItem(
-        name="mask",
-        in_file_pattern="_mk_corr_new.img",
-        out_file_type="mk",
-    ),
-    FilePatternItem(
-        name="exposure map",
-        in_file_pattern="_ex_corr.img",
-        out_file_type="ex",
-        uvotimsum_method="expmap",
-    ),
-    FilePatternItem(
-        name="primary image",
-        in_file_pattern="_sk_corr_coi_lss_zp_dn.img",
-        out_file_type="data",
-        uvotimsum_method="grid",
-    ),
-    FilePatternItem(
-        name="original counts",
-        in_file_pattern="_sk_corr_coi_lss_zp_dn_oc.img",
-        out_file_type="orig_counts",
-        uvotimsum_method="grid",
-    ),
-    FilePatternItem(
-        name="coi corr factors relative uncertainty",
-        in_file_pattern="_sk_corr_coicorr_unc_sq_cts.img",
-        out_file_type="coicorr_rel_sq",
-        uvotimsum_method="grid",
-    ),
-    FilePatternItem(
-        name="zero point corr factor in count",
-        in_file_pattern="_sk_corr_zp_cts.img",
-        out_file_type="zp_corr_cts",
-        uvotimsum_method="grid",
-    ),
+    mask_file_pattern,
+    exp_file_pattern,
+    primary_file_pattern,
+    orig_counts_file_pattern,
+    coi_corr_file_pattern,
+    zero_pt_corr_file_pattern,
 ]
 
 
@@ -92,6 +98,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     for img_type in ["all", "sum"]:
         fname_pattern = f"{img_type}_*.img"
         [Path.unlink(f, missing_ok=True) for f in Path(path).glob(fname_pattern)]
+
+    # prior to summing, update the masks to ignore bad exposure data
+    mask_fnames = [
+        filename
+        for filename in sorted(os.listdir(path))
+        if filename.endswith("mk_corr.img") and not filename.startswith(".")
+    ]
+    for mask_fname in mask_fnames:
+        mask_fname_path = path + mask_fname
+        exp_fname = mask_fname_path.replace("mk_corr", "ex_corr")
+        output_fname = mask_fname_path.replace("mk_corr", "mk_corr_new")
+        update_mask(mask_fname_path, exp_fname, output_fname)
 
     # for diff. image types, append frames to one "all" image.
     for filetype in FILE_TYPES_TO_SUM:
@@ -229,6 +247,7 @@ def calc_summed_corr_factor(primary_counts_sum_fname: str, orig_counts_sum_fname
 
     primary_counts_sum_hdul = fits.open(primary_counts_sum_fname)
     orig_counts_sum_hdul = fits.open(orig_counts_sum_fname)
+
     finite_vals = np.isfinite(primary_counts_sum_hdul[1].data) & (
         orig_counts_sum_hdul[1].data > 0
     )
@@ -241,6 +260,7 @@ def calc_summed_corr_factor(primary_counts_sum_fname: str, orig_counts_sum_fname
     # todo: update the header for this data
     new_hdu_header = fits.PrimaryHDU(header=primary_counts_sum_hdul[0].header)
     new_hdulist = fits.HDUList([new_hdu_header])
+
     new_hdu = fits.ImageHDU(sum_coi_corr_factor, primary_counts_sum_hdul[1].header)
     new_hdulist.append(new_hdu)
     new_fname = primary_counts_sum_fname.replace("data.img", "coicorr_factor.img")

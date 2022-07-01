@@ -59,16 +59,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         # remove pixels that are NaN in the exposure map and pixels that have very low exposure times
         mask_fname = fname.replace("_sk_corr.img", "_mk_corr.img")
         exp_fname = mask_fname.replace("mk", "ex")
-        new_mask_fname = mask_fname.replace(".img", "_new.img")
-        new_mask_hdul = update_mask(mask_fname, exp_fname, new_mask_fname)
 
         # we manipulate the data directly, so open it in memory
         unmasked_hdul = fits.open(fname)
+        mask_hdul = fits.open(mask_fname)
 
         # apply mask to data, set 0's in mask to nan's
         # coincidence loss correction factor & uncertainties need to take into account missing data
         masked_hdul_fname = fname.replace(".img", "_mk.img")
-        masked_hdul = apply_mask(unmasked_hdul, new_mask_hdul, masked_hdul_fname)
+        masked_hdul = apply_mask(unmasked_hdul, mask_hdul, masked_hdul_fname)
 
         # apply normalization to data to convert to counts/sec
         norm_hdul_fname = fname.replace(".img", "_nm.img")
