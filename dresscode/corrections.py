@@ -20,7 +20,6 @@ from dresscode.utils import (
     check_filter,
     load_config,
     norm,
-    update_mask,
     windowed_finite_vals,
     windowed_std,
     windowed_sum,
