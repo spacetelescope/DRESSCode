@@ -175,10 +175,14 @@ def norm(
             & (exp_frame.data > 0)
         )
         if denorm:
-            norm_factor = 1.0 / exp_frame.data[finite_vals]
+            new_frame[finite_vals] = (
+                data_frame.data[finite_vals] * exp_frame.data[finite_vals]
+            )
         else:
-            norm_factor = exp_frame.data[finite_vals]
-        new_frame[finite_vals] = data_frame.data[finite_vals] / norm_factor
+            new_frame[finite_vals] = (
+                data_frame.data[finite_vals] / exp_frame.data[finite_vals]
+            )
+
         new_hdu = fits.ImageHDU(new_frame, data_frame.header)
         new_hdulist.append(new_hdu)
 

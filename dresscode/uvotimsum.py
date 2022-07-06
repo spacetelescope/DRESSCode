@@ -253,14 +253,16 @@ def calc_summed_corr_factor(primary_counts_sum_fname: str, orig_counts_sum_fname
 def calc_coicorr_uncertainty(
     coicorr_unc_sq_sum_fname: str, primary_counts_sum_fname: str
 ):
-    """Calculate coincidence loss correction uncertainty
-
-    After summing, take the square root"""
+    """Calculate coincidence loss correction uncertainty"""
 
     coicorr_unc_sq_hdul = fits.open(coicorr_unc_sq_sum_fname)
     primary_counts_sum_hdul = fits.open(primary_counts_sum_fname)
     # this is in counts but we need to convert to fraction by dividing by corrected summed counts (primary)
-    new_data = np.sqrt(coicorr_unc_sq_hdul[1].data) / primary_counts_sum_hdul[1].data
+
+    new_data = coicorr_unc_sq_hdul[1].data / primary_counts_sum_hdul[1].data
+
+    # todo: After summing, take the square root
+    # new_data = np.sqrt(coicorr_unc_sq_hdul[1].data) / primary_counts_sum_hdul[1].data
 
     # todo: update the header for this data
     new_hdu_header = fits.PrimaryHDU(header=coicorr_unc_sq_hdul[0].header)
