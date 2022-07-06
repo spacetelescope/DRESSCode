@@ -219,7 +219,7 @@ def coicorr(hdulist: HDUList, fname: str):
         # Write the corrected data, coincidence loss correction factor, and relative uncertainty
         coi_loss_corr_hdl.append(fits.ImageHDU(new_data, header))
         corrfactor_hdl.append(fits.ImageHDU(corrfactor, header))
-        coicorr_unc_hdl.append(fits.ImageHDU(coicorr_unc, header))
+        coicorr_unc_hdl.append(fits.ImageHDU(coicorr_rel, header))
 
     new_fname = fname.replace(".img", "_coi.img")
     coi_loss_corr_hdl.writeto(new_fname, overwrite=True)
@@ -425,7 +425,7 @@ def coicorr_uncert_cts(
 
 
 def zp_corr_cts(data_hdulist: HDUList, out_fname: str):
-    """Calculate the zero point correction (in counts)
+    """undo the zero point correction for summing / later calculation of weighted factor
 
     data_hdulist (in counts)
         needs to contain the ZPCORR header
