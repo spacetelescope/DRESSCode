@@ -16,14 +16,14 @@ RUN \
 USER heasoft
 
 ENV CALDB=/opt/heasoft/caldb \
-    PATH=/opt/heasoft/wcstools-3.9.6/bin:$PATH
+    PATH=/opt/heasoft/wcstools-3.9.7/bin:$PATH
 
 RUN \
     # get/make wcstools
-    wget --no-verbose tdc-www.harvard.edu/software/wcstools/wcstools-3.9.6.tar.gz \
-    && tar -xf wcstools-3.9.6.tar.gz -C /opt/heasoft \
-    && rm wcstools-3.9.6.tar.gz \
-    && cd /opt/heasoft/wcstools-3.9.6 \
+    wget --no-verbose tdc-www.harvard.edu/software/wcstools/wcstools-3.9.7.tar.gz \
+    && tar -xf wcstools-3.9.7.tar.gz -C /opt/heasoft \
+    && rm wcstools-3.9.7.tar.gz \
+    && cd /opt/heasoft/wcstools-3.9.7 \
     && make all \
     # get caldb
     && cd $CALDB \
