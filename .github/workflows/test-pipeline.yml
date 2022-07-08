@@ -11,15 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
       - name: Cache Raw_data
         id: cache-test-images
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/Raw_data
           key: NGC0628-test-raw-data-${{ hashFiles('tests/download_test_data.bash') }}
@@ -56,7 +56,7 @@ jobs:
           docker run --user root --rm -t -v ~/dresscode-data:/data dresscodeswift/dresscode:latest /bin/bash /opt/dresscode/tests/test_pipeline.bash /data
 
       - name: Save pipeline output
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: final-fits
           path: |
@@ -64,7 +64,7 @@ jobs:
 
       - name: Login to DockerHub
         if: github.ref == 'refs/heads/main'
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -85,7 +85,7 @@ jobs:
 
       - name: Publish to imgur
         if: ${{ github.event_name == 'pull_request' }}
-        uses: devicons/public-upload-to-imgur@v2.2.1
+        uses: devicons/public-upload-to-imgur@v2.2.2
         id: publish-to-imgur
         with:
           path: "*.png"
@@ -104,7 +104,7 @@ jobs:
 
       - name: Comment PR
         if: ${{ github.event_name == 'pull_request' }}
-        uses: unsplash/comment-on-pr@v1.3.0
+        uses: unsplash/comment-on-pr@v1.3.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
