@@ -30,17 +30,20 @@ jobs:
           mkdir ~/Raw_data
           bash tests/download_test_data.bash ~/Raw_data
 
+      - name: Pull docker images
+        run: |
+          docker pull dresscodeswift/heasoft-caldb-wcstools:latest
+          docker pull dresscodeswift/dresscode:latest
+
       - name: Build the dependency Docker image
         if: github.ref == 'refs/heads/main'
         run: |
-          docker pull dresscodeswift/heasoft-caldb-wcstools:latest
           docker build --tag dresscodeswift/heasoft-caldb-wcstools:latest \
             --cache-from dresscodeswift/heasoft-caldb-wcstools:latest \
             -f Docker/heasoft-caldb-wcstools.dockerfile .
 
       - name: Build the DRESSCode Docker image
         run: |
-          docker pull dresscodeswift/dresscode:latest
           docker build --tag dresscodeswift/dresscode:latest \
           --cache-from dresscodeswift/dresscode:latest \
           -f Docker/dockerfile .
