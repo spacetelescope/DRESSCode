@@ -52,19 +52,19 @@ All subsequent steps are for Ubuntu platforms:
 
 ### Install wcstools
 
-1. Download the current version (3.9.6) from <http://tdc-www.harvard.edu/software/wcstools/wcstools-3.9.6.tar.gz>
+1. Download the current version (3.9.7) from <http://tdc-www.harvard.edu/software/wcstools/wcstools-3.9.7.tar.gz>
 2. Put the tarfile in your home folder and untar
 3. Install the tools:
 
     ```sh
-    cd wcstools-3.9.6
+    cd wcstools-3.9.7
     make all
     ```
 
 4. Add the following line to your `.bashrc` (or equivalent):
 
     ```sh
-    export PATH=~/wcstools-3.9.6/bin:$PATH
+    export PATH=~/wcstools-3.9.7/bin:$PATH
     ```
 
 More info can be found on the wcstools <a href="http://tdc-www.harvard.edu/wcstools/" target="_blank">website</a>.
