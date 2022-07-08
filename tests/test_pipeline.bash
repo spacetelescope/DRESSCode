@@ -28,10 +28,6 @@ file="$CUR_DIR/config.txt"
 {
     echo "path = $DATA_DIR/"
     echo "galaxy = $GALAXY"
-    echo "years = 2008, 2013"
-    echo "enlarge = yes"
-    echo "add_xpix = 250"
-    echo "add_ypix = 200"
 } > "$file"
 
 # rearranging files into Raw_images directory

@@ -52,23 +52,13 @@ Run the script `dc-uvotskycorr2` to calculate an aspect correction and apply it 
 
 Run the script `dc-uvotskylss` to create large scale sensitivity (lss) maps for all sky images.
 
-### Summing images per observing period
-
-- At this stage, you can only sum images that were taken more or less during the same period. Sort the corrected sky images (and their corresponding exposure maps, lss maps and mask maps) into separate sub-folders according to their observation date, e.g. per year (2007, 2013, …). Observation dates can be checked with the script `dc-header_info`.
-- In the `config.txt` file change the “years” according to the names of the sub-folders you created.
-- Run the script `dc-uvotimsum` to sum all frames per type and per filter and to normalize the total sky images. Image frames for which no aspect correction was found, will automatically be excluded from the sum.
-
 ### Flux corrections
 
-Run the script `dc-corrections` to correct the normalized images for coincidence loss, large scale sensitivity variations and loss of detector sensitivity (i.e. zero point correction).
+Run the script `dc-corrections` to correct the normalized images for coincidence loss, large scale sensitivity variations, and loss of detector sensitivity (i.e. zero point correction).
 
-### Combining the different observing periods
+### Summing images
 
-Run the script `dc-combine` to combine the images from the different observation periods. The script will first align and reproject all corrected images from the different periods before stacking them (per filter). It will use the largest image as the reference image, and will report this as follows:
-
-`Image sum_uw2_nm_coilsszp_c.img of year 2018B will be used as reference image. Please verify whether this image is large enough to cover all other images.`
-
-Verify whether this image covers the FOVs of all other images that need to be stacked. If this is not the case, change the flag “enlarge” to “yes” in the config.txt file, and specify the number of pixels in the x- and y-direction that need to be added to the reference image in order to cover all other images (e.g. `add_xpix = 200, add_ypix = 100`).
+- Run the script `dc-uvotimsum` to sum all frames per type and per filter and to normalize the total sky images. Image frames for which no aspect correction was found, will automatically be excluded from the sum.
 
 ### Calibration and aperture correction
 

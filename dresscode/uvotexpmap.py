@@ -120,8 +120,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             )
 
         # Check if the exposure map was successfully created.
-        file = open(terminal_output_file, "r")
-        text = file.read()
+        with open(terminal_output_file) as fh:
+            text = fh.read()
 
         # If the word "error" is encountered or if the words "all checksums are valid" are
         # not encountered, print an error message.
