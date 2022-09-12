@@ -2,7 +2,6 @@ name: "Build docker images & run pipeline"
 
 on:
   workflow_dispatch:
-  push: # todo: remove
 
 jobs:
   build_heasoft_image:
@@ -17,7 +16,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build heasoft image and push
+      - name: Build HEASoft image and push
         run: |
           bash Docker/heasoft_image.sh
 
