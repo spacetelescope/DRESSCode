@@ -2,31 +2,36 @@
 
 set -eou pipefail
 
-# this script will download and build the heasoft swift docker image
-# it will use a ./heasoft/ directory to download files into
-# after build complete, push the image with:
+# this script downloads and builds the heasoft SWIFT docker image
+# it will use a ./heasoft_{DATE}/ directory as a working directory
+# after docker build is complete, push the image with:
 # docker push dresscodeswift/heasoft:"$HEASOFT_VER".swift
-# visit https://heasarc.gsfc.nasa.gov/docs/software/heasoft/docker.html for more information
+# See your pushed image at https://hub.docker.com/repository/docker/dresscodeswift/heasoft
 
+# For heasoft docker instructions visit
+# https://heasarc.gsfc.nasa.gov/docs/software/heasoft/docker.html
+
+# some installations of docker require `sudo`
 export DOCKER="docker"
 # export DOCKER="sudo docker"
 
-mkdir -p heasoft
+# create a unique workdir
+WORKDIR="heasoft_$(date '+%FT%H-%M-%S')"
+mkdir -p "$WORKDIR"
 
 # download heasoft (2.8 GB)
-wget -nv -O heasoft/heasoft.tar.gz \
+wget -nv -O "$WORKDIR"/heasoft.tar.gz \
     "https://heasarc.gsfc.nasa.gov/cgi-bin/Tools/tarit/tarit.pl?mode=download&arch=src&src_pc_linux_ubuntu=Y&src_other_specify=&mission=swift&general=attitude&general=caltools&general=futils&general=fimage&general=heasarc&general=heasptools&general=heatools&general=heagen&general=fv&general=timepkg&xanadu=ximage&xanadu=xronos&xanadu=xspec"
 
 # extract
-mkdir -p heasoft/heasoft_software
-tar -xf heasoft/heasoft.tar.gz -C heasoft/heasoft_software --strip-components=1
+tar -xf "$WORKDIR"/heasoft.tar.gz -C "$WORKDIR"
 
-# build the docker iamge
-(cd heasoft/heasoft_software/Docker && make)
-
-# extract the version number from the Makefile
-HEASOFT_VER="$(awk '/^IMAGE_VERSION/ {print $3}' Docker/Makefile)"
+# extract the version number from the heasoft directory name
+HEASOFT_VER=$(find "$WORKDIR" -mindepth 1 -maxdepth 1 -type d | sed -r "s/$WORKDIR\/heasoft-(.*)$/\1/")
 export HEASOFT_VER
 
-# docker tag with our dockerhub org
+# build the docker iamge
+(cd "$WORKDIR"/heasoft-"$HEASOFT_VER"/Docker && make)
+
+# docker tag with dresscode organization
 $DOCKER tag heasoft:"$HEASOFT_VER" dresscodeswift/heasoft:"$HEASOFT_VER".swift
