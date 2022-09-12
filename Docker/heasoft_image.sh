@@ -31,8 +31,8 @@ HEASOFT_VER=$(find "$WORKDIR" -mindepth 1 -maxdepth 1 -type d | sed -r "s/$WORKD
 export HEASOFT_VER
 echo "HEASoft version: $HEASOFT_VER"
 
-echo "build docker iamge"
+echo "build docker image"
 (cd "$WORKDIR"/heasoft-"$HEASOFT_VER"/Docker && make)
 
 # docker tag with dresscode organization
-$DOCKER tag heasoft:"$HEASOFT_VER" dresscodeswift/heasoft:"$HEASOFT_VER".swift
+$DOCKER tag heasoft:v"$HEASOFT_VER" dresscodeswift/heasoft:v"$HEASOFT_VER".swift

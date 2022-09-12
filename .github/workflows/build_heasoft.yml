@@ -2,6 +2,7 @@ name: "Build docker images & run pipeline"
 
 on:
   workflow_dispatch:
+  push:
 
 jobs:
   build_heasoft_image:
