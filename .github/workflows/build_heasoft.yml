@@ -19,7 +19,7 @@ jobs:
 
       - name: Build heasoft image and push
         run: |
-          Docker/heasoft_image.sh
+          bash Docker/heasoft_image.sh
 
       - name: Push the heasoft image to dockerhub
         run: |
