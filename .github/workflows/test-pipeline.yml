@@ -11,15 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
+      - name: Set Docker Tag to shortened commit hash
+        run: |
+          echo "DOCKER_TAG=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
+
       - name: Cache Raw_data
         id: cache-test-images
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/Raw_data
           key: NGC0628-test-raw-data-${{ hashFiles('tests/download_test_data.bash') }}
@@ -44,7 +48,9 @@ jobs:
 
       - name: Build the DRESSCode Docker image
         run: |
-          docker build --tag dresscodeswift/dresscode:latest \
+          docker build \
+          --tag dresscodeswift/dresscode:latest \
+          --tag dresscodeswift/dresscode:${{ env.DOCKER_TAG }} \
           --cache-from dresscodeswift/dresscode:latest \
           -f Docker/dockerfile .
 
@@ -56,7 +62,7 @@ jobs:
           docker run --user root --rm -t -v ~/dresscode-data:/data dresscodeswift/dresscode:latest /bin/bash /opt/dresscode/tests/test_pipeline.bash /data
 
       - name: Save pipeline output
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: final-fits
           path: |
@@ -69,17 +75,19 @@ jobs:
           if [[ $FINAL_FILES -ne $EXPECTED_FINAL_FILES ]]; then echo "Number of output files = $FINAL_FILES"; exit 1; fi
 
       - name: Login to DockerHub
-        if: github.ref == 'refs/heads/main'
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push the DRESSCode Docker image commit hash tag
+        run: docker push dresscodeswift/dresscode:${{ env.DOCKER_TAG }}
 
       - name: Push the dependency Docker image
         if: github.ref == 'refs/heads/main'
         run: docker push dresscodeswift/heasoft-caldb-wcstools:latest
 
-      - name: Push the DRESSCode Docker image
+      - name: Push the DRESSCode Docker image latest tag
         if: github.ref == 'refs/heads/main'
         run: docker push dresscodeswift/dresscode:latest
 
@@ -91,7 +99,7 @@ jobs:
 
       - name: Publish to imgur
         if: ${{ github.event_name == 'pull_request' }}
-        uses: devicons/public-upload-to-imgur@v2.2.1
+        uses: devicons/public-upload-to-imgur@v2.2.2
         id: publish-to-imgur
         with:
           path: "*.png"

@@ -8,37 +8,51 @@
 
 ## Images
 
+Compiling and building HEASoft takes a long time (> 1h), so for automated testing we utilize docker and install `HEASoft`, `wcstools`, `caldb`, and `dresscode` into this docker image.
+
+The dresscode image inherits from the caldb & wcstools image, which inherits from the HEASoft image.
+
 | Name | File path | DockerHub | Comment |
 |------------|-----------|-----------|---------|
-|heasoft|[Heasoft website](https://heasarc.gsfc.nasa.gov/lheasoft/docker.html)|[heasoft ![Docker Pulls](https://img.shields.io/docker/pulls/dresscodeswift/heasoft) ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/dresscodeswift/heasoft)](https://hub.docker.com/r/dresscodeswift/heasoft)|heasoft image from [instructions](https://heasarc.gsfc.nasa.gov/lheasoft/docker.html), with SWIFT tools|
-|heasoft w/ caldb & wcstools|[Docker/heasoft-caldb-wcstools.dockerfile](/Docker/heasoft-caldb-wcstools.dockerfile)|[heasoft-caldb-wcstools ![Docker Pulls](https://img.shields.io/docker/pulls/dresscodeswift/heasoft-caldb-wcstools) ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/dresscodeswift/heasoft-caldb-wcstools)](https://hub.docker.com/r/dresscodeswift/heasoft-caldb-wcstools)|adds caldb files and wcstools|
+|HEASoft|[HEASoft website](https://heasarc.gsfc.nasa.gov/lheasoft/docker.html)|[heasoft ![Docker Pulls](https://img.shields.io/docker/pulls/dresscodeswift/heasoft) ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/dresscodeswift/heasoft)](https://hub.docker.com/r/dresscodeswift/heasoft)|HEASoft image from [instructions](https://heasarc.gsfc.nasa.gov/lheasoft/docker.html), with SWIFT tools|
+|HEASoft w/ caldb & wcstools|[Docker/heasoft-caldb-wcstools.dockerfile](/Docker/heasoft-caldb-wcstools.dockerfile)|[heasoft-caldb-wcstools ![Docker Pulls](https://img.shields.io/docker/pulls/dresscodeswift/heasoft-caldb-wcstools) ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/dresscodeswift/heasoft-caldb-wcstools)](https://hub.docker.com/r/dresscodeswift/heasoft-caldb-wcstools)|adds `caldb` files and `wcstools`|
 |dresscode|[Docker/dockerfile](/Docker/dockerfile)|[dresscode ![Docker Pulls](https://img.shields.io/docker/pulls/dresscodeswift/dresscode) ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/dresscodeswift/dresscode)](https://hub.docker.com/r/dresscodeswift/dresscode)|adds DRESSCode pipeline|
 
-## GitHub Actions
+## GitHub Workflows
 
-- [push docker image on merge to `main` branch](/.github/workflows/main.yml)
-- [testing (WIP)](/.github/workflows/test-pipeline.yml)
+Docker images are built in GitHub Workflows and published to dockerhub.
 
-## Testing
+The HEASoft image, due to its long build time, is only made on demand, from the [Github Actions](https://github.com/spacetelescope/DRESSCode/actions) page.
 
-The following mounts a local volume into the docker image and runs the `test_pipeline.bash` script
+The wcstools/caldb image is built and pushed on all commits to `main` branch.
+
+The dresscode image is built on every commit, and tested, but only pushed to dockerhub on commits to `main` branch.
+
+GitHub workflows build and push our docker images to dockerhub.
+
+- [HEASoft image workflow](/.github/workflows/build_heasoft.yml)
+- [DRESSCode image workflow](/.github/workflows/test-pipeline.yml) (only pushes to dockerhub on commits to `main` branch)
+
+## Build Examples
+
+### HEASoft Image
+
+To build and push the base HEASoft image, run [heasoft_image.sh](/Docker/heasoft_image.sh) script.
 
 ```sh
-docker run --rm -it -v ~/dresscode-data/:/data \
-    dresscodeswift/dresscode \
-    /bin/bash /opt/dresscode/tests/test_pipeline.bash /data
+./Docker/heasoft_image.sh
 ```
 
-## Build and push dependency docker image
+### caldb and wcstools image
+
+To build the caldb and wcstools image run:
 
 ```sh
 docker build --tag dresscodeswift/heasoft-caldb-wcstools:latest -f Docker/heasoft-caldb-wcstools.dockerfile .
 docker push dresscodeswift/heasoft-caldb-wcstools:latest
 ```
 
-To build the base heasoft image, follow the Heasoft Docker [instructions](https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/docker.html).
-
-## DRESSCode Image
+### DRESSCode Image
 
 To build the DRESSCode image locally (tagging `latest`):
 
@@ -47,6 +61,8 @@ docker build --tag dresscodeswift/dresscode:latest -f Docker/dockerfile .
 ```
 
 ## Running pipeline from docker
+
+The following mounts a local volume into the docker image and runs the `test_pipeline.bash` script
 
 Adjust variables `DATA_DIR` and `GALAXY` as necessary:
 
