@@ -17,10 +17,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build HEASoft image and push
+      - name: Build HEASoft image and push to dockerhub
         run: |
           bash Docker/heasoft_image.sh
-
-      - name: Push the heasoft image to dockerhub
-        run: |
           docker push dresscodeswift/heasoft:"$HEASOFT_VER".swift
