@@ -20,4 +20,3 @@ jobs:
       - name: Build HEASoft image and push to dockerhub
         run: |
           bash Docker/heasoft_image.sh
-          docker push dresscodeswift/heasoft:v"$HEASOFT_VER".swift
