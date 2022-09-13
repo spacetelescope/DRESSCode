@@ -33,7 +33,7 @@ The minimum requirements are:
 
 ### Docker
 
-Docker can be used to run the software without having to complete the heasoft/caldb/wcstools installation procedure yourself (or to run on windows). The image can be found on <a href="https://hub.docker.com/r/dresscodeswift/dresscode" target="_blank">docker hub</a>.
+Docker can be used to run the software without having to complete the HEASoft/caldb/wcstools installation procedure yourself (or to run on windows). The image can be found on <a href="https://hub.docker.com/r/dresscodeswift/dresscode" target="_blank">docker hub</a>.
 
 To download and open an interactive shell:
 
