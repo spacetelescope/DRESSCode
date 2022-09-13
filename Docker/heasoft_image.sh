@@ -2,10 +2,9 @@
 
 set -eou pipefail
 
-# this script downloads and builds the heasoft SWIFT docker image
-# it will use a ./heasoft_{DATE}/ directory as a working directory
-# after docker build is complete, push the image with:
-# docker push dresscodeswift/heasoft:v"$HEASOFT_VER".swift
+# this script downloads and builds the _latest_ HEASoft SWIFT docker image
+# it uses a ./heasoft_{DATE}/ directory as a working directory
+# after the docker build is complete, it pushes the image to dockerhub
 # See the pushed image at https://hub.docker.com/repository/docker/dresscodeswift/heasoft
 
 # For HEASoft docker instructions visit

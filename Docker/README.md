@@ -8,6 +8,10 @@
 
 ## Images
 
+Compiling and building HEASoft takes a long time (> 1h), so for automated testing we utilize docker and install `HEASoft`, `wcstools`, `caldb`, and `dresscode` into this docker image.
+
+The dresscode image inherits from the caldb & wcstools image, which inherits from the HEASoft image.
+
 | Name | File path | DockerHub | Comment |
 |------------|-----------|-----------|---------|
 |HEASoft|[HEASoft website](https://heasarc.gsfc.nasa.gov/lheasoft/docker.html)|[heasoft ![Docker Pulls](https://img.shields.io/docker/pulls/dresscodeswift/heasoft) ![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/dresscodeswift/heasoft)](https://hub.docker.com/r/dresscodeswift/heasoft)|HEASoft image from [instructions](https://heasarc.gsfc.nasa.gov/lheasoft/docker.html), with SWIFT tools|
@@ -16,9 +20,13 @@
 
 ## GitHub Workflows
 
-Compiling and building HEASoft takes a long time, so for automated testing we utilize a HEASoft docker image and install wcstools, caldb, and dresscode into that image.
+Docker images are built in GitHub Workflows and published to dockerhub.
 
-We also make available the DRESSCode image with `caldb`, `wcstools`, and `dresscode` installed.
+The HEASoft image, due to its long build time, is only made on demand, from the [Github Actions](https://github.com/spacetelescope/DRESSCode/actions) page.
+
+The wcstools/caldb image is built and pushed on all commits to `main` branch.
+
+The dresscode image is built on every commit, and tested, but only pushed to dockerhub on commits to `main` branch.
 
 GitHub workflows build and push our docker images to dockerhub.
 
@@ -29,13 +37,15 @@ GitHub workflows build and push our docker images to dockerhub.
 
 ### HEASoft Image
 
-To build the base HEASoft image, run the [heasoft_image.sh](/Docker/heasoft_image.sh) script. 
+To build and push the base HEASoft image, run [heasoft_image.sh](/Docker/heasoft_image.sh) script.
 
 ```sh
 ./Docker/heasoft_image.sh
 ```
 
 ### caldb and wcstools image
+
+To build the caldb and wcstools image run:
 
 ```sh
 docker build --tag dresscodeswift/heasoft-caldb-wcstools:latest -f Docker/heasoft-caldb-wcstools.dockerfile .
