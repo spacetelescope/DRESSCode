@@ -17,6 +17,10 @@ jobs:
         with:
           python-version: 3.8
 
+      - name: Set Docker Tag to shortened commit hash
+        run: |
+          echo "DOCKER_TAG=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
+
       - name: Cache Raw_data
         id: cache-test-images
         uses: actions/cache@v3
@@ -44,7 +48,9 @@ jobs:
 
       - name: Build the DRESSCode Docker image
         run: |
-          docker build --tag dresscodeswift/dresscode:latest \
+          docker build \
+          --tag dresscodeswift/dresscode:latest \
+          --tag dresscodeswift/dresscode:${{ env.DOCKER_TAG }} \
           --cache-from dresscodeswift/dresscode:latest \
           -f Docker/dockerfile .
 
@@ -63,17 +69,19 @@ jobs:
             ~/dresscode-data/NGC0628/working_dir/*final*.fits
 
       - name: Login to DockerHub
-        if: github.ref == 'refs/heads/main'
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Push the DRESSCode Docker image commit hash tag
+        run: docker push dresscodeswift/dresscode:${{ env.DOCKER_TAG }}
+
       - name: Push the dependency Docker image
         if: github.ref == 'refs/heads/main'
         run: docker push dresscodeswift/heasoft-caldb-wcstools:latest
 
-      - name: Push the DRESSCode Docker image
+      - name: Push the DRESSCode Docker image latest tag
         if: github.ref == 'refs/heads/main'
         run: docker push dresscodeswift/dresscode:latest
 
