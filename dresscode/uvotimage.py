@@ -69,7 +69,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             )
 
         # Check if the sky image was successfully created.
-        with open(terminal_output_file, "r") as file:
+        with open(terminal_output_file) as file:
             for line in file:
                 # If the word "error" is encountered, print an error message.
                 if "error" in line:

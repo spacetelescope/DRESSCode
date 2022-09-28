@@ -171,13 +171,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             )
 
         # Check if the attitude file was adjusted.
-        file = open(terminal_output_file, "r")
+        with open(terminal_output_file) as fh:
 
-        for line in file:
-            # If the word "error" is encountered, print an error message.
-            if "error" in line:
-                print("An error has occurred for attitude file " + filename)
-                error = True
+            for line in fh.readlines():
+                # If the word "error" is encountered, print an error message.
+                if "error" in line:
+                    print("An error has occurred for attitude file " + filename)
+                    error = True
 
         print(f"Attitude file {filename} has been adjusted ({i+1}/{num})")
 

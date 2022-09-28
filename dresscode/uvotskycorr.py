@@ -77,17 +77,17 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 )
 
         # Check if an aspect correction was found.
-        file = open(terminal_output_file, "r")
+        with open(terminal_output_file) as fh:
 
-        for line in file:
-            # If the words "no correction" are encountered, print an error message.
-            if "no correction" in line:
-                print(
-                    "!! No aspect correction found for frame "
-                    + line.split()[4].replace("sk_corr", "sk")
-                    + "!!"
-                )
-                error = True
+            for line in fh.readlines():
+                # If the words "no correction" are encountered, print an error message.
+                if "no correction" in line:
+                    print(
+                        "!! No aspect correction found for frame "
+                        + line.split()[4].replace("sk_corr", "sk")
+                        + "!!"
+                    )
+                    error = True
 
         print(
             f"Aspect correction calculated for all (other) frames of {filename} ({i+1}/{num})"

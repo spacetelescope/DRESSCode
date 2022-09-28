@@ -12,6 +12,9 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
+        with:
+          # Checkout pull request HEAD commit instead of merge commit
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - uses: actions/setup-python@v4
         with:
@@ -67,6 +70,12 @@ jobs:
           name: final-fits
           path: |
             ~/dresscode-data/NGC0628/working_dir/*final*.fits
+
+      - name: Check for final files
+        run: |
+          EXPECTED_FINAL_FILES=3
+          FINAL_FILES="$(ls ~/dresscode-data/NGC0628/working_dir/*final*.fits | wc -l)"
+          if [[ $FINAL_FILES -ne $EXPECTED_FINAL_FILES ]]; then echo "Number of output files = $FINAL_FILES"; exit 1; fi
 
       - name: Login to DockerHub
         uses: docker/login-action@v2
