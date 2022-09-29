@@ -259,10 +259,8 @@ def calc_coicorr_uncertainty(
     primary_counts_sum_hdul = fits.open(primary_counts_sum_fname)
     # this is in counts but we need to convert to fraction by dividing by corrected summed counts (primary)
 
-    new_data = coicorr_unc_sq_hdul[1].data / primary_counts_sum_hdul[1].data
-
-    # todo: After summing, take the square root
-    # new_data = np.sqrt(coicorr_unc_sq_hdul[1].data) / primary_counts_sum_hdul[1].data
+    # we summed squares, square root the summed uncertainties
+    new_data = np.sqrt(coicorr_unc_sq_hdul[1].data) / primary_counts_sum_hdul[1].data
 
     # todo: update the header for this data
     new_hdu_header = fits.PrimaryHDU(header=coicorr_unc_sq_hdul[0].header)
