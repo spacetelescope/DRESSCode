@@ -38,7 +38,7 @@ packaging==21.3
     # via
     #   astropy
     #   scikit-image
-pillow==9.0.1
+pillow==9.3.0
     # via
     #   imageio
     #   scikit-image
