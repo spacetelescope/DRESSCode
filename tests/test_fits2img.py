@@ -28,7 +28,6 @@ def test_fmt_outputs(fmt, final_fits_path: Path, tmp_path: Path):
 
 
 def test_args_planes(final_fits_path: Path, tmp_path: Path):
-
     args = [
         str(final_fits_path),
         "-o",
@@ -46,7 +45,6 @@ def test_args_planes(final_fits_path: Path, tmp_path: Path):
 
 
 def test_args_cobine(final_fits_path: Path, tmp_path: Path):
-
     args = [
         str(final_fits_path),
         "-o",

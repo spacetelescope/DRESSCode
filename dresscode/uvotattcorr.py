@@ -15,7 +15,6 @@ from dresscode.utils import load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-
     parser = ArgumentParser()
     parser.add_argument(
         "-c", "--config", help="path to config.txt", default="config.txt"
@@ -41,7 +40,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     error = False
 
     for i, filename in enumerate(att_files):
-
         # Check for which filters there is an aspect correction file.
         filters = []
         if os.path.isfile(
@@ -172,7 +170,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
         # Check if the attitude file was adjusted.
         with open(terminal_output_file) as fh:
-
             for line in fh.readlines():
                 # If the word "error" is encountered, print an error message.
                 if "error" in line:

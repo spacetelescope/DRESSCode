@@ -26,7 +26,6 @@ from dresscode.utils import load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-
     parser = ArgumentParser()
     parser.add_argument(
         "-c", "--config", help="path to config.txt", default="config.txt"
@@ -50,7 +49,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     error = False
 
     for i, original_filename in enumerate(sky_images):
-
         # Copy the original file and give the copy another name. This copy will be the file
         # to work with.
         filename = original_filename.replace("sk", "sk_corr")
@@ -87,7 +85,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
             # Check if an aspect correction was found.
             with open(terminal_output_file) as fh:
-
                 for line in fh.readlines():
                     # If the words "no correction" are encountered, print an error message.
                     if "no correction" in line:

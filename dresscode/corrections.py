@@ -52,7 +52,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         if filename.endswith(file_patt_to_corr)
     ]
     for i, fname in enumerate(filenames):
-
         fname = path + fname
 
         # update the masks
@@ -255,7 +254,6 @@ def lsscorr(hdulist: HDUList, fname: str):
     lss_hdulist = fits.open(fname.replace("sk_corr_coi.img", "lss_corr.img"))
 
     for frame, lss_frame in zip(hdulist[1:], lss_hdulist[1:]):
-
         data = frame.data
         header = frame.header
 
@@ -286,7 +284,6 @@ def zeropoint(hdulist: HDUList, out_fname: str, param1: float, param2: float):
     new_hdulist = fits.HDUList([new_hdu_header])
 
     for frame in hdulist[1:]:
-
         data = frame.data
         header = frame.header
 
@@ -360,7 +357,6 @@ def rem_corr_factor(data_hdulist: HDUList, corrfactor_hdul: HDUList, out_fname: 
     new_hdulist = fits.HDUList([new_hdu_header])
 
     for primary_frame, corr_factor_frame in zip(data_hdulist[1:], corrfactor_hdul[1:]):
-
         isfinite = (
             np.isfinite(primary_frame.data)
             & np.isfinite(corr_factor_frame.data)

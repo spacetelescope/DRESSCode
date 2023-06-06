@@ -109,7 +109,6 @@ def test_sum_count_rates_window_loop_small():
 
 
 def test_sum_count_rates_window():
-
     test_output = utils.windowed_sum(input_3_3, 1)
     assert np.array_equal(test_output, sum_3_3_rad_1, equal_nan=True)
 
@@ -289,7 +288,6 @@ def norm_farith(fname: str, exp_fname: str):
 
 
 def test_norm(data_masked_fname: str, exp_fname: str):
-
     data_hdul = fits.open(data_masked_fname)
     exp_hdul = fits.open(exp_fname)
     outfname = data_masked_fname.replace(".img", "_nm.img")

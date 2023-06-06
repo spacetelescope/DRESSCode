@@ -15,7 +15,6 @@ from dresscode.utils import load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-
     parser = ArgumentParser()
     parser.add_argument(
         "-c", "--config", help="path to config.txt", default="config.txt"
@@ -32,7 +31,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print("filename\t\t\t#frames\tfilter\tdate\n")
 
     for filename in sorted(os.listdir(path)):
-
         # If the file is not a raw image file, skip this file and continue with the next
         # file.
         if not filename.endswith("rw.img"):

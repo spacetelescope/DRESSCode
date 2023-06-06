@@ -39,7 +39,6 @@ def convert(filename, factor, galaxy):
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-
     parser = ArgumentParser()
     parser.add_argument(
         "-c", "--config", help="path to config.txt", default="config.txt"
