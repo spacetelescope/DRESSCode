@@ -71,10 +71,10 @@ More info can be found on the wcstools <a href="http://tdc-www.harvard.edu/wcsto
 
 ### Install DRESSCode
 
-Requires Python >= 3.7. Make sure you have a working python environment then install from source:
+Requires Python >= 3.7. Make sure you have a working python environment (it is probably best to create a new environment to work with DRESSCode). Then install from source:
 
 ```cmd
-python -m pip install https://git+https://github.com/spacetelescope/DRESSCode.git
+python -m pip install git+https://github.com/spacetelescope/DRESSCode
 ```
 
 Alternatively, clone the repo to a directory & install from there:

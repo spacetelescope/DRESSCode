@@ -22,7 +22,6 @@ except ImportError:
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-
     parser = ArgumentParser()
     parser.add_argument(
         "-c", "--config", help="path to config.txt", default="config.txt"
@@ -52,7 +51,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         sss_2x2 = np.ma.make_mask(fits.open(sss_2x2_fh)[0].data)
 
     for i, filename in enumerate(sky_images):
-
         # Open the bad pixel file and copy its primary header (extension 0 of hdulist) to a
         # new hdulist.
         badpixfile = "quality_" + filename.replace("sk", "badpix")

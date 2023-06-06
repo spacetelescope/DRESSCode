@@ -33,7 +33,6 @@ class BadArgumentError(ValueError):
 
 
 def gen_img(ax: plt.Axes, primary_image, img_type) -> None:
-
     ax.axis("off")
     ax.imshow(
         primary_image,
@@ -68,7 +67,6 @@ def create_images(
 
         # primary is the first image
         for i, img_type in [IMAGE_TYPES[i] for i in planes]:
-
             primary_image = image_data[i, :, :]
 
             if combine:
@@ -106,7 +104,6 @@ def create_images(
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "image_path", help=f"path to images with file pattern: {FILE_PATTERN}"

@@ -76,7 +76,6 @@ FILE_TYPES_TO_SUM = [
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-
     parser = ArgumentParser()
     parser.add_argument(
         "-c", "--config", help="path to config.txt", default="config.txt"
@@ -190,7 +189,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             ) as zp_corr_hdul, fits.open(
                 primary_cts_fname
             ) as primary_cts_hdul:
-
                 primary = primary_hdul[1].data
                 f_coi = coicorr_hdul[1].data
                 coicorr_rel = coi_unc_hdul[1].data

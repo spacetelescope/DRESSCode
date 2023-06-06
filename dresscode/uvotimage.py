@@ -15,7 +15,6 @@ from dresscode.utils import load_config
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-
     parser = ArgumentParser()
     parser.add_argument(
         "-c", "--config", help="path to config.txt", default="config.txt"
@@ -39,7 +38,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     error = False
 
     for i, filename in enumerate(raw_images):
-
         # Specify the input file, the prefix for the output file, the attitude file and
         # the terminal output file.
         infile = filename
