@@ -74,7 +74,7 @@ More info can be found on the wcstools <a href="http://tdc-www.harvard.edu/wcsto
 Requires Python >= 3.7. Make sure you have a working python environment then install from source:
 
 ```cmd
-python -m pip install https://git+https://github.com/spacetelescope/DRESSCode.git
+pip install git+https://github.com/spacetelescope/DRESSCode
 ```
 
 Alternatively, clone the repo to a directory & install from there:
